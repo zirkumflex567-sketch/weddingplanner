@@ -106,7 +106,7 @@ async function runDesktopAudit(browser) {
   await page.getByLabel("Gastname").fill(guestName);
   await page.getByLabel("Haushalt").fill("Familie Audit");
   await page.getByLabel("E-Mail").fill(`audit-${uniqueId}@example.com`);
-  await page.getByLabel("Plus-One erlaubt").check();
+  await page.locator('input[aria-label="Plus-One erlaubt"]').check({ force: true });
   await page.getByLabel("Kinder").fill("1");
   await page.getByLabel("Songwunsch").fill("Dancing Queen");
   await page.getByRole("button", { name: "Gast speichern" }).click();
@@ -128,7 +128,7 @@ async function runDesktopAudit(browser) {
   await publicRsvpPage.getByLabel("Essenswahl").selectOption("vegan");
   await publicRsvpPage.getByLabel("Allergien oder Hinweise").fill("Bitte vegane Option einplanen.");
   await publicRsvpPage.getByLabel("Begleitperson").fill("Alex Audit");
-  await publicRsvpPage.getByLabel("Kinder").fill("2");
+  await publicRsvpPage.getByRole("spinbutton", { name: "Kinder" }).fill("2");
   await publicRsvpPage.getByLabel("Songwunsch").fill("September");
   await publicRsvpPage.getByLabel("Nachricht ans Paar").fill("Wir freuen uns sehr auf euch.");
   await publicRsvpPage.getByRole("button", { name: "Antwort speichern" }).click();
