@@ -88,10 +88,11 @@ Wir bauen keine weitere passive Hochzeits-Checkliste, sondern einen proaktiven, 
 - Checklist-Aufgaben koennen abgehakt werden
 - Budget-Positionen koennen als Angebot, Buchung oder bezahlte Ausgabe erfasst werden
 - Vendor-Empfehlungen koennen als kontaktiert, angeboten, gebucht oder verworfen verfolgt werden
-- Quotes und Vendor-Notizen bleiben nach Reload im Workspace erhalten
+- Quotes, Paketnamen, Verfuegbarkeit, Vertragsstand, Anzahlungen, Follow-ups und Vendor-Notizen bleiben nach Reload im Workspace erhalten
 - lokale Vendor-Matches fuer `67454 / Hassloch` zeigen jetzt Website- und Quellenlinks direkt im Guided Mode
 - Gaeste koennen ueber eine oeffentliche RSVP-Seite selbst antworten und Essenshinweise hinterlassen
 - der Couple-Workspace zieht tab-uebergreifende RSVP-Aenderungen jetzt frisch aus der API
 - Budget, Vendor-Matches, Event-Blueprints und DACH-Reminder reagieren auf das gespeicherte Profil
 - die UI zeigt bewusst nur noch einen aktiven Planungsschritt statt einer ueberladenen Dashboard-Wand
 - die laufende Beratung bleibt jetzt pro Workspace im Browser erhalten und kann nach Reload wieder aufgenommen werden
+- der Kern-Vendoren-Schritt hat jetzt eine echte Angebotsflaeche mit Kategorie-Vergleich, Preisanker und Follow-up-/Vertragsstatus

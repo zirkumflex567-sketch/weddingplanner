@@ -9,6 +9,7 @@ import {
   createPrototypeTasks,
   createPrototypeVendorTracker,
   mergePrototypeVendorTracker,
+  normalizePrototypeVendorTrackerEntry,
   summarizeGuests,
   type PlannedEventId,
   type PrototypeExpense,
@@ -16,6 +17,9 @@ import {
   type PrototypeMealPreference,
   type PrototypePublicRsvpSession,
   type PrototypeTask,
+  type PrototypeVendorAvailability,
+  type PrototypeVendorContractStatus,
+  type PrototypeVendorPaymentStatus,
   type PrototypeVendorStage,
   type PrototypeWorkspaceProfile,
   type PrototypeWorkspace,
@@ -48,6 +52,12 @@ export interface UpdateVendorInput {
   stage: PrototypeVendorStage;
   quoteAmount: number | null;
   note: string;
+  packageLabel?: string;
+  availability?: PrototypeVendorAvailability;
+  contractStatus?: PrototypeVendorContractStatus;
+  paymentStatus?: PrototypeVendorPaymentStatus;
+  depositAmount?: number | null;
+  followUpOn?: string | null;
 }
 
 export interface PrototypeWorkspaceStore {
@@ -160,6 +170,13 @@ function normalizeWorkspace(workspace: PrototypeWorkspace): PrototypeWorkspace {
   const tasks = mergeTasks(workspace.tasks ?? [], createPrototypeTasks(plan));
   const guests = (workspace.guests ?? []).map((guest) => normalizeGuest(guest));
   const expenses = workspace.expenses ?? [];
+  const normalizedVendorTracker = mergePrototypeVendorTracker(
+    (workspace.vendorTracker ?? []).map((entry) =>
+      normalizePrototypeVendorTrackerEntry(entry, workspace.updatedAt)
+    ),
+    plan.vendorMatches,
+    workspace.updatedAt
+  );
 
   return {
     ...workspace,
@@ -170,11 +187,7 @@ function normalizeWorkspace(workspace: PrototypeWorkspace): PrototypeWorkspace {
     guestSummary: summarizeGuests(guests),
     progress: calculateProgress(tasks),
     expenses,
-    vendorTracker: mergePrototypeVendorTracker(
-      workspace.vendorTracker ?? [],
-      plan.vendorMatches,
-      workspace.updatedAt
-    ),
+    vendorTracker: normalizedVendorTracker,
     budgetOverview:
       workspace.budgetOverview ??
       calculateBudgetOverview(plan.budgetCategories, expenses)
@@ -365,6 +378,24 @@ export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore 
     vendorEntry.stage = input.stage;
     vendorEntry.quoteAmount = input.quoteAmount;
     vendorEntry.note = input.note;
+    if (typeof input.packageLabel !== "undefined") {
+      vendorEntry.packageLabel = input.packageLabel;
+    }
+    if (typeof input.availability !== "undefined") {
+      vendorEntry.availability = input.availability;
+    }
+    if (typeof input.contractStatus !== "undefined") {
+      vendorEntry.contractStatus = input.contractStatus;
+    }
+    if (typeof input.paymentStatus !== "undefined") {
+      vendorEntry.paymentStatus = input.paymentStatus;
+    }
+    if (typeof input.depositAmount !== "undefined") {
+      vendorEntry.depositAmount = input.depositAmount;
+    }
+    if (typeof input.followUpOn !== "undefined") {
+      vendorEntry.followUpOn = input.followUpOn;
+    }
     vendorEntry.updatedAt = new Date().toISOString();
     workspace.updatedAt = vendorEntry.updatedAt;
 
@@ -599,6 +630,24 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
     vendorEntry.stage = input.stage;
     vendorEntry.quoteAmount = input.quoteAmount;
     vendorEntry.note = input.note;
+    if (typeof input.packageLabel !== "undefined") {
+      vendorEntry.packageLabel = input.packageLabel;
+    }
+    if (typeof input.availability !== "undefined") {
+      vendorEntry.availability = input.availability;
+    }
+    if (typeof input.contractStatus !== "undefined") {
+      vendorEntry.contractStatus = input.contractStatus;
+    }
+    if (typeof input.paymentStatus !== "undefined") {
+      vendorEntry.paymentStatus = input.paymentStatus;
+    }
+    if (typeof input.depositAmount !== "undefined") {
+      vendorEntry.depositAmount = input.depositAmount;
+    }
+    if (typeof input.followUpOn !== "undefined") {
+      vendorEntry.followUpOn = input.followUpOn;
+    }
     vendorEntry.updatedAt = new Date().toISOString();
     workspace.updatedAt = vendorEntry.updatedAt;
 
@@ -735,6 +784,11 @@ export function isUpdateVendorInput(value: unknown): value is UpdateVendorInput 
   const candidate = value as Record<string, unknown>;
   const stage = candidate.stage;
   const quoteAmount = candidate.quoteAmount;
+  const availability = candidate.availability;
+  const contractStatus = candidate.contractStatus;
+  const paymentStatus = candidate.paymentStatus;
+  const depositAmount = candidate.depositAmount;
+  const followUpOn = candidate.followUpOn;
 
   return (
     (stage === "suggested" ||
@@ -743,6 +797,26 @@ export function isUpdateVendorInput(value: unknown): value is UpdateVendorInput 
       stage === "booked" ||
       stage === "rejected") &&
     (quoteAmount === null || typeof quoteAmount === "number") &&
-    typeof candidate.note === "string"
+    typeof candidate.note === "string" &&
+    (typeof candidate.packageLabel === "undefined" || typeof candidate.packageLabel === "string") &&
+    (typeof availability === "undefined" ||
+      availability === "unknown" ||
+      availability === "requested" ||
+      availability === "available" ||
+      availability === "waitlist" ||
+      availability === "unavailable") &&
+    (typeof contractStatus === "undefined" ||
+      contractStatus === "none" ||
+      contractStatus === "received" ||
+      contractStatus === "signed") &&
+    (typeof paymentStatus === "undefined" ||
+      paymentStatus === "none" ||
+      paymentStatus === "deposit-due" ||
+      paymentStatus === "deposit-paid" ||
+      paymentStatus === "fully-paid") &&
+    (typeof depositAmount === "undefined" ||
+      depositAmount === null ||
+      typeof depositAmount === "number") &&
+    (typeof followUpOn === "undefined" || followUpOn === null || typeof followUpOn === "string")
   );
 }

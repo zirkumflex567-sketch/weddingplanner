@@ -165,8 +165,14 @@ async function runDesktopAudit(browser) {
 
   const firstVendorCard = page.locator(".guided-vendor-card").first();
   const vendorName = await firstVendorCard.locator("strong").first().innerText();
+  await firstVendorCard.getByLabel("Paket fuer " + vendorName).fill("Premium-Paket");
   await firstVendorCard.getByLabel("Vendor-Status").selectOption("quoted");
   await firstVendorCard.getByLabel("Quote in EUR").fill("2200");
+  await firstVendorCard.getByLabel("Anzahlung in EUR fuer " + vendorName).fill("700");
+  await firstVendorCard.getByLabel("Verfuegbarkeit fuer " + vendorName).selectOption("available");
+  await firstVendorCard.getByLabel("Vertrag fuer " + vendorName).selectOption("received");
+  await firstVendorCard.getByLabel("Zahlungsstand fuer " + vendorName).selectOption("deposit-due");
+  await firstVendorCard.getByLabel("Naechstes Follow-up fuer " + vendorName).fill("2026-04-12");
   await firstVendorCard.getByLabel("Notiz").fill("Rueckruf am Freitag vereinbart.");
   await firstVendorCard.getByRole("button", { name: "Vendor speichern" }).click();
   await page.waitForFunction(
@@ -176,6 +182,10 @@ async function runDesktopAudit(browser) {
       )
   );
   await expectText(firstVendorCard, /2\.200 EUR Quote/i);
+  await expectText(firstVendorCard, /Premium-Paket/i);
+  await expectText(firstVendorCard, /700 EUR/i);
+  await expectText(firstVendorCard, /verfuegbar/i);
+  await expectText(firstVendorCard, /vorliegend/i);
   await expectText(firstVendorCard, /Rueckruf am Freitag vereinbart\./i);
 
   await page.getByRole("button", { name: "Profil wechseln" }).click();

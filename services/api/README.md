@@ -38,3 +38,4 @@ Der Prototype-Store laeuft lokal dateibasiert fuer die App-Nutzung und ist bewus
 Bestehende persistierte Workspaces werden beim Laden auf neue Felder wie Vendor-Tracking normalisiert, damit Prototyp-Daten nicht bei jedem Ausbau verloren gehen.
 Gaeste bekommen ausserdem einen stabilen Access-Token fuer oeffentliche RSVP-Links mit Antwort, Essenswahl und Nachricht.
 Vendor-Matches werden jetzt datengetrieben aus `packages/shared/src/vendor-seeds.ts` erzeugt, inklusive Alias-Matching fuer `67454` bzw. `Hassloch` und Quellenmetadaten fuer die Seed-Eintraege.
+Der Vendor-Tracker speichert jetzt neben Stage und Quote auch Paketname, Verfuegbarkeit, Vertragsstand, Zahlungsstand, Anzahlung und naechstes Follow-up, damit aus einer Lead-Liste ein nutzbares Angebotsmodul wird.

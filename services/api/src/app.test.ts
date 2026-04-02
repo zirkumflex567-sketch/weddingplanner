@@ -891,6 +891,12 @@ describe("prototype workspace flow", () => {
       payload: {
         stage: "quoted",
         quoteAmount: 2200,
+        packageLabel: "",
+        availability: "unknown",
+        contractStatus: "none",
+        paymentStatus: "none",
+        depositAmount: null,
+        followUpOn: null,
         note: "Termin angefragt, Angebot kommt bis Freitag."
       }
     });
@@ -904,7 +910,60 @@ describe("prototype workspace flow", () => {
           vendorId,
           stage: "quoted",
           quoteAmount: 2200,
+          packageLabel: "",
+          availability: "unknown",
+          contractStatus: "none",
+          paymentStatus: "none",
+          depositAmount: null,
+          followUpOn: null,
           note: "Termin angefragt, Angebot kommt bis Freitag."
+        })
+      ])
+    );
+  });
+
+  it("stores offer, contract and follow-up metadata for vendor tracking", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: onboardingPayload
+    });
+    const created = createResponse.json();
+    const vendorId = created.workspace.plan.vendorMatches[2].id;
+
+    const vendorResponse = await app.inject({
+      method: "PATCH",
+      url: `/prototype/workspaces/${created.workspace.id}/vendors/${vendorId}`,
+      payload: {
+        stage: "quoted",
+        quoteAmount: 3400,
+        packageLabel: "Premium Reportage",
+        availability: "available",
+        contractStatus: "received",
+        paymentStatus: "deposit-due",
+        depositAmount: 1000,
+        followUpOn: "2026-04-10",
+        note: "Rueckfrage zu Ankunftszeit und Second Shooter."
+      }
+    });
+
+    expect(vendorResponse.statusCode).toBe(200);
+    expect(vendorResponse.json().workspace.vendorTracker).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          vendorId,
+          stage: "quoted",
+          quoteAmount: 3400,
+          packageLabel: "Premium Reportage",
+          availability: "available",
+          contractStatus: "received",
+          paymentStatus: "deposit-due",
+          depositAmount: 1000,
+          followUpOn: "2026-04-10",
+          note: "Rueckfrage zu Ankunftszeit und Second Shooter."
         })
       ])
     );
@@ -929,6 +988,12 @@ describe("prototype workspace flow", () => {
       payload: {
         stage: "contacted",
         quoteAmount: null,
+        packageLabel: "Erstgespraech",
+        availability: "requested",
+        contractStatus: "none",
+        paymentStatus: "none",
+        depositAmount: null,
+        followUpOn: "2026-04-08",
         note: "Rueckruf angefragt."
       }
     });
@@ -950,6 +1015,12 @@ describe("prototype workspace flow", () => {
           vendorId,
           stage: "contacted",
           quoteAmount: null,
+          packageLabel: "Erstgespraech",
+          availability: "requested",
+          contractStatus: "none",
+          paymentStatus: "none",
+          depositAmount: null,
+          followUpOn: "2026-04-08",
           note: "Rueckruf angefragt."
         })
       ])

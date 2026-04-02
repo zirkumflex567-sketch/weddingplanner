@@ -3,6 +3,9 @@ import type {
   PrototypeExpense,
   PrototypeGuest,
   PrototypePublicRsvpSession,
+  PrototypeVendorAvailability,
+  PrototypeVendorContractStatus,
+  PrototypeVendorPaymentStatus,
   PrototypeVendorStage,
   PrototypeWorkspaceProfile,
   PrototypeWorkspace,
@@ -36,6 +39,12 @@ interface UpdateVendorInput {
   stage: PrototypeVendorStage;
   quoteAmount: number | null;
   note: string;
+  packageLabel: string;
+  availability: PrototypeVendorAvailability;
+  contractStatus: PrototypeVendorContractStatus;
+  paymentStatus: PrototypeVendorPaymentStatus;
+  depositAmount: number | null;
+  followUpOn: string | null;
 }
 
 interface UpdatePublicRsvpInput {

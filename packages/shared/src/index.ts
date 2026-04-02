@@ -162,10 +162,31 @@ export type PrototypeVendorStage =
   | "booked"
   | "rejected";
 
+export type PrototypeVendorAvailability =
+  | "unknown"
+  | "requested"
+  | "available"
+  | "waitlist"
+  | "unavailable";
+
+export type PrototypeVendorContractStatus = "none" | "received" | "signed";
+
+export type PrototypeVendorPaymentStatus =
+  | "none"
+  | "deposit-due"
+  | "deposit-paid"
+  | "fully-paid";
+
 export interface PrototypeVendorTrackerEntry {
   vendorId: string;
   stage: PrototypeVendorStage;
   quoteAmount: number | null;
+  packageLabel: string;
+  availability: PrototypeVendorAvailability;
+  contractStatus: PrototypeVendorContractStatus;
+  paymentStatus: PrototypeVendorPaymentStatus;
+  depositAmount: number | null;
+  followUpOn: string | null;
   note: string;
   updatedAt: string;
 }
@@ -830,13 +851,7 @@ export function createPrototypeVendorTracker(
   vendorMatches: VendorMatch[],
   updatedAt = new Date().toISOString()
 ): PrototypeVendorTrackerEntry[] {
-  return vendorMatches.map((vendor) => ({
-    vendorId: vendor.id,
-    stage: "suggested",
-    quoteAmount: null,
-    note: "",
-    updatedAt
-  }));
+  return vendorMatches.map((vendor) => createPrototypeVendorTrackerEntry(vendor.id, updatedAt));
 }
 
 export function mergePrototypeVendorTracker(
@@ -850,17 +865,87 @@ export function mergePrototypeVendorTracker(
     const existing = currentByVendorId.get(vendor.id);
 
     if (existing) {
-      return existing;
+      return normalizePrototypeVendorTrackerEntry(existing, updatedAt);
     }
 
-    return {
-      vendorId: vendor.id,
-      stage: "suggested" as const,
-      quoteAmount: null,
-      note: "",
-      updatedAt
-    };
+    return createPrototypeVendorTrackerEntry(vendor.id, updatedAt);
   });
+}
+
+export function createPrototypeVendorTrackerEntry(
+  vendorId: string,
+  updatedAt = new Date().toISOString()
+): PrototypeVendorTrackerEntry {
+  return {
+    vendorId,
+    stage: "suggested",
+    quoteAmount: null,
+    packageLabel: "",
+    availability: "unknown",
+    contractStatus: "none",
+    paymentStatus: "none",
+    depositAmount: null,
+    followUpOn: null,
+    note: "",
+    updatedAt
+  };
+}
+
+export function normalizePrototypeVendorTrackerEntry(
+  entry: PrototypeVendorTrackerEntry,
+  fallbackUpdatedAt = new Date().toISOString()
+): PrototypeVendorTrackerEntry {
+  return {
+    ...entry,
+    packageLabel: typeof entry.packageLabel === "string" ? entry.packageLabel : "",
+    availability: isPrototypeVendorAvailability(entry.availability)
+      ? entry.availability
+      : "unknown",
+    contractStatus: isPrototypeVendorContractStatus(entry.contractStatus)
+      ? entry.contractStatus
+      : "none",
+    paymentStatus: isPrototypeVendorPaymentStatus(entry.paymentStatus)
+      ? entry.paymentStatus
+      : "none",
+    depositAmount: typeof entry.depositAmount === "number" ? entry.depositAmount : null,
+    followUpOn:
+      typeof entry.followUpOn === "string" && entry.followUpOn.length > 0
+        ? entry.followUpOn
+        : null,
+    updatedAt:
+      typeof entry.updatedAt === "string" && entry.updatedAt.length > 0
+        ? entry.updatedAt
+        : fallbackUpdatedAt
+  };
+}
+
+export function isPrototypeVendorAvailability(
+  value: unknown
+): value is PrototypeVendorAvailability {
+  return (
+    value === "unknown" ||
+    value === "requested" ||
+    value === "available" ||
+    value === "waitlist" ||
+    value === "unavailable"
+  );
+}
+
+export function isPrototypeVendorContractStatus(
+  value: unknown
+): value is PrototypeVendorContractStatus {
+  return value === "none" || value === "received" || value === "signed";
+}
+
+export function isPrototypeVendorPaymentStatus(
+  value: unknown
+): value is PrototypeVendorPaymentStatus {
+  return (
+    value === "none" ||
+    value === "deposit-due" ||
+    value === "deposit-paid" ||
+    value === "fully-paid"
+  );
 }
 
 export function calculateBudgetOverview(

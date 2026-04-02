@@ -6,10 +6,13 @@ import type {
   PlannedEventId,
   PrototypeExpense,
   PrototypeGuest,
-  VendorMatch,
+  PrototypeVendorAvailability,
+  PrototypeVendorContractStatus,
+  PrototypeVendorPaymentStatus,
+  PrototypeVendorStage,
   PrototypeWorkspace,
   PrototypeWorkspaceProfile,
-  PrototypeVendorStage,
+  VendorMatch,
   WeddingConsultantTurn,
   WeddingBootstrapInput
 } from "@wedding/shared";
@@ -66,6 +69,12 @@ type ExpenseDraft = {
 type VendorDraft = {
   stage: PrototypeVendorStage;
   quoteAmount: string;
+  packageLabel: string;
+  availability: PrototypeVendorAvailability;
+  contractStatus: PrototypeVendorContractStatus;
+  paymentStatus: PrototypeVendorPaymentStatus;
+  depositAmount: string;
+  followUpOn: string;
   note: string;
 };
 
@@ -125,6 +134,27 @@ const vendorStageLabels: Record<PrototypeVendorStage, string> = {
   quoted: "Angebot",
   booked: "Gebucht",
   rejected: "Verworfen"
+};
+
+const vendorAvailabilityLabels: Record<PrototypeVendorAvailability, string> = {
+  unknown: "offen",
+  requested: "angefragt",
+  available: "verfuegbar",
+  waitlist: "Warteliste",
+  unavailable: "nicht frei"
+};
+
+const vendorContractStatusLabels: Record<PrototypeVendorContractStatus, string> = {
+  none: "noch offen",
+  received: "vorliegend",
+  signed: "signiert"
+};
+
+const vendorPaymentStatusLabels: Record<PrototypeVendorPaymentStatus, string> = {
+  none: "noch offen",
+  "deposit-due": "Anzahlung faellig",
+  "deposit-paid": "Anzahlung bezahlt",
+  "fully-paid": "voll bezahlt"
 };
 
 const displayStepTitleById: Record<GuidedPlanningStepId, string> = {
@@ -221,6 +251,12 @@ function createVendorDraft(): VendorDraft {
   return {
     stage: "suggested",
     quoteAmount: "",
+    packageLabel: "",
+    availability: "unknown",
+    contractStatus: "none",
+    paymentStatus: "none",
+    depositAmount: "",
+    followUpOn: "",
     note: ""
   };
 }
@@ -233,6 +269,13 @@ function createVendorDraftMap(workspace: PrototypeWorkspace | null) {
         stage: entry.stage,
         quoteAmount:
           typeof entry.quoteAmount === "number" ? String(entry.quoteAmount) : "",
+        packageLabel: entry.packageLabel,
+        availability: entry.availability,
+        contractStatus: entry.contractStatus,
+        paymentStatus: entry.paymentStatus,
+        depositAmount:
+          typeof entry.depositAmount === "number" ? String(entry.depositAmount) : "",
+        followUpOn: entry.followUpOn ?? "",
         note: entry.note
       }
     ])
@@ -875,6 +918,9 @@ function DashboardApp() {
     const draft = vendorDrafts[vendorId] ?? createVendorDraft();
     const parsedQuoteAmount =
       draft.quoteAmount.trim().length > 0 ? Number(draft.quoteAmount) : null;
+    const parsedDepositAmount =
+      draft.depositAmount.trim().length > 0 ? Number(draft.depositAmount) : null;
+    const followUpOn = draft.followUpOn.trim().length > 0 ? draft.followUpOn : null;
 
     setStatus("saving");
     setError(null);
@@ -883,6 +929,12 @@ function DashboardApp() {
       const result = await updateVendorLead(workspace.id, vendorId, {
         stage: draft.stage,
         quoteAmount: Number.isFinite(parsedQuoteAmount) ? parsedQuoteAmount : null,
+        packageLabel: draft.packageLabel.trim(),
+        availability: draft.availability,
+        contractStatus: draft.contractStatus,
+        paymentStatus: draft.paymentStatus,
+        depositAmount: Number.isFinite(parsedDepositAmount) ? parsedDepositAmount : null,
+        followUpOn,
         note: draft.note.trim()
       });
       hydrateWorkspace(result.workspace);
@@ -972,6 +1024,32 @@ function DashboardApp() {
     return links;
   }
 
+  function formatCurrency(amount: number | null | undefined) {
+    if (typeof amount !== "number") {
+      return null;
+    }
+
+    return `${amount.toLocaleString("de-DE")} EUR`;
+  }
+
+  function formatDateLabel(value: string | null | undefined) {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+
+    return parsed.toLocaleDateString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    });
+  }
+
   function matchesVendorSearch(vendor: VendorMatch, searchTerm: string) {
     const normalizedQuery = searchTerm.trim().toLowerCase();
 
@@ -994,6 +1072,9 @@ function DashboardApp() {
     const trackerEntry = getVendorTrackerEntry(vendor.id);
     const vendorDraft = vendorDrafts[vendor.id] ?? createVendorDraft();
     const locationLabel = vendor.city ? `${vendor.city} / ${vendor.region}` : vendor.region;
+    const budgetCategory = workspace?.plan.budgetCategories.find(
+      (entry) => entry.category === vendor.category
+    );
     const metaTokens = [
       options?.showCategory ? vendorCategoryLabels[vendor.category] : null,
       locationLabel,
@@ -1001,6 +1082,50 @@ function DashboardApp() {
     ].filter(Boolean);
     const reviewLine = formatVendorReview(vendor);
     const vendorLinks = getVendorLinks(vendor);
+    const summaryPills = [
+      trackerEntry?.quoteAmount != null
+        ? {
+            label: "Angebot",
+            value: formatCurrency(trackerEntry.quoteAmount)
+          }
+        : null,
+      trackerEntry?.depositAmount != null
+        ? {
+            label: "Anzahlung",
+            value: formatCurrency(trackerEntry.depositAmount)
+          }
+        : null,
+      trackerEntry
+        ? {
+            label: "Verfuegbarkeit",
+            value: vendorAvailabilityLabels[trackerEntry.availability]
+          }
+        : null,
+      trackerEntry
+        ? {
+            label: "Vertrag",
+            value: vendorContractStatusLabels[trackerEntry.contractStatus]
+          }
+        : null,
+      trackerEntry
+        ? {
+            label: "Zahlung",
+            value: vendorPaymentStatusLabels[trackerEntry.paymentStatus]
+          }
+        : null,
+      trackerEntry?.followUpOn
+        ? {
+            label: "Follow-up",
+            value: formatDateLabel(trackerEntry.followUpOn)
+          }
+        : null,
+      budgetCategory
+        ? {
+            label: "Budgetziel",
+            value: formatCurrency(budgetCategory.plannedAmount)
+          }
+        : null
+    ].filter(Boolean) as Array<{ label: string; value: string | null }>;
 
     return (
       <article key={vendor.id} className="guided-vendor-card">
@@ -1018,6 +1143,16 @@ function DashboardApp() {
         </div>
         <p>{vendor.reasonSummary}</p>
         {reviewLine ? <p className="guided-vendor-review">{reviewLine}</p> : null}
+        {summaryPills.length > 0 ? (
+          <div className="guided-vendor-pill-grid">
+            {summaryPills.map((pill) => (
+              <div key={`${vendor.id}-${pill.label}`} className="guided-vendor-pill">
+                <span>{pill.label}</span>
+                <strong>{pill.value}</strong>
+              </div>
+            ))}
+          </div>
+        ) : null}
         <div className="guided-links">
           {vendorLinks.map((link) => (
             <a
@@ -1051,6 +1186,19 @@ function DashboardApp() {
             </select>
           </label>
           <label>
+            Paket / Fokus
+            <input
+              aria-label={`Paket fuer ${vendor.name}`}
+              placeholder="z. B. 8h Reportage oder Premium-Buffet"
+              value={vendorDraft.packageLabel}
+              onChange={(event) =>
+                updateVendorDraft(vendor.id, {
+                  packageLabel: event.target.value
+                })
+              }
+            />
+          </label>
+          <label>
             Quote in EUR
             <input
               aria-label={`Quote in EUR fuer ${vendor.name}`}
@@ -1066,9 +1214,90 @@ function DashboardApp() {
             />
           </label>
           <label>
+            Anzahlung in EUR
+            <input
+              aria-label={`Anzahlung in EUR fuer ${vendor.name}`}
+              type="number"
+              min="0"
+              step="50"
+              value={vendorDraft.depositAmount}
+              onChange={(event) =>
+                updateVendorDraft(vendor.id, {
+                  depositAmount: event.target.value
+                })
+              }
+            />
+          </label>
+          <label>
+            Verfuegbarkeit
+            <select
+              aria-label={`Verfuegbarkeit fuer ${vendor.name}`}
+              value={vendorDraft.availability}
+              onChange={(event) =>
+                updateVendorDraft(vendor.id, {
+                  availability: event.target.value as PrototypeVendorAvailability
+                })
+              }
+            >
+              <option value="unknown">Noch offen</option>
+              <option value="requested">Angefragt</option>
+              <option value="available">Verfuegbar</option>
+              <option value="waitlist">Warteliste</option>
+              <option value="unavailable">Nicht frei</option>
+            </select>
+          </label>
+          <label>
+            Vertrag
+            <select
+              aria-label={`Vertrag fuer ${vendor.name}`}
+              value={vendorDraft.contractStatus}
+              onChange={(event) =>
+                updateVendorDraft(vendor.id, {
+                  contractStatus: event.target.value as PrototypeVendorContractStatus
+                })
+              }
+            >
+              <option value="none">Noch offen</option>
+              <option value="received">Vorliegend</option>
+              <option value="signed">Signiert</option>
+            </select>
+          </label>
+          <label>
+            Zahlungsstand
+            <select
+              aria-label={`Zahlungsstand fuer ${vendor.name}`}
+              value={vendorDraft.paymentStatus}
+              onChange={(event) =>
+                updateVendorDraft(vendor.id, {
+                  paymentStatus: event.target.value as PrototypeVendorPaymentStatus
+                })
+              }
+            >
+              <option value="none">Noch offen</option>
+              <option value="deposit-due">Anzahlung faellig</option>
+              <option value="deposit-paid">Anzahlung bezahlt</option>
+              <option value="fully-paid">Voll bezahlt</option>
+            </select>
+          </label>
+          <label>
+            Naechstes Follow-up
+            <input
+              aria-label={`Naechstes Follow-up fuer ${vendor.name}`}
+              type="date"
+              value={vendorDraft.followUpOn}
+              onChange={(event) =>
+                updateVendorDraft(vendor.id, {
+                  followUpOn: event.target.value
+                })
+              }
+            />
+          </label>
+          <label>
             Notiz
             <input
+              className="guided-vendor-editor__note"
               aria-label={`Notiz fuer ${vendor.name}`}
+              placeholder="Kontakt, Leistungsumfang, offene Fragen"
               value={vendorDraft.note}
               onChange={(event) =>
                 updateVendorDraft(vendor.id, {
@@ -1086,12 +1315,12 @@ function DashboardApp() {
         >
           Vendor speichern
         </button>
-        {trackerEntry?.quoteAmount != null ? (
-          <p className="guided-muted">
-            {trackerEntry.quoteAmount.toLocaleString("de-DE")} EUR Quote
-          </p>
-        ) : null}
-        {trackerEntry?.note ? <p className="guided-muted">{trackerEntry.note}</p> : null}
+        <div className="guided-muted-stack">
+          {trackerEntry?.packageLabel ? (
+            <p className="guided-muted">Paket: {trackerEntry.packageLabel}</p>
+          ) : null}
+          {trackerEntry?.note ? <p className="guided-muted">{trackerEntry.note}</p> : null}
+        </div>
       </article>
     );
   }
@@ -1334,6 +1563,46 @@ function DashboardApp() {
       selectedGroup?.vendors.filter(
         (vendor) => (getVendorTrackerEntry(vendor.id)?.stage ?? "suggested") !== "suggested"
       ).length ?? 0;
+    const selectedBudgetCategory = workspace?.plan.budgetCategories.find(
+      (entry) => entry.category === selectedCategory
+    );
+    const selectedVendorComparisons =
+      selectedGroup?.vendors
+        .map((vendor) => ({
+          vendor,
+          trackerEntry: getVendorTrackerEntry(vendor.id)
+        }))
+        .filter(
+          (
+            item
+          ): item is {
+            vendor: VendorMatch;
+            trackerEntry: NonNullable<ReturnType<typeof getVendorTrackerEntry>>;
+          } => Boolean(item.trackerEntry)
+        ) ?? [];
+    const quotedComparisons = selectedVendorComparisons
+      .filter((item) => typeof item.trackerEntry.quoteAmount === "number")
+      .sort(
+        (left, right) =>
+          (left.trackerEntry.quoteAmount ?? Number.POSITIVE_INFINITY) -
+          (right.trackerEntry.quoteAmount ?? Number.POSITIVE_INFINITY)
+      );
+    const cheapestQuotedVendor = quotedComparisons[0] ?? null;
+    const signedVendorCount = selectedVendorComparisons.filter(
+      (item) => item.trackerEntry.contractStatus === "signed"
+    ).length;
+    const availableVendorCount = selectedVendorComparisons.filter(
+      (item) => item.trackerEntry.availability === "available"
+    ).length;
+    const followUpVendorCount = selectedVendorComparisons.filter(
+      (item) => Boolean(item.trackerEntry.followUpOn)
+    ).length;
+    const aboveBudgetVendorCount = selectedVendorComparisons.filter(
+      (item) =>
+        typeof item.trackerEntry.quoteAmount === "number" &&
+        typeof selectedBudgetCategory?.plannedAmount === "number" &&
+        item.trackerEntry.quoteAmount > selectedBudgetCategory.plannedAmount
+    ).length;
 
     return (
       <div className="guided-step-body">
@@ -1457,6 +1726,46 @@ function DashboardApp() {
             innerhalb der aktiven Kategorie und springt direkt in Portfolio, Referenzen oder
             Bewertungsprofil.
           </p>
+          {selectedGroup ? (
+            <div className="guided-vendor-insight-grid">
+              <article className="guided-inline-card guided-inline-card--metric">
+                <span className="eyebrow">Kategorie-Budget</span>
+                <strong>
+                  {selectedBudgetCategory
+                    ? formatCurrency(selectedBudgetCategory.plannedAmount)
+                    : "offen"}
+                </strong>
+                <p>{selectedGroup.label} als Planwert fuer diese Kategorie.</p>
+              </article>
+              <article className="guided-inline-card guided-inline-card--metric">
+                <span className="eyebrow">Guenstigstes Angebot</span>
+                <strong>
+                  {cheapestQuotedVendor
+                    ? formatCurrency(cheapestQuotedVendor.trackerEntry.quoteAmount)
+                    : "noch offen"}
+                </strong>
+                <p>
+                  {cheapestQuotedVendor
+                    ? cheapestQuotedVendor.vendor.name
+                    : "Sobald ihr den ersten Preis speichert, wird der Vergleich konkret."}
+                </p>
+              </article>
+              <article className="guided-inline-card guided-inline-card--metric">
+                <span className="eyebrow">Verfuegbar / Signiert</span>
+                <strong>
+                  {availableVendorCount} / {signedVendorCount}
+                </strong>
+                <p>Wie viele Anbieter schon frei sind und wie viele Vertraege sitzen.</p>
+              </article>
+              <article className="guided-inline-card guided-inline-card--metric">
+                <span className="eyebrow">Follow-ups / Budgetrisiko</span>
+                <strong>
+                  {followUpVendorCount} / {aboveBudgetVendorCount}
+                </strong>
+                <p>Offene Rueckmeldungen und gespeicherte Angebote ueber eurem Planwert.</p>
+              </article>
+            </div>
+          ) : null}
           <div className="guided-vendor-filter-bar">
             <div className="guided-vendor-filter-tabs" role="tablist" aria-label="Vendor-Kategorien">
               {vendorGroups.map((group) => (
