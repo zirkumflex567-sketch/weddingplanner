@@ -10,6 +10,7 @@ import {
   isCreateGuestInput,
   isSetTaskCompletionInput,
   isUpdateGuestInput,
+  isUpdateWebsiteInput,
   isUpdateVendorInput,
   type PrototypeWorkspaceStore
 } from "./prototype-store";
@@ -164,6 +165,17 @@ export function buildApp(options: BuildAppOptions = {}) {
     return session;
   });
 
+  app.get("/public/site/:token", async (request, reply) => {
+    const params = request.params as { token: string };
+    const siteSession = await workspaceStore.getPublicSiteSession(params.token);
+
+    if (!siteSession) {
+      return reply.code(404).send({ error: "Wedding website not found" });
+    }
+
+    return siteSession;
+  });
+
   app.post("/prototype/workspaces/:id/expenses", async (request, reply) => {
     const params = request.params as { id: string };
 
@@ -195,6 +207,22 @@ export function buildApp(options: BuildAppOptions = {}) {
 
     if (!workspace) {
       return reply.code(404).send({ error: "Workspace or vendor not found" });
+    }
+
+    return { workspace };
+  });
+
+  app.patch("/prototype/workspaces/:id/website", async (request, reply) => {
+    const params = request.params as { id: string };
+
+    if (!isUpdateWebsiteInput(request.body)) {
+      return reply.code(400).send({ error: "Invalid website payload" });
+    }
+
+    const workspace = await workspaceStore.updateWebsite(params.id, request.body);
+
+    if (!workspace) {
+      return reply.code(404).send({ error: "Workspace not found" });
     }
 
     return { workspace };

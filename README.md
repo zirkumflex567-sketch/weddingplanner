@@ -91,6 +91,8 @@ Wir bauen keine weitere passive Hochzeits-Checkliste, sondern einen proaktiven, 
 - Quotes, Paketnamen, Verfuegbarkeit, Vertragsstand, Anzahlungen, Follow-ups und Vendor-Notizen bleiben nach Reload im Workspace erhalten
 - lokale Vendor-Matches fuer `67454 / Hassloch` zeigen jetzt Website- und Quellenlinks direkt im Guided Mode
 - Gaeste koennen ueber eine oeffentliche RSVP-Seite selbst antworten und Essenshinweise hinterlassen
+- Gaeste koennen jetzt auch Begleitung, Kinderzahl und Songwunsch ueber den RSVP-Flow pflegen
+- eine erste oeffentliche Wedding-Website fuer Ablauf-, Reise-, Hotel- und Dresscode-Infos ist jetzt im Guided Mode pflegbar
 - der Couple-Workspace zieht tab-uebergreifende RSVP-Aenderungen jetzt frisch aus der API
 - Budget, Vendor-Matches, Event-Blueprints und DACH-Reminder reagieren auf das gespeicherte Profil
 - die UI zeigt bewusst nur noch einen aktiven Planungsschritt statt einer ueberladenen Dashboard-Wand

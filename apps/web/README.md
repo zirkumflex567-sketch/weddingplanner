@@ -25,3 +25,5 @@ Aktueller Stand:
 - blendet Guests, Budget, Vendoren, Admin und Control Room nur noch schrittbezogen ein
 - aktualisiert den Couple-Workspace jetzt auch nach Fokus-/Tabwechseln wieder aus der API, damit oeffentliche RSVP-Antworten sofort sichtbar werden
 - hat eine oeffentliche RSVP-Seite unter `/rsvp/:token` fuer Gaeste
+- pflegt im Guest-Schritt jetzt auch Plus-One, Kinder und Songwunsch
+- hat eine erste oeffentliche Wedding-Website unter `/site/:token` fuer Basisinfos, Reise, Hotel und Dresscode

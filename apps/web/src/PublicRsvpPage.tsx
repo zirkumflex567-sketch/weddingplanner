@@ -24,6 +24,9 @@ type PublicRsvpForm = {
   rsvpStatus: PrototypeGuest["rsvpStatus"];
   mealPreference: PrototypeGuest["mealPreference"];
   dietaryNotes: string;
+  plusOneName: string;
+  childCount: number;
+  songRequest: string;
   message: string;
 };
 
@@ -32,6 +35,9 @@ function createForm(session: PrototypePublicRsvpSession): PublicRsvpForm {
     rsvpStatus: session.guest.rsvpStatus,
     mealPreference: session.guest.mealPreference,
     dietaryNotes: session.guest.dietaryNotes,
+    plusOneName: session.guest.plusOneName,
+    childCount: session.guest.childCount,
+    songRequest: session.guest.songRequest,
     message: session.guest.message
   };
 }
@@ -123,7 +129,7 @@ export function PublicRsvpPage({ token }: PublicRsvpPageProps) {
             <p className="portal-copy">
               {session.guest.name}, ihr seid eingeladen fuer {session.context.targetDate} in{" "}
               {session.context.region}. Bitte gebt kurz Bescheid, ob ihr dabei seid und ob es
-              Essenshinweise gibt.
+              Essenshinweise, Begleitung oder Musikwuensche gibt.
             </p>
 
             <div className="summary-row">
@@ -200,6 +206,64 @@ export function PublicRsvpPage({ token }: PublicRsvpPageProps) {
                       )
                     }
                     placeholder="Zum Beispiel vegetarisch, keine Nuesse, Kindersitz noetig..."
+                  />
+                </label>
+
+                {session.guest.plusOneAllowed ? (
+                  <label className="portal-field">
+                    Begleitperson
+                    <input
+                      value={form?.plusOneName ?? ""}
+                      onChange={(event) =>
+                        setForm((current) =>
+                          current
+                            ? {
+                                ...current,
+                                plusOneName: event.target.value
+                              }
+                            : current
+                        )
+                      }
+                      placeholder="Name eurer Begleitung"
+                    />
+                  </label>
+                ) : null}
+
+                <label className="portal-field">
+                  Kinder
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form?.childCount ?? 0}
+                    onChange={(event) =>
+                      setForm((current) =>
+                        current
+                          ? {
+                              ...current,
+                              childCount: Number(event.target.value)
+                            }
+                          : current
+                      )
+                    }
+                  />
+                </label>
+
+                <label className="portal-field">
+                  Songwunsch
+                  <input
+                    value={form?.songRequest ?? ""}
+                    onChange={(event) =>
+                      setForm((current) =>
+                        current
+                          ? {
+                              ...current,
+                              songRequest: event.target.value
+                            }
+                          : current
+                      )
+                    }
+                    placeholder="Ein Song, der spaeter nicht fehlen darf"
                   />
                 </label>
 

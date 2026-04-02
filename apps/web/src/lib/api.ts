@@ -3,10 +3,12 @@ import type {
   PrototypeExpense,
   PrototypeGuest,
   PrototypePublicRsvpSession,
+  PrototypePublicSiteSession,
   PrototypeVendorAvailability,
   PrototypeVendorContractStatus,
   PrototypeVendorPaymentStatus,
   PrototypeVendorStage,
+  PrototypeWeddingWebsite,
   PrototypeWorkspaceProfile,
   PrototypeWorkspace,
   WeddingBootstrapInput
@@ -24,6 +26,9 @@ interface CreateGuestInput {
   name: string;
   household: string;
   email: string;
+  plusOneAllowed: boolean;
+  childCount: number;
+  songRequest: string;
   eventIds: PlannedEventId[];
 }
 
@@ -51,8 +56,16 @@ interface UpdatePublicRsvpInput {
   rsvpStatus?: PrototypeGuest["rsvpStatus"];
   mealPreference?: PrototypeGuest["mealPreference"];
   dietaryNotes?: string;
+  plusOneName?: string;
+  childCount?: number;
+  songRequest?: string;
   message?: string;
 }
+
+type UpdateWebsiteInput = Pick<
+  PrototypeWeddingWebsite,
+  "heroTitle" | "storyIntro" | "venueNote" | "travelNote" | "hotelNote" | "dressCode" | "rsvpDeadline"
+>;
 
 const appBasePath = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 const apiBasePath = `${appBasePath}/api`;
@@ -105,6 +118,10 @@ export async function deleteWorkspace(id: string) {
 
 export function getPublicRsvpSession(token: string) {
   return requestJson<PrototypePublicRsvpSession>(`/public/rsvp/${token}`);
+}
+
+export function getPublicSiteSession(token: string) {
+  return requestJson<PrototypePublicSiteSession>(`/public/site/${token}`);
 }
 
 export function updateWorkspace(id: string, input: WeddingBootstrapInput) {
@@ -179,6 +196,16 @@ export function updateVendorLead(
       body: JSON.stringify(input)
     }
   );
+}
+
+export function updateWebsiteContent(workspaceId: string, input: UpdateWebsiteInput) {
+  return requestJson<WorkspaceResponse>(`/prototype/workspaces/${workspaceId}/website`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  });
 }
 
 export function setTaskCompleted(

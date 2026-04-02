@@ -5,10 +5,12 @@ import {
   calculateBudgetOverview,
   calculateProgress,
   createBootstrapPlan,
+  createPrototypeWeddingWebsite,
   createPrototypeWorkspaceProfile,
   createPrototypeTasks,
   createPrototypeVendorTracker,
   mergePrototypeVendorTracker,
+  normalizePrototypeWeddingWebsite,
   normalizePrototypeVendorTrackerEntry,
   summarizeGuests,
   type PlannedEventId,
@@ -16,11 +18,13 @@ import {
   type PrototypeGuest,
   type PrototypeMealPreference,
   type PrototypePublicRsvpSession,
+  type PrototypePublicSiteSession,
   type PrototypeTask,
   type PrototypeVendorAvailability,
   type PrototypeVendorContractStatus,
   type PrototypeVendorPaymentStatus,
   type PrototypeVendorStage,
+  type PrototypeWeddingWebsite,
   type PrototypeWorkspaceProfile,
   type PrototypeWorkspace,
   type WeddingBootstrapInput
@@ -30,6 +34,9 @@ export interface CreateGuestInput {
   name: string;
   household: string;
   email: string;
+  plusOneAllowed?: boolean;
+  childCount?: number;
+  songRequest?: string;
   eventIds: PlannedEventId[];
 }
 
@@ -37,7 +44,20 @@ export interface UpdateGuestInput {
   rsvpStatus?: PrototypeGuest["rsvpStatus"];
   mealPreference?: PrototypeGuest["mealPreference"];
   dietaryNotes?: string;
+  plusOneName?: string;
+  childCount?: number;
+  songRequest?: string;
   message?: string;
+}
+
+export interface UpdateWebsiteInput {
+  heroTitle: string;
+  storyIntro: string;
+  venueNote: string;
+  travelNote: string;
+  hotelNote: string;
+  dressCode: string;
+  rsvpDeadline: string;
 }
 
 export interface CreateExpenseInput {
@@ -80,6 +100,11 @@ export interface PrototypeWorkspaceStore {
     accessToken: string,
     input: UpdateGuestInput
   ): Promise<PrototypePublicRsvpSession | null>;
+  getPublicSiteSession(siteToken: string): Promise<PrototypePublicSiteSession | null>;
+  updateWebsite(
+    workspaceId: string,
+    input: UpdateWebsiteInput
+  ): Promise<PrototypeWorkspace | null>;
   updateVendor(
     workspaceId: string,
     vendorId: string,
@@ -107,10 +132,14 @@ function normalizeGuest(guest: PrototypeGuest): PrototypeGuest {
       typeof guest.accessToken === "string" && guest.accessToken.length > 0
         ? guest.accessToken
         : randomUUID(),
+    plusOneAllowed: typeof guest.plusOneAllowed === "boolean" ? guest.plusOneAllowed : false,
+    plusOneName: typeof guest.plusOneName === "string" ? guest.plusOneName : "",
+    childCount: typeof guest.childCount === "number" ? Math.max(0, guest.childCount) : 0,
     mealPreference: isMealPreference(guest.mealPreference)
       ? guest.mealPreference
       : "undecided",
     dietaryNotes: typeof guest.dietaryNotes === "string" ? guest.dietaryNotes : "",
+    songRequest: typeof guest.songRequest === "string" ? guest.songRequest : "",
     message: typeof guest.message === "string" ? guest.message : ""
   };
 }
@@ -122,9 +151,13 @@ function createGuestRecord(input: CreateGuestInput): PrototypeGuest {
     name: input.name,
     household: input.household,
     email: input.email,
+    plusOneAllowed: input.plusOneAllowed ?? false,
+    plusOneName: "",
+    childCount: Math.max(0, input.childCount ?? 0),
     rsvpStatus: "pending",
     mealPreference: "undecided",
     dietaryNotes: "",
+    songRequest: input.songRequest ?? "",
     message: "",
     eventIds: input.eventIds
   };
@@ -141,6 +174,18 @@ function applyGuestUpdate(guest: PrototypeGuest, input: UpdateGuestInput) {
 
   if (typeof input.dietaryNotes !== "undefined") {
     guest.dietaryNotes = input.dietaryNotes;
+  }
+
+  if (typeof input.plusOneName !== "undefined") {
+    guest.plusOneName = guest.plusOneAllowed ? input.plusOneName : "";
+  }
+
+  if (typeof input.childCount !== "undefined") {
+    guest.childCount = Math.max(0, input.childCount);
+  }
+
+  if (typeof input.songRequest !== "undefined") {
+    guest.songRequest = input.songRequest;
   }
 
   if (typeof input.message !== "undefined") {
@@ -162,6 +207,17 @@ function createPublicRsvpSession(
         guest.eventIds.includes(event.id)
       )
     }
+  };
+}
+
+function createPublicSiteSession(workspace: PrototypeWorkspace): PrototypePublicSiteSession {
+  return {
+    coupleName: workspace.coupleName,
+    targetDate: workspace.onboarding.targetDate,
+    region: workspace.onboarding.region,
+    guestCountTarget: workspace.onboarding.guestCountTarget,
+    eventBlueprints: structuredClone(workspace.plan.eventBlueprints),
+    website: structuredClone(workspace.website)
   };
 }
 
@@ -187,6 +243,7 @@ function normalizeWorkspace(workspace: PrototypeWorkspace): PrototypeWorkspace {
     guestSummary: summarizeGuests(guests),
     progress: calculateProgress(tasks),
     expenses,
+    website: normalizePrototypeWeddingWebsite(workspace.website, workspace.onboarding),
     vendorTracker: normalizedVendorTracker,
     budgetOverview:
       workspace.budgetOverview ??
@@ -211,6 +268,7 @@ function createWorkspaceRecord(input: WeddingBootstrapInput): PrototypeWorkspace
     guestSummary: summarizeGuests([]),
     progress: calculateProgress(tasks),
     expenses: [],
+    website: createPrototypeWeddingWebsite(input),
     vendorTracker: createPrototypeVendorTracker(plan.vendorMatches, now),
     budgetOverview: calculateBudgetOverview(plan.budgetCategories, [])
   };
@@ -360,6 +418,32 @@ export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore 
     }
 
     return null;
+  }
+
+  async getPublicSiteSession(siteToken: string) {
+    for (const workspace of this.workspaces.values()) {
+      if (workspace.website.publicSiteToken === siteToken) {
+        return createPublicSiteSession(workspace);
+      }
+    }
+
+    return null;
+  }
+
+  async updateWebsite(workspaceId: string, input: UpdateWebsiteInput) {
+    const workspace = this.workspaces.get(workspaceId);
+
+    if (!workspace) {
+      return null;
+    }
+
+    workspace.website = {
+      ...workspace.website,
+      ...input
+    };
+    workspace.updatedAt = new Date().toISOString();
+
+    return cloneWorkspace(workspace);
   }
 
   async updateVendor(workspaceId: string, vendorId: string, input: UpdateVendorInput) {
@@ -613,6 +697,36 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
     return null;
   }
 
+  async getPublicSiteSession(siteToken: string) {
+    const state = await this.readState();
+
+    for (const workspace of state.workspaces) {
+      if (workspace.website.publicSiteToken === siteToken) {
+        return createPublicSiteSession(workspace);
+      }
+    }
+
+    return null;
+  }
+
+  async updateWebsite(workspaceId: string, input: UpdateWebsiteInput) {
+    const state = await this.readState();
+    const workspace = state.workspaces.find((entry) => entry.id === workspaceId);
+
+    if (!workspace) {
+      return null;
+    }
+
+    workspace.website = {
+      ...workspace.website,
+      ...input
+    };
+    workspace.updatedAt = new Date().toISOString();
+
+    await this.writeState(state);
+    return cloneWorkspace(workspace);
+  }
+
   async updateVendor(workspaceId: string, vendorId: string, input: UpdateVendorInput) {
     const state = await this.readState();
     const workspace = state.workspaces.find((entry) => entry.id === workspaceId);
@@ -717,6 +831,10 @@ export function isCreateGuestInput(value: unknown): value is CreateGuestInput {
     typeof candidate.name === "string" &&
     typeof candidate.household === "string" &&
     typeof candidate.email === "string" &&
+    (typeof candidate.plusOneAllowed === "undefined" ||
+      typeof candidate.plusOneAllowed === "boolean") &&
+    (typeof candidate.childCount === "undefined" || typeof candidate.childCount === "number") &&
+    (typeof candidate.songRequest === "undefined" || typeof candidate.songRequest === "string") &&
     Array.isArray(candidate.eventIds) &&
     candidate.eventIds.every((entry) => typeof entry === "string")
   );
@@ -744,6 +862,9 @@ export function isUpdateGuestInput(value: unknown): value is UpdateGuestInput {
     typeof status !== "undefined" ||
     typeof mealPreference !== "undefined" ||
     typeof candidate.dietaryNotes !== "undefined" ||
+    typeof candidate.plusOneName !== "undefined" ||
+    typeof candidate.childCount !== "undefined" ||
+    typeof candidate.songRequest !== "undefined" ||
     typeof candidate.message !== "undefined";
 
   return (
@@ -755,7 +876,29 @@ export function isUpdateGuestInput(value: unknown): value is UpdateGuestInput {
     (typeof mealPreference === "undefined" || isMealPreference(mealPreference)) &&
     (typeof candidate.dietaryNotes === "undefined" ||
       typeof candidate.dietaryNotes === "string") &&
+    (typeof candidate.plusOneName === "undefined" ||
+      typeof candidate.plusOneName === "string") &&
+    (typeof candidate.childCount === "undefined" || typeof candidate.childCount === "number") &&
+    (typeof candidate.songRequest === "undefined" || typeof candidate.songRequest === "string") &&
     (typeof candidate.message === "undefined" || typeof candidate.message === "string")
+  );
+}
+
+export function isUpdateWebsiteInput(value: unknown): value is UpdateWebsiteInput {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return (
+    typeof candidate.heroTitle === "string" &&
+    typeof candidate.storyIntro === "string" &&
+    typeof candidate.venueNote === "string" &&
+    typeof candidate.travelNote === "string" &&
+    typeof candidate.hotelNote === "string" &&
+    typeof candidate.dressCode === "string" &&
+    typeof candidate.rsvpDeadline === "string"
   );
 }
 

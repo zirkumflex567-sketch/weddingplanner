@@ -20,8 +20,10 @@ Aktueller Stand:
 - `PATCH /prototype/workspaces/:id/guests/:guestId`
 - `GET /public/rsvp/:token`
 - `PATCH /public/rsvp/:token`
+- `GET /public/site/:token`
 - `POST /prototype/workspaces/:id/expenses`
 - `PATCH /prototype/workspaces/:id/vendors/:vendorId`
+- `PATCH /prototype/workspaces/:id/website`
 - `PATCH /prototype/workspaces/:id/tasks/:taskId`
 
 Die Bootstrap-Route liefert aktuell einen ersten deterministischen Plan aus Onboarding-Daten:
@@ -37,5 +39,7 @@ Die Bootstrap-Route liefert aktuell einen ersten deterministischen Plan aus Onbo
 Der Prototype-Store laeuft lokal dateibasiert fuer die App-Nutzung und ist bewusst nur Prototypenpersistenz, keine finale Produktionsdatenhaltung.
 Bestehende persistierte Workspaces werden beim Laden auf neue Felder wie Vendor-Tracking normalisiert, damit Prototyp-Daten nicht bei jedem Ausbau verloren gehen.
 Gaeste bekommen ausserdem einen stabilen Access-Token fuer oeffentliche RSVP-Links mit Antwort, Essenswahl und Nachricht.
+Gaeste koennen darueber jetzt auch Begleitperson, Kinderzahl und Songwunsch pflegen.
 Vendor-Matches werden jetzt datengetrieben aus `packages/shared/src/vendor-seeds.ts` erzeugt, inklusive Alias-Matching fuer `67454` bzw. `Hassloch` und Quellenmetadaten fuer die Seed-Eintraege.
 Der Vendor-Tracker speichert jetzt neben Stage und Quote auch Paketname, Verfuegbarkeit, Vertragsstand, Zahlungsstand, Anzahlung und naechstes Follow-up, damit aus einer Lead-Liste ein nutzbares Angebotsmodul wird.
+Zusätzlich gibt es jetzt eine erste oeffentliche Wedding-Website mit eigener Public-Route und editierbaren Inhalten fuer Intro, Reise, Hotel, Dresscode und RSVP-Deadline.

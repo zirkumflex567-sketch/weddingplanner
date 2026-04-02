@@ -5,6 +5,7 @@ import {
   createGuidedPlanningSession,
   createPrototypeTasks,
   createPrototypeVendorTracker,
+  createPrototypeWeddingWebsite,
   summarizeGuests,
   type PrototypeWorkspace,
   type WeddingBootstrapInput
@@ -40,6 +41,7 @@ function createWorkspace(): PrototypeWorkspace {
       totalTasks: tasks.length
     },
     expenses: [],
+    website: createPrototypeWeddingWebsite(input),
     vendorTracker: createPrototypeVendorTracker(plan.vendorMatches, "2026-04-02T00:00:00.000Z"),
     budgetOverview: calculateBudgetOverview(plan.budgetCategories, [])
   };
@@ -91,9 +93,13 @@ describe("createGuidedPlanningSession", () => {
       name: "Lena Vogel",
       household: "Vogel",
       email: "lena@example.com",
+      plusOneAllowed: false,
+      plusOneName: "",
+      childCount: 0,
       rsvpStatus: "pending",
       mealPreference: "undecided",
       dietaryNotes: "",
+      songRequest: "",
       message: "",
       eventIds: ["civil-ceremony", "celebration"]
     });

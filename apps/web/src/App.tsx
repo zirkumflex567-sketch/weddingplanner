@@ -6,6 +6,7 @@ import type {
   PlannedEventId,
   PrototypeExpense,
   PrototypeGuest,
+  PrototypeWeddingWebsite,
   PrototypeVendorAvailability,
   PrototypeVendorContractStatus,
   PrototypeVendorPaymentStatus,
@@ -31,6 +32,7 @@ import {
   setTaskCompleted,
   updateGuestRsvp,
   updateVendorLead,
+  updateWebsiteContent,
   updateWorkspace
 } from "./lib/api";
 import {
@@ -38,6 +40,7 @@ import {
   type ConsultationMessage
 } from "./components/ConsultationPanel";
 import { PublicRsvpPage } from "./PublicRsvpPage";
+import { PublicSitePage } from "./PublicSitePage";
 import "./app.css";
 
 type FormState = {
@@ -55,8 +58,16 @@ type GuestDraft = {
   name: string;
   household: string;
   email: string;
+  plusOneAllowed: boolean;
+  childCount: number;
+  songRequest: string;
   eventIds: PlannedEventId[];
 };
+
+type WebsiteDraft = Pick<
+  PrototypeWeddingWebsite,
+  "heroTitle" | "storyIntro" | "venueNote" | "travelNote" | "hotelNote" | "dressCode" | "rsvpDeadline"
+>;
 
 type ExpenseDraft = {
   label: string;
@@ -231,7 +242,22 @@ function createGuestDraft(eventIds: PlannedEventId[]): GuestDraft {
     name: "",
     household: "",
     email: "",
+    plusOneAllowed: false,
+    childCount: 0,
+    songRequest: "",
     eventIds
+  };
+}
+
+function createWebsiteDraft(website?: PrototypeWeddingWebsite): WebsiteDraft {
+  return {
+    heroTitle: website?.heroTitle ?? "",
+    storyIntro: website?.storyIntro ?? "",
+    venueNote: website?.venueNote ?? "",
+    travelNote: website?.travelNote ?? "",
+    hotelNote: website?.hotelNote ?? "",
+    dressCode: website?.dressCode ?? "",
+    rsvpDeadline: website?.rsvpDeadline ?? ""
   };
 }
 
@@ -289,6 +315,16 @@ function createGuestRsvpPath(accessToken: string) {
 function getPublicRsvpTokenFromPath(pathname: string) {
   const basePrefix = appBasePath.length > 0 ? escapeRegex(appBasePath) : "";
   const match = pathname.match(new RegExp(`^${basePrefix}/rsvp/([^/]+)$`));
+  return match?.[1] ? decodeURIComponent(match[1]) : null;
+}
+
+function createPublicSitePath(siteToken: string) {
+  return `${appBasePath}/site/${siteToken}`;
+}
+
+function getPublicSiteTokenFromPath(pathname: string) {
+  const basePrefix = appBasePath.length > 0 ? escapeRegex(appBasePath) : "";
+  const match = pathname.match(new RegExp(`^${basePrefix}/site/([^/]+)$`));
   return match?.[1] ? decodeURIComponent(match[1]) : null;
 }
 
@@ -505,6 +541,7 @@ function DashboardApp() {
   const [guestDraft, setGuestDraft] = useState<GuestDraft>(() =>
     createGuestDraft(initialInput.plannedEvents)
   );
+  const [websiteDraft, setWebsiteDraft] = useState<WebsiteDraft>(() => createWebsiteDraft());
   const [expenseDraft, setExpenseDraft] = useState<ExpenseDraft>(() =>
     createExpenseDraft()
   );
@@ -710,6 +747,7 @@ function DashboardApp() {
     setWorkspace(nextWorkspace);
     setForm(toFormState(nextWorkspace.onboarding));
     setGuestDraft(createGuestDraft(nextWorkspace.onboarding.plannedEvents));
+    setWebsiteDraft(createWebsiteDraft(nextWorkspace.website));
     setExpenseDraft(
       createExpenseDraft(nextWorkspace.plan.budgetCategories[0]?.category ?? "venue")
     );
@@ -906,6 +944,27 @@ function DashboardApp() {
       setStatus("ready");
     } catch {
       setError("Der Budgeteintrag konnte gerade nicht gespeichert werden.");
+      setStatus("ready");
+    }
+  }
+
+  async function handleWebsiteSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!workspace) {
+      return;
+    }
+
+    setStatus("saving");
+    setError(null);
+
+    try {
+      const result = await updateWebsiteContent(workspace.id, websiteDraft);
+      hydrateWorkspace(result.workspace);
+      await refreshProfiles();
+      setStatus("ready");
+    } catch {
+      setError("Die Hochzeitsseite konnte gerade nicht gespeichert werden.");
       setStatus("ready");
     }
   }
@@ -1867,118 +1926,308 @@ function DashboardApp() {
           <span>Offen: {workspace?.guestSummary.pending ?? 0}</span>
           <span>Zugesagt: {workspace?.guestSummary.attending ?? 0}</span>
           <span>Abgesagt: {workspace?.guestSummary.declined ?? 0}</span>
+          <span>Haushalte: {workspace?.guestSummary.households ?? 0}</span>
+          <span>Headcount zugesagt: {workspace?.guestSummary.attendingHeadcount ?? 0}</span>
         </div>
-        <form className="guided-form guided-form--compact" onSubmit={handleGuestSubmit}>
-          <label>
-            Gastname
-            <input
-              aria-label="Gastname"
-              value={guestDraft.name}
-              onChange={(event) =>
-                setGuestDraft((current) => ({ ...current, name: event.target.value }))
-              }
-            />
-          </label>
-          <div className="guided-two-up">
+        <section className="guided-subpanel">
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">Guestlist</p>
+              <h3>Haushalte, Plus-Ones und Songwuensche sauber erfassen</h3>
+            </div>
+          </div>
+          <form className="guided-form guided-form--compact" onSubmit={handleGuestSubmit}>
             <label>
-              Haushalt
+              Gastname
               <input
-                aria-label="Haushalt"
-                value={guestDraft.household}
+                aria-label="Gastname"
+                value={guestDraft.name}
                 onChange={(event) =>
-                  setGuestDraft((current) => ({ ...current, household: event.target.value }))
+                  setGuestDraft((current) => ({ ...current, name: event.target.value }))
                 }
               />
             </label>
+            <div className="guided-two-up">
+              <label>
+                Haushalt
+                <input
+                  aria-label="Haushalt"
+                  value={guestDraft.household}
+                  onChange={(event) =>
+                    setGuestDraft((current) => ({ ...current, household: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                E-Mail
+                <input
+                  aria-label="E-Mail"
+                  type="email"
+                  value={guestDraft.email}
+                  onChange={(event) =>
+                    setGuestDraft((current) => ({ ...current, email: event.target.value }))
+                  }
+                />
+              </label>
+            </div>
+            <div className="guided-two-up">
+              <label className="guided-inline-checkbox">
+                <span>Plus-One erlaubt</span>
+                <input
+                  aria-label="Plus-One erlaubt"
+                  type="checkbox"
+                  checked={guestDraft.plusOneAllowed}
+                  onChange={(event) =>
+                    setGuestDraft((current) => ({
+                      ...current,
+                      plusOneAllowed: event.target.checked
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                Kinder
+                <input
+                  aria-label="Kinder"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={guestDraft.childCount}
+                  onChange={(event) =>
+                    setGuestDraft((current) => ({
+                      ...current,
+                      childCount: Number(event.target.value)
+                    }))
+                  }
+                />
+              </label>
+            </div>
             <label>
-              E-Mail
+              Songwunsch
               <input
-                aria-label="E-Mail"
-                type="email"
-                value={guestDraft.email}
+                aria-label="Songwunsch"
+                value={guestDraft.songRequest}
                 onChange={(event) =>
-                  setGuestDraft((current) => ({ ...current, email: event.target.value }))
+                  setGuestDraft((current) => ({ ...current, songRequest: event.target.value }))
                 }
               />
             </label>
-          </div>
-          <div className="guided-event-grid">
-            {form.plannedEvents.map((eventId) => {
-              const label =
-                eventOptions.find((option) => option.id === eventId)?.label ?? eventId;
-              const active = guestDraft.eventIds.includes(eventId);
+            <div className="guided-event-grid">
+              {form.plannedEvents.map((eventId) => {
+                const label =
+                  eventOptions.find((option) => option.id === eventId)?.label ?? eventId;
+                const active = guestDraft.eventIds.includes(eventId);
 
-              return (
-                <label
-                  key={eventId}
-                  className={`guided-event-chip ${active ? "guided-event-chip--active" : ""}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={active}
-                    onChange={(event) =>
-                      setGuestDraft((current) => ({
-                        ...current,
-                        eventIds: event.target.checked
-                          ? [...current.eventIds, eventId]
-                          : current.eventIds.filter((entry) => entry !== eventId)
-                      }))
-                    }
-                  />
-                  <span>{label}</span>
-                </label>
-              );
-            })}
-          </div>
-          <button type="submit" className="secondary-button" disabled={status === "saving"}>
-            Gast speichern
-          </button>
-        </form>
-
-        <div className="guided-guest-list">
-          {(workspace?.guests ?? []).map((guest) => (
-            <article key={guest.id} className="guided-guest-card">
-              <div className="guided-vendor-head">
-                <div>
-                  <strong>{guest.name}</strong>
-                  <p>
-                    {guest.household} / {guest.email}
-                  </p>
-                </div>
-                <span className="stage-pill stage-pill--contacted">{rsvpLabels[guest.rsvpStatus]}</span>
-              </div>
-              <p>Essen: {mealPreferenceLabels[guest.mealPreference]}</p>
-              {guest.dietaryNotes ? <p>{guest.dietaryNotes}</p> : null}
-              {guest.message ? <p>{guest.message}</p> : null}
-              <div className="guided-chip-row">
-                {(["pending", "attending", "declined"] as const).map((statusOption) => (
-                  <button
-                    key={statusOption}
-                    type="button"
-                    className={`chip-button ${
-                      guest.rsvpStatus === statusOption ? "chip-button--active" : ""
-                    }`}
-                    onClick={() => void handleGuestRsvp(guest.id, statusOption)}
+                return (
+                  <label
+                    key={eventId}
+                    className={`guided-event-chip ${active ? "guided-event-chip--active" : ""}`}
                   >
-                    {rsvpLabels[statusOption]}
-                  </button>
-                ))}
-              </div>
-              <a
-                className="text-link"
-                href={createGuestRsvpPath(guest.accessToken)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                RSVP-Link oeffnen
-              </a>
-            </article>
-          ))}
+                    <input
+                      type="checkbox"
+                      checked={active}
+                      onChange={(event) =>
+                        setGuestDraft((current) => ({
+                          ...current,
+                          eventIds: event.target.checked
+                            ? [...current.eventIds, eventId]
+                            : current.eventIds.filter((entry) => entry !== eventId)
+                        }))
+                      }
+                    />
+                    <span>{label}</span>
+                  </label>
+                );
+              })}
+            </div>
+            <button type="submit" className="secondary-button" disabled={status === "saving"}>
+              Gast speichern
+            </button>
+          </form>
 
-          {!workspace?.guests.length ? (
-            <p className="empty-state">Noch keine Gaeste angelegt.</p>
-          ) : null}
-        </div>
+          <div className="guided-guest-list">
+            {(workspace?.guests ?? []).map((guest) => (
+              <article key={guest.id} className="guided-guest-card">
+                <div className="guided-vendor-head">
+                  <div>
+                    <strong>{guest.name}</strong>
+                    <p>
+                      {guest.household} / {guest.email}
+                    </p>
+                  </div>
+                  <span className="stage-pill stage-pill--contacted">
+                    {rsvpLabels[guest.rsvpStatus]}
+                  </span>
+                </div>
+                <div className="guided-vendor-pill-grid">
+                  <div className="guided-vendor-pill">
+                    <span>Plus-One</span>
+                    <strong>
+                      {guest.plusOneAllowed
+                        ? guest.plusOneName || "erlaubt, noch offen"
+                        : "nicht vorgesehen"}
+                    </strong>
+                  </div>
+                  <div className="guided-vendor-pill">
+                    <span>Kinder</span>
+                    <strong>{guest.childCount}</strong>
+                  </div>
+                  <div className="guided-vendor-pill">
+                    <span>Song</span>
+                    <strong>{guest.songRequest || "noch offen"}</strong>
+                  </div>
+                  <div className="guided-vendor-pill">
+                    <span>Essen</span>
+                    <strong>{mealPreferenceLabels[guest.mealPreference]}</strong>
+                  </div>
+                </div>
+                {guest.dietaryNotes ? <p>{guest.dietaryNotes}</p> : null}
+                {guest.message ? <p>{guest.message}</p> : null}
+                <div className="guided-chip-row">
+                  {(["pending", "attending", "declined"] as const).map((statusOption) => (
+                    <button
+                      key={statusOption}
+                      type="button"
+                      className={`chip-button ${
+                        guest.rsvpStatus === statusOption ? "chip-button--active" : ""
+                      }`}
+                      onClick={() => void handleGuestRsvp(guest.id, statusOption)}
+                    >
+                      {rsvpLabels[statusOption]}
+                    </button>
+                  ))}
+                </div>
+                <div className="guided-chip-row">
+                  <a
+                    className="text-link"
+                    href={createGuestRsvpPath(guest.accessToken)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    RSVP-Link oeffnen
+                  </a>
+                </div>
+              </article>
+            ))}
+
+            {!workspace?.guests.length ? (
+              <p className="empty-state">Noch keine Gaeste angelegt.</p>
+            ) : null}
+          </div>
+        </section>
+
+        <section className="guided-subpanel">
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">Wedding Website</p>
+              <h3>Basisinfos, Reisehinweise und RSVP-Fenster an einem Ort</h3>
+            </div>
+          </div>
+          <p className="guided-step-copy">
+            Hier baut ihr die erste oeffentliche Hochzeitsseite fuer eure Gaeste auf. Die
+            persoenlichen RSVP-Links bleiben individuell, aber Ablauf, Anreise und Hotelinfos
+            koennt ihr jetzt schon gesammelt teilen.
+          </p>
+          <form className="guided-form guided-form--compact" onSubmit={handleWebsiteSubmit}>
+            <label>
+              Hero-Titel
+              <input
+                aria-label="Hero-Titel"
+                value={websiteDraft.heroTitle}
+                onChange={(event) =>
+                  setWebsiteDraft((current) => ({ ...current, heroTitle: event.target.value }))
+                }
+              />
+            </label>
+            <label>
+              Intro
+              <textarea
+                aria-label="Intro"
+                rows={3}
+                value={websiteDraft.storyIntro}
+                onChange={(event) =>
+                  setWebsiteDraft((current) => ({ ...current, storyIntro: event.target.value }))
+                }
+              />
+            </label>
+            <label>
+              Location & Feier
+              <textarea
+                aria-label="Location und Feier"
+                rows={3}
+                value={websiteDraft.venueNote}
+                onChange={(event) =>
+                  setWebsiteDraft((current) => ({ ...current, venueNote: event.target.value }))
+                }
+              />
+            </label>
+            <div className="guided-two-up">
+              <label>
+                Reisehinweis
+                <textarea
+                  aria-label="Reisehinweis"
+                  rows={3}
+                  value={websiteDraft.travelNote}
+                  onChange={(event) =>
+                    setWebsiteDraft((current) => ({ ...current, travelNote: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                Hotelhinweis
+                <textarea
+                  aria-label="Hotelhinweis"
+                  rows={3}
+                  value={websiteDraft.hotelNote}
+                  onChange={(event) =>
+                    setWebsiteDraft((current) => ({ ...current, hotelNote: event.target.value }))
+                  }
+                />
+              </label>
+            </div>
+            <div className="guided-two-up">
+              <label>
+                Dresscode
+                <input
+                  aria-label="Dresscode"
+                  value={websiteDraft.dressCode}
+                  onChange={(event) =>
+                    setWebsiteDraft((current) => ({ ...current, dressCode: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                RSVP-Deadline
+                <input
+                  aria-label="RSVP-Deadline"
+                  type="date"
+                  value={websiteDraft.rsvpDeadline}
+                  onChange={(event) =>
+                    setWebsiteDraft((current) => ({
+                      ...current,
+                      rsvpDeadline: event.target.value
+                    }))
+                  }
+                />
+              </label>
+            </div>
+            <div className="guided-chip-row">
+              <button type="submit" className="secondary-button" disabled={status === "saving"}>
+                Hochzeitsseite speichern
+              </button>
+              {workspace?.website.publicSiteToken ? (
+                <a
+                  className="text-link"
+                  href={createPublicSitePath(workspace.website.publicSiteToken)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Hochzeitsseite oeffnen
+                </a>
+              ) : null}
+            </div>
+          </form>
+        </section>
       </div>
     );
   }
@@ -2230,9 +2479,14 @@ function DashboardApp() {
 
 export default function App() {
   const publicRsvpToken = getPublicRsvpTokenFromPath(window.location.pathname);
+  const publicSiteToken = getPublicSiteTokenFromPath(window.location.pathname);
 
   if (publicRsvpToken) {
     return <PublicRsvpPage token={publicRsvpToken} />;
+  }
+
+  if (publicSiteToken) {
+    return <PublicSitePage token={publicSiteToken} />;
   }
 
   return <DashboardApp />;

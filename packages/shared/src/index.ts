@@ -120,9 +120,13 @@ export interface PrototypeGuest {
   name: string;
   household: string;
   email: string;
+  plusOneAllowed: boolean;
+  plusOneName: string;
+  childCount: number;
   rsvpStatus: "pending" | "attending" | "declined";
   mealPreference: PrototypeMealPreference;
   dietaryNotes: string;
+  songRequest: string;
   message: string;
   eventIds: PlannedEventId[];
 }
@@ -139,6 +143,8 @@ export interface PrototypeGuestSummary {
   pending: number;
   attending: number;
   declined: number;
+  households: number;
+  attendingHeadcount: number;
 }
 
 export interface PrototypeProgress {
@@ -210,6 +216,17 @@ export interface PrototypeBudgetOverview {
   categories: PrototypeBudgetCategoryOverview[];
 }
 
+export interface PrototypeWeddingWebsite {
+  publicSiteToken: string;
+  heroTitle: string;
+  storyIntro: string;
+  venueNote: string;
+  travelNote: string;
+  hotelNote: string;
+  dressCode: string;
+  rsvpDeadline: string;
+}
+
 export interface PrototypeWorkspace {
   id: string;
   createdAt: string;
@@ -224,6 +241,7 @@ export interface PrototypeWorkspace {
   expenses: PrototypeExpense[];
   vendorTracker: PrototypeVendorTrackerEntry[];
   budgetOverview: PrototypeBudgetOverview;
+  website: PrototypeWeddingWebsite;
 }
 
 export interface PrototypeWorkspaceProfile {
@@ -250,6 +268,15 @@ export interface PrototypePublicRsvpContext {
 export interface PrototypePublicRsvpSession {
   guest: PrototypeGuest;
   context: PrototypePublicRsvpContext;
+}
+
+export interface PrototypePublicSiteSession {
+  coupleName: string;
+  targetDate: string;
+  region: string;
+  guestCountTarget: number;
+  eventBlueprints: EventBlueprint[];
+  website: PrototypeWeddingWebsite;
 }
 
 export type GuidedPlanningStepId =
@@ -825,19 +852,87 @@ export function createPrototypeTasks(plan: WeddingBootstrapPlan): PrototypeTask[
 }
 
 export function summarizeGuests(guests: PrototypeGuest[]): PrototypeGuestSummary {
+  const households = new Set(
+    guests.map((guest) => guest.household.trim().toLowerCase()).filter((value) => value.length > 0)
+  );
+
   return guests.reduce<PrototypeGuestSummary>(
     (summary, guest) => {
       summary.total += 1;
       summary[guest.rsvpStatus] += 1;
+      if (guest.rsvpStatus === "attending") {
+        summary.attendingHeadcount +=
+          1 + (guest.plusOneName.trim().length > 0 ? 1 : 0) + Math.max(0, guest.childCount);
+      }
       return summary;
     },
     {
       total: 0,
       pending: 0,
       attending: 0,
-      declined: 0
+      declined: 0,
+      households: households.size,
+      attendingHeadcount: 0
     }
   );
+}
+
+export function createPrototypeWeddingWebsite(
+  input: WeddingBootstrapInput
+): PrototypeWeddingWebsite {
+  return {
+    publicSiteToken: createPrototypePublicToken(),
+    heroTitle: `${input.coupleName} feiern mit euch`,
+    storyIntro: `Wir freuen uns sehr, unseren Tag am ${input.targetDate} in ${input.region} mit euch zu teilen.`,
+    venueNote: "Die wichtigsten Tagesinfos und Details zur Feier teilen wir hier mit euch.",
+    travelNote: "Anreise, Parken oder Shuttle-Infos kommen hier gesammelt an einen Ort.",
+    hotelNote: "Wenn wir Zimmerkontingente oder Empfehlungen haben, findet ihr sie hier.",
+    dressCode: "Kommt so, dass ihr euch wohl und festlich fuehlt.",
+    rsvpDeadline: ""
+  };
+}
+
+function createPrototypePublicToken() {
+  return `site-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function normalizePrototypeWeddingWebsite(
+  website: Partial<PrototypeWeddingWebsite> | undefined,
+  input: WeddingBootstrapInput
+): PrototypeWeddingWebsite {
+  const fallback = createPrototypeWeddingWebsite(input);
+
+  return {
+    publicSiteToken:
+      typeof website?.publicSiteToken === "string" && website.publicSiteToken.length > 0
+        ? website.publicSiteToken
+        : fallback.publicSiteToken,
+    heroTitle:
+      typeof website?.heroTitle === "string" && website.heroTitle.length > 0
+        ? website.heroTitle
+        : fallback.heroTitle,
+    storyIntro:
+      typeof website?.storyIntro === "string" && website.storyIntro.length > 0
+        ? website.storyIntro
+        : fallback.storyIntro,
+    venueNote:
+      typeof website?.venueNote === "string" && website.venueNote.length > 0
+        ? website.venueNote
+        : fallback.venueNote,
+    travelNote:
+      typeof website?.travelNote === "string" && website.travelNote.length > 0
+        ? website.travelNote
+        : fallback.travelNote,
+    hotelNote:
+      typeof website?.hotelNote === "string" && website.hotelNote.length > 0
+        ? website.hotelNote
+        : fallback.hotelNote,
+    dressCode:
+      typeof website?.dressCode === "string" && website.dressCode.length > 0
+        ? website.dressCode
+        : fallback.dressCode,
+    rsvpDeadline: typeof website?.rsvpDeadline === "string" ? website.rsvpDeadline : ""
+  };
 }
 
 export function calculateProgress(tasks: PrototypeTask[]): PrototypeProgress {

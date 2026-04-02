@@ -106,6 +106,9 @@ async function runDesktopAudit(browser) {
   await page.getByLabel("Gastname").fill(guestName);
   await page.getByLabel("Haushalt").fill("Familie Audit");
   await page.getByLabel("E-Mail").fill(`audit-${uniqueId}@example.com`);
+  await page.getByLabel("Plus-One erlaubt").check();
+  await page.getByLabel("Kinder").fill("1");
+  await page.getByLabel("Songwunsch").fill("Dancing Queen");
   await page.getByRole("button", { name: "Gast speichern" }).click();
   await page.waitForFunction(
     (expectedName) =>
@@ -124,6 +127,9 @@ async function runDesktopAudit(browser) {
   await publicRsvpPage.getByRole("button", { name: "Wir kommen" }).click();
   await publicRsvpPage.getByLabel("Essenswahl").selectOption("vegan");
   await publicRsvpPage.getByLabel("Allergien oder Hinweise").fill("Bitte vegane Option einplanen.");
+  await publicRsvpPage.getByLabel("Begleitperson").fill("Alex Audit");
+  await publicRsvpPage.getByLabel("Kinder").fill("2");
+  await publicRsvpPage.getByLabel("Songwunsch").fill("September");
   await publicRsvpPage.getByLabel("Nachricht ans Paar").fill("Wir freuen uns sehr auf euch.");
   await publicRsvpPage.getByRole("button", { name: "Antwort speichern" }).click();
   await expectText(publicRsvpPage.locator(".success-text"), /Antwort gespeichert/i);
@@ -132,7 +138,28 @@ async function runDesktopAudit(browser) {
   await page.bringToFront();
   await page.waitForTimeout(2600);
   await expectText(page.locator(".guided-guest-summary"), /Zugesagt:\s*1/i);
+  await expectText(page.locator(".guided-guest-summary"), /Headcount zugesagt:\s*4/i);
   await expectText(page.locator(".guided-guest-list"), /Vegan/i);
+  await expectText(page.locator(".guided-guest-list"), /Alex Audit/i);
+  await expectText(page.locator(".guided-guest-list"), /September/i);
+
+  await page.getByLabel("Hero-Titel").fill("Wir feiern mit euch in der Pfalz");
+  await page.getByLabel("Intro").fill("Bitte seid entspannt, hungrig und tanzbereit.");
+  await page.getByLabel("Location und Feier").fill("Feier mit Dinner, Garten und Tanz bis spaet.");
+  await page.getByLabel("Reisehinweis").fill("Shuttle ab Bahnhof Haßloch ab 15 Uhr.");
+  await page.getByLabel("Hotelhinweis").fill("Zimmerkontingent bis 01.06. reserviert.");
+  await page.getByLabel("Dresscode").fill("Sommerlich elegant");
+  await page.getByLabel("RSVP-Deadline").fill("2027-06-15");
+  await page.getByRole("button", { name: "Hochzeitsseite speichern" }).click();
+  const sitePath = await page.getByRole("link", { name: "Hochzeitsseite oeffnen" }).getAttribute("href");
+  assert(sitePath, "Expected a public wedding website link");
+  const publicSitePage = await context.newPage();
+  addDiagnostics(publicSitePage, diagnostics);
+  await publicSitePage.goto(new URL(sitePath, baseUrl).toString(), { waitUntil: "networkidle" });
+  await expectText(publicSitePage.locator("h1").first(), /Wir feiern mit euch in der Pfalz/i);
+  await expectText(publicSitePage.locator("body"), /Shuttle ab Bahnhof/i);
+  await expectText(publicSitePage.locator("body"), /Zimmerkontingent/i);
+  await publicSitePage.close();
 
   await page.getByRole("button", { name: "Kern-Vendoren" }).click();
   await expectText(page.locator(".guided-workbench h2").first(), /Kern-Vendoren/i);

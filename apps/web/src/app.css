@@ -196,6 +196,7 @@ textarea {
 .expense-form select,
 .vendor-editor input,
 .vendor-editor select,
+.portal-field input,
 .portal-field select,
 .portal-field textarea {
   width: 100%;
@@ -961,6 +962,21 @@ textarea {
   font-size: 0.9rem;
 }
 
+.portal-card--site {
+  width: min(980px, 100%);
+}
+
+.portal-site-layout,
+.portal-site-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.portal-site-grid {
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  margin-top: 0.4rem;
+}
+
 .stack-list em {
   display: block;
   margin-top: 0.45rem;
@@ -1326,6 +1342,7 @@ textarea {
 
 .guided-form input,
 .guided-form select,
+.guided-form textarea,
 .guided-vendor-editor input,
 .guided-vendor-editor select {
   width: 100%;
@@ -1338,6 +1355,11 @@ textarea {
 
 .guided-form input[type="date"] {
   min-height: 3rem;
+}
+
+.guided-form textarea {
+  resize: vertical;
+  min-height: 110px;
 }
 
 .guided-form-actions {
@@ -1519,6 +1541,18 @@ textarea {
   justify-content: space-between;
   gap: 1rem;
   align-items: center;
+}
+
+.guided-inline-checkbox {
+  display: flex !important;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.guided-inline-checkbox input {
+  width: auto;
+  min-height: auto;
 }
 
 .guided-error {

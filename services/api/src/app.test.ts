@@ -403,12 +403,14 @@ describe("prototype workspace flow", () => {
             completedTasks: 1,
             totalTasks: 5
           },
-          guestSummary: {
+          guestSummary: expect.objectContaining({
             total: 0,
             pending: 0,
             attending: 0,
-            declined: 0
-          },
+            declined: 0,
+            households: 0,
+            attendingHeadcount: 0
+          }),
           currentStepId: "venue-and-date",
           currentStepTitle: "Location und Datum festziehen"
         }),
@@ -515,6 +517,9 @@ describe("prototype workspace flow", () => {
         name: "Anna Schmidt",
         household: "Schmidt",
         email: "anna@example.com",
+        plusOneAllowed: true,
+        childCount: 1,
+        songRequest: "Dancing Queen",
         eventIds: ["civil-ceremony", "celebration"]
       }
     });
@@ -530,8 +535,12 @@ describe("prototype workspace flow", () => {
         household: "Schmidt",
         email: "anna@example.com",
         rsvpStatus: "pending",
+        plusOneAllowed: true,
+        plusOneName: "",
+        childCount: 1,
         mealPreference: "undecided",
         dietaryNotes: "",
+        songRequest: "Dancing Queen",
         message: "",
         eventIds: ["civil-ceremony", "celebration"]
       }
@@ -540,7 +549,9 @@ describe("prototype workspace flow", () => {
       total: 1,
       pending: 1,
       attending: 0,
-      declined: 0
+      declined: 0,
+      households: 1,
+      attendingHeadcount: 0
     });
   });
 
@@ -690,7 +701,9 @@ describe("prototype workspace flow", () => {
       total: 1,
       pending: 0,
       attending: 1,
-      declined: 0
+      declined: 0,
+      households: 1,
+      attendingHeadcount: 1
     });
   });
 
@@ -712,6 +725,7 @@ describe("prototype workspace flow", () => {
         name: "Anna Schmidt",
         household: "Schmidt",
         email: "anna@example.com",
+        plusOneAllowed: true,
         eventIds: ["civil-ceremony", "celebration"]
       }
     });
@@ -730,7 +744,11 @@ describe("prototype workspace flow", () => {
         accessToken: guest.accessToken,
         name: "Anna Schmidt",
         rsvpStatus: "pending",
-        mealPreference: "undecided"
+        mealPreference: "undecided",
+        plusOneAllowed: true,
+        plusOneName: "",
+        childCount: 0,
+        songRequest: ""
       },
       context: {
         coupleName: "Mira & Leon",
@@ -770,6 +788,7 @@ describe("prototype workspace flow", () => {
         name: "Anna Schmidt",
         household: "Schmidt",
         email: "anna@example.com",
+        plusOneAllowed: true,
         eventIds: ["civil-ceremony", "celebration"]
       }
     });
@@ -783,6 +802,9 @@ describe("prototype workspace flow", () => {
         rsvpStatus: "attending",
         mealPreference: "vegetarian",
         dietaryNotes: "Keine Nuesse bitte.",
+        plusOneName: "Max Schmidt",
+        childCount: 2,
+        songRequest: "September",
         message: "Wir freuen uns sehr."
       }
     });
@@ -794,6 +816,9 @@ describe("prototype workspace flow", () => {
         rsvpStatus: "attending",
         mealPreference: "vegetarian",
         dietaryNotes: "Keine Nuesse bitte.",
+        plusOneName: "Max Schmidt",
+        childCount: 2,
+        songRequest: "September",
         message: "Wir freuen uns sehr."
       }
     });
@@ -808,14 +833,76 @@ describe("prototype workspace flow", () => {
       total: 1,
       pending: 0,
       attending: 1,
-      declined: 0
+      declined: 0,
+      households: 1,
+      attendingHeadcount: 4
     });
     expect(loadResponse.json().workspace.guests[0]).toMatchObject({
       id: guest.id,
       mealPreference: "vegetarian",
       dietaryNotes: "Keine Nuesse bitte.",
+      plusOneName: "Max Schmidt",
+      childCount: 2,
+      songRequest: "September",
       message: "Wir freuen uns sehr."
     });
+  });
+
+  it("stores website content and exposes a public wedding website payload", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: onboardingPayload
+    });
+    const created = createResponse.json();
+
+    const updateWebsiteResponse = await app.inject({
+      method: "PATCH",
+      url: `/prototype/workspaces/${created.workspace.id}/website`,
+      payload: {
+        heroTitle: "Wir feiern mit euch in der Pfalz",
+        storyIntro: "Kommt mit uns auf einen entspannten Sommertag zwischen Standesamt und Feier.",
+        venueNote: "Feier mit Garten, Dinner und Tanz bis spaet am Abend.",
+        travelNote: "Vom Bahnhof gibt es ab 15:00 Uhr einen Shuttle.",
+        hotelNote: "Zimmerkontingent im Deidesheimer Hof bis 01.06. reserviert.",
+        dressCode: "Sommerlich elegant",
+        rsvpDeadline: "2027-06-15"
+      }
+    });
+
+    expect(updateWebsiteResponse.statusCode).toBe(200);
+    expect(updateWebsiteResponse.json().workspace.website).toMatchObject({
+      heroTitle: "Wir feiern mit euch in der Pfalz",
+      travelNote: "Vom Bahnhof gibt es ab 15:00 Uhr einen Shuttle.",
+      hotelNote: "Zimmerkontingent im Deidesheimer Hof bis 01.06. reserviert.",
+      dressCode: "Sommerlich elegant",
+      rsvpDeadline: "2027-06-15",
+      publicSiteToken: expect.any(String)
+    });
+
+    const siteToken = updateWebsiteResponse.json().workspace.website.publicSiteToken;
+    const publicSiteResponse = await app.inject({
+      method: "GET",
+      url: `/public/site/${siteToken}`
+    });
+
+    expect(publicSiteResponse.statusCode).toBe(200);
+    expect(publicSiteResponse.json()).toMatchObject({
+      coupleName: "Mira & Leon",
+      targetDate: "2027-09-15",
+      region: "Berlin",
+      website: {
+        heroTitle: "Wir feiern mit euch in der Pfalz",
+        travelNote: "Vom Bahnhof gibt es ab 15:00 Uhr einen Shuttle.",
+        hotelNote: "Zimmerkontingent im Deidesheimer Hof bis 01.06. reserviert.",
+        dressCode: "Sommerlich elegant",
+        rsvpDeadline: "2027-06-15"
+      }
+    });
+    expect(publicSiteResponse.json().eventBlueprints).toHaveLength(3);
   });
 
   it("adds expenses and recalculates budget overview for the workspace", async () => {
