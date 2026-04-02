@@ -181,7 +181,7 @@ async function runDesktopAudit(browser) {
         card.textContent?.includes("Rueckruf am Freitag vereinbart.")
       )
   );
-  await expectText(firstVendorCard, /2\.200 EUR Quote/i);
+  await expectText(firstVendorCard, /ANGEBOT\s+2\.200 EUR/i);
   await expectText(firstVendorCard, /Premium-Paket/i);
   await expectText(firstVendorCard, /700 EUR/i);
   await expectText(firstVendorCard, /verfuegbar/i);
