@@ -5,6 +5,7 @@ import {
   type VendorSearchCategory,
   type VendorSearchStrategy
 } from "@wedding/shared";
+export * from "./connectors";
 
 export type VendorRefreshStageId =
   | "discovery"

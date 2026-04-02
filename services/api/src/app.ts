@@ -2,8 +2,15 @@ import cors from "@fastify/cors";
 import Fastify from "fastify";
 import {
   createBootstrapPlan,
-  isWeddingBootstrapInput
+  isWeddingBootstrapInput,
+  type VendorSearchCategory
 } from "@wedding/shared";
+import {
+  createVendorConnectorPreview,
+  type DirectoryDiscoveryResultInput,
+  type GooglePlacesResultInput,
+  type VendorWebsitePageInput
+} from "@wedding/ingestion";
 import {
   InMemoryPrototypeWorkspaceStore,
   isCreateExpenseInput,
@@ -76,6 +83,34 @@ export function buildApp(options: BuildAppOptions = {}) {
     }
 
     return { job };
+  });
+
+  app.post("/prototype/vendor-refresh-jobs/:id/preview", async (request, reply) => {
+    const params = request.params as { id: string };
+    const job = await vendorRefreshStore.getJob(params.id);
+
+    if (!job) {
+      return reply.code(404).send({ error: "Vendor refresh job not found" });
+    }
+
+    if (!isVendorConnectorPreviewPayload(request.body)) {
+      return reply.code(400).send({ error: "Invalid vendor connector preview payload" });
+    }
+
+    const preview = createVendorConnectorPreview({
+      category: request.body.category,
+      region: job.request.region,
+      requestedAt: request.body.requestedAt,
+      ...(request.body.directoryResults
+        ? { directoryResults: request.body.directoryResults }
+        : {}),
+      ...(request.body.googlePlacesResults
+        ? { googlePlacesResults: request.body.googlePlacesResults }
+        : {}),
+      ...(request.body.websitePages ? { websitePages: request.body.websitePages } : {})
+    });
+
+    return { preview };
   });
 
   app.post("/prototype/workspaces", async (request, reply) => {
@@ -256,4 +291,133 @@ export function buildApp(options: BuildAppOptions = {}) {
   });
 
   return app;
+}
+
+const vendorSearchCategories: VendorSearchCategory[] = [
+  "venue",
+  "photography",
+  "catering",
+  "music",
+  "florals",
+  "attire",
+  "stationery",
+  "cake",
+  "transport",
+  "lodging",
+  "planner",
+  "officiant",
+  "videography",
+  "photobooth",
+  "magician",
+  "live-artist",
+  "childcare",
+  "rentals"
+];
+
+function isVendorSearchCategory(value: unknown): value is VendorSearchCategory {
+  return typeof value === "string" && vendorSearchCategories.includes(value as VendorSearchCategory);
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isVendorConnectorPreviewPayload(
+  value: unknown
+): value is {
+  category: VendorSearchCategory;
+  requestedAt: string;
+  directoryResults?: DirectoryDiscoveryResultInput[];
+  googlePlacesResults?: GooglePlacesResultInput[];
+  websitePages?: VendorWebsitePageInput[];
+} {
+  if (!isPlainObject(value)) {
+    return false;
+  }
+
+  if (
+    !isVendorSearchCategory(value.category) ||
+    typeof value.requestedAt !== "string"
+  ) {
+    return false;
+  }
+
+  if (
+    ("directoryResults" in value &&
+      !isDirectoryDiscoveryResultInputArray(value.directoryResults)) ||
+    ("googlePlacesResults" in value &&
+      !isGooglePlacesResultInputArray(value.googlePlacesResults)) ||
+    ("websitePages" in value && !isVendorWebsitePageInputArray(value.websitePages))
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function isDirectoryDiscoveryResultInputArray(
+  value: unknown
+): value is DirectoryDiscoveryResultInput[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (entry) =>
+        isPlainObject(entry) &&
+        typeof entry.title === "string" &&
+        typeof entry.url === "string" &&
+        typeof entry.directoryName === "string" &&
+        (entry.location === undefined || typeof entry.location === "string") &&
+        (entry.snippet === undefined || typeof entry.snippet === "string") &&
+        (entry.rankingPosition === undefined || typeof entry.rankingPosition === "number")
+    )
+  );
+}
+
+function isGooglePlacesResultInputArray(
+  value: unknown
+): value is GooglePlacesResultInput[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (entry) =>
+        isPlainObject(entry) &&
+        typeof entry.id === "string" &&
+        (entry.displayName === undefined ||
+          (isPlainObject(entry.displayName) &&
+            (entry.displayName.text === undefined ||
+              typeof entry.displayName.text === "string"))) &&
+        (entry.formattedAddress === undefined || typeof entry.formattedAddress === "string") &&
+        (entry.websiteUri === undefined || typeof entry.websiteUri === "string") &&
+        (entry.nationalPhoneNumber === undefined ||
+          typeof entry.nationalPhoneNumber === "string") &&
+        (entry.googleMapsUri === undefined || typeof entry.googleMapsUri === "string") &&
+        (entry.primaryType === undefined || typeof entry.primaryType === "string") &&
+        (entry.types === undefined ||
+          (Array.isArray(entry.types) &&
+            entry.types.every((item) => typeof item === "string"))) &&
+        (entry.location === undefined ||
+          (isPlainObject(entry.location) &&
+            (entry.location.latitude === undefined ||
+              typeof entry.location.latitude === "number") &&
+            (entry.location.longitude === undefined ||
+              typeof entry.location.longitude === "number"))) &&
+        (entry.rating === undefined || typeof entry.rating === "number") &&
+        (entry.userRatingCount === undefined || typeof entry.userRatingCount === "number")
+    )
+  );
+}
+
+function isVendorWebsitePageInputArray(
+  value: unknown
+): value is VendorWebsitePageInput[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (entry) =>
+        isPlainObject(entry) &&
+        typeof entry.url === "string" &&
+        typeof entry.html === "string" &&
+        typeof entry.fetchedAt === "string"
+    )
+  );
 }

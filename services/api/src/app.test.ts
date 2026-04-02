@@ -393,6 +393,85 @@ describe("POST /planning/bootstrap", () => {
     );
     expect(body.job.plan.publishGate.blockedFields).toContain("thirdPartyReviewScore");
   });
+
+  it("previews connector execution for a refresh job with publish-safe normalized records", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createJobResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/vendor-refresh-jobs",
+      payload: {
+        paidOrderId: "order_hassloch_002",
+        region: "67454 Hassloch",
+        categories: ["photography"],
+        requestedBy: "customer-payment"
+      }
+    });
+
+    const jobId = createJobResponse.json().job.id;
+
+    const previewResponse = await app.inject({
+      method: "POST",
+      url: `/prototype/vendor-refresh-jobs/${jobId}/preview`,
+      payload: {
+        category: "photography",
+        requestedAt: "2026-04-02T10:00:00.000Z",
+        directoryResults: [
+          {
+            title: "Studio Beispiel Hochzeitsfotografie",
+            url: "https://directory.example/studio-beispiel",
+            directoryName: "Directory Example",
+            location: "67454 Hassloch"
+          }
+        ],
+        googlePlacesResults: [
+          {
+            id: "places/abc123",
+            displayName: { text: "Studio Beispiel" },
+            formattedAddress: "Musterstrasse 12, 67454 Hassloch",
+            websiteUri: "https://example-vendor.de/hochzeit",
+            nationalPhoneNumber: "+49 6321 123456",
+            googleMapsUri: "https://maps.google.com/?cid=abc123",
+            rating: 4.9,
+            userRatingCount: 54
+          }
+        ],
+        websitePages: [
+          {
+            url: "https://example-vendor.de/hochzeit",
+            fetchedAt: "2026-04-02T10:00:00.000Z",
+            html: `
+              <html>
+                <head><title>Studio Beispiel | Hochzeitsfotografie</title></head>
+                <body>
+                  <h1>Studio Beispiel</h1>
+                  <p>Hochzeitsreportagen, Paarshootings und After Wedding.</p>
+                  <a href="mailto:hallo@example-vendor.de">Mail</a>
+                  <p>ab 2.400 EUR</p>
+                </body>
+              </html>
+            `
+          }
+        ]
+      }
+    });
+
+    expect(previewResponse.statusCode).toBe(200);
+    expect(previewResponse.json().preview.publishableRecords).toEqual([
+      expect.objectContaining({
+        name: "Studio Beispiel",
+        category: "photography",
+        region: "67454 Hassloch",
+        websiteUrl: "https://example-vendor.de/hochzeit",
+        blockedFieldAudit: expect.arrayContaining([
+          "thirdPartyReviewScore",
+          "thirdPartyReviewCount"
+        ])
+      })
+    ]);
+    expect(previewResponse.json().preview.googlePlacesRequest.fieldMask).not.toContain("rating");
+  });
 });
 
 describe("prototype workspace flow", () => {
