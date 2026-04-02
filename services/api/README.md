@@ -15,6 +15,10 @@ Aktueller Stand:
 - `POST /prototype/vendor-refresh-jobs`
 - `GET /prototype/vendor-refresh-jobs`
 - `GET /prototype/vendor-refresh-jobs/:id`
+- `POST /prototype/vendor-refresh-jobs/:id/preview`
+- `POST /prototype/vendor-refresh-jobs/:id/runs`
+- `GET /prototype/vendor-refresh-jobs/:id/runs`
+- `GET /prototype/vendor-refresh-jobs/:id/runs/:runId`
 - `npm run dev --workspace @wedding/api` startet die lokale API auf `127.0.0.1:3001`
 - `POST /prototype/workspaces`
 - `GET /prototype/workspaces/:id`
@@ -42,3 +46,18 @@ Der Prototype-Store laeuft lokal dateibasiert fuer die App-Nutzung und ist bewus
 Bestehende persistierte Workspaces werden beim Laden auf neue Felder wie Vendor-Tracking normalisiert, damit Prototyp-Daten nicht bei jedem Ausbau verloren gehen.
 Gaeste bekommen ausserdem einen stabilen Access-Token fuer oeffentliche RSVP-Links mit Antwort, Essenswahl und Nachricht.
 Vendor-Matches werden jetzt datengetrieben aus `packages/shared/src/vendor-seeds.ts` erzeugt, waehrend die neue Refresh-Route source-safe Connector-Plaene fuer deutschlandweite Kundenanfragen erzeugt.
+
+## Vendor-Refresh-Runs
+
+Die Run-Endpoints fuehren die aktuell geplanten Connectoren fuer eine bezahlte Anfrage wirklich aus und speichern das Ergebnis pro Job:
+
+- Discovery ueber Brave Search, wenn `BRAVE_SEARCH_API_KEY` gesetzt ist
+- strukturierte Business-Facts ueber Google Places, wenn `GOOGLE_MAPS_API_KEY` gesetzt ist
+- first-party Website-Fetching und leichtes Crawling ueber dieselben Vendor-URLs
+
+Die API speichert pro Run:
+
+- Connector-Status pro Quelle
+- normalisierte Preview-Daten
+- Qualitaetsstatus mit Issues
+- Persistenz fuer spaetere Review- und Publish-Schritte

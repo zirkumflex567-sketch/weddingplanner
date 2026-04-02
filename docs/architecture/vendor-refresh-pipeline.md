@@ -17,10 +17,11 @@ Die Pipeline arbeitet in zwei Modi:
 1. Kunde bezahlt fuer eine konkrete Anfrage.
 2. API erstellt einen `vendor-refresh-job`.
 3. `services/ingestion` plant Suchraeume, Connectoren, Freshness und Publish-Gates.
-4. Discovery findet Kandidaten ueber zulassige Quellen.
-5. Facts und first-party Quellen werden extrahiert und normalisiert.
-6. Dedupe und Quality entscheiden, was publiziert werden darf.
-7. Erst danach erscheinen neue Datensaetze im Produkt.
+4. Ein `vendor-refresh-run` fuehrt die Live-Connectoren fuer eine Kategorie aus.
+5. Discovery findet Kandidaten ueber zulassige Quellen.
+6. Facts und first-party Quellen werden extrahiert, gecrawlt und normalisiert.
+7. Dedupe und Quality entscheiden, was publiziert werden darf.
+8. Erst danach erscheinen neue Datensaetze im Produkt.
 
 ## Connector-Klassen
 
@@ -52,3 +53,19 @@ Geblockte Felder als Produkt-Truth:
 Der Planning-Core darf weiterhin kuratierte Seeds fuer Demo und Prototyping nutzen.
 Die deutschlandweite SaaS-Faehigkeit kommt aber nicht mehr aus Hardcodes im Planning-Core,
 sondern aus der Refresh-Pipeline.
+
+## Aktueller Runtime-Stand
+
+Die erste ausfuehrbare Runtime ist jetzt im Repo vorhanden:
+
+- Brave Search als Discovery-Quelle fuer Kandidatenfindung
+- Google Places Text Search fuer strukturierte Business-Facts
+- Vendor-Website-Fetching mit leichtem Same-Origin-Crawling fuer first-party Facts
+- Run-Persistenz mit Connector-Status, Preview-Daten und Qualitaetsreport
+
+Qualitaetsreports unterscheiden aktuell zwischen:
+
+- `ready-for-review`
+- `needs-attention`
+
+und tragen konkrete Issues wie fehlende Pflichtfelder, fehlende Publish-Records oder nur auditierte geblockte Felder.

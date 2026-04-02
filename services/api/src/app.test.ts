@@ -1,4 +1,9 @@
-import { afterEach, describe, expect, it } from "vitest";
+import type {
+  VendorRefreshExecutionInput,
+  VendorRefreshExecutor,
+  VendorRefreshRun
+} from "@wedding/ingestion";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildApp } from "./app";
 
 const onboardingPayload = {
@@ -471,6 +476,121 @@ describe("POST /planning/bootstrap", () => {
       })
     ]);
     expect(previewResponse.json().preview.googlePlacesRequest.fieldMask).not.toContain("rating");
+  });
+
+  it("executes and persists a vendor refresh run with quality status", async () => {
+    const executeJobRun = vi.fn(
+      async ({ job, category }: VendorRefreshExecutionInput): Promise<VendorRefreshRun> => ({
+        id: "run_001",
+        jobId: job.id,
+        category,
+        createdAt: "2026-04-02T12:00:00.000Z",
+        completedAt: "2026-04-02T12:00:05.000Z",
+        status: "completed",
+        connectorResults: [
+          {
+            connectorId: "directory-discovery",
+            status: "success",
+            executedAt: "2026-04-02T12:00:01.000Z",
+            itemCount: 5
+          }
+        ],
+        preview: {
+          googlePlacesRequest: {
+            endpoint: "https://places.googleapis.com/v1/places:searchText",
+            method: "POST",
+            fieldMask: "places.displayName",
+            body: {
+              textQuery: `${category} ${job.request.region}`,
+              languageCode: "de",
+              regionCode: "DE",
+              maxResultCount: 10
+            }
+          },
+          discoveryCandidates: [],
+          businessFacts: [],
+          websiteFacts: [],
+          publishableRecords: []
+        },
+        quality: {
+          status: "ready-for-review",
+          publishableRecordCount: 0,
+          issues: [
+            {
+              severity: "warning",
+              code: "blocked-fields-audited",
+              message: "Blocked source fields were audited and not published."
+            }
+          ]
+        }
+      })
+    );
+    const vendorRefreshExecutor: VendorRefreshExecutor = {
+      executeJobRun
+    };
+
+    const app = buildApp({ vendorRefreshExecutor });
+    openApps.push(app);
+
+    const createJobResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/vendor-refresh-jobs",
+      payload: {
+        paidOrderId: "order_run_001",
+        region: "67454 Hassloch",
+        categories: ["photography"],
+        requestedBy: "customer-payment"
+      }
+    });
+
+    const jobId = createJobResponse.json().job.id;
+
+    const runResponse = await app.inject({
+      method: "POST",
+      url: `/prototype/vendor-refresh-jobs/${jobId}/runs`,
+      payload: {
+        category: "photography"
+      }
+    });
+
+    expect(runResponse.statusCode).toBe(201);
+    expect(runResponse.json().run).toMatchObject({
+      id: "run_001",
+      jobId,
+      category: "photography",
+      status: "completed",
+      quality: {
+        status: "ready-for-review",
+        publishableRecordCount: 0
+      }
+    });
+
+    const listRunsResponse = await app.inject({
+      method: "GET",
+      url: `/prototype/vendor-refresh-jobs/${jobId}/runs`
+    });
+
+    expect(listRunsResponse.statusCode).toBe(200);
+    expect(listRunsResponse.json().runs).toEqual([
+      expect.objectContaining({
+        id: "run_001",
+        jobId,
+        category: "photography"
+      })
+    ]);
+
+    const getRunResponse = await app.inject({
+      method: "GET",
+      url: `/prototype/vendor-refresh-jobs/${jobId}/runs/run_001`
+    });
+
+    expect(getRunResponse.statusCode).toBe(200);
+    expect(getRunResponse.json().run).toMatchObject({
+      id: "run_001",
+      jobId,
+      category: "photography"
+    });
+    expect(executeJobRun).toHaveBeenCalledTimes(1);
   });
 });
 

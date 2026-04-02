@@ -7,8 +7,10 @@ import {
 } from "@wedding/shared";
 import {
   createVendorConnectorPreview,
+  createVendorRefreshExecutor,
   type DirectoryDiscoveryResultInput,
   type GooglePlacesResultInput,
+  type VendorRefreshExecutor,
   type VendorWebsitePageInput
 } from "@wedding/ingestion";
 import {
@@ -29,6 +31,7 @@ import {
 interface BuildAppOptions {
   workspaceStore?: PrototypeWorkspaceStore;
   vendorRefreshStore?: VendorRefreshStore;
+  vendorRefreshExecutor?: VendorRefreshExecutor;
 }
 
 export function buildApp(options: BuildAppOptions = {}) {
@@ -37,6 +40,8 @@ export function buildApp(options: BuildAppOptions = {}) {
     options.workspaceStore ?? new InMemoryPrototypeWorkspaceStore();
   const vendorRefreshStore =
     options.vendorRefreshStore ?? new InMemoryVendorRefreshStore();
+  const vendorRefreshExecutor =
+    options.vendorRefreshExecutor ?? createVendorRefreshExecutor();
 
   app.register(cors, {
     origin: true
@@ -111,6 +116,62 @@ export function buildApp(options: BuildAppOptions = {}) {
     });
 
     return { preview };
+  });
+
+  app.post("/prototype/vendor-refresh-jobs/:id/runs", async (request, reply) => {
+    const params = request.params as { id: string };
+    const job = await vendorRefreshStore.getJob(params.id);
+
+    if (!job) {
+      return reply.code(404).send({ error: "Vendor refresh job not found" });
+    }
+
+    if (!isVendorRefreshRunRequest(request.body)) {
+      return reply.code(400).send({ error: "Invalid vendor refresh run payload" });
+    }
+
+    if (!job.request.categories.includes(request.body.category)) {
+      return reply.code(400).send({
+        error: "Requested run category is not part of the paid vendor refresh job"
+      });
+    }
+
+    const run = await vendorRefreshExecutor.executeJobRun({
+      job,
+      category: request.body.category
+    });
+    const savedRun = await vendorRefreshStore.saveRun(run);
+
+    return reply.code(201).send({ run: savedRun });
+  });
+
+  app.get("/prototype/vendor-refresh-jobs/:id/runs", async (request, reply) => {
+    const params = request.params as { id: string };
+    const job = await vendorRefreshStore.getJob(params.id);
+
+    if (!job) {
+      return reply.code(404).send({ error: "Vendor refresh job not found" });
+    }
+
+    const runs = await vendorRefreshStore.listRuns(params.id);
+    return { runs };
+  });
+
+  app.get("/prototype/vendor-refresh-jobs/:id/runs/:runId", async (request, reply) => {
+    const params = request.params as { id: string; runId: string };
+    const job = await vendorRefreshStore.getJob(params.id);
+
+    if (!job) {
+      return reply.code(404).send({ error: "Vendor refresh job not found" });
+    }
+
+    const run = await vendorRefreshStore.getRun(params.id, params.runId);
+
+    if (!run) {
+      return reply.code(404).send({ error: "Vendor refresh run not found" });
+    }
+
+    return { run };
   });
 
   app.post("/prototype/workspaces", async (request, reply) => {
@@ -353,6 +414,14 @@ function isVendorConnectorPreviewPayload(
   }
 
   return true;
+}
+
+function isVendorRefreshRunRequest(
+  value: unknown
+): value is {
+  category: VendorSearchCategory;
+} {
+  return isPlainObject(value) && isVendorSearchCategory(value.category);
 }
 
 function isDirectoryDiscoveryResultInputArray(

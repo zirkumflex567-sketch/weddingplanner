@@ -282,7 +282,9 @@ function mergeConnectorRecords(
   const recordByKey = new Map<string, PublishableVendorRecord>();
 
   function ensureRecord(key: string, seed: Partial<PublishableVendorRecord>) {
-    const existing = recordByKey.get(findExistingKey(key, seed.name ?? ""));
+    const existing = recordByKey.get(
+      findExistingKey(key, seed.name ?? "", seed.websiteUrl)
+    );
 
     if (existing) {
       return existing;
@@ -307,14 +309,26 @@ function mergeConnectorRecords(
     return created;
   }
 
-  function findExistingKey(candidateKey: string, candidateName: string) {
+  function findExistingKey(
+    candidateKey: string,
+    candidateName: string,
+    candidateWebsiteUrl?: string
+  ) {
     if (recordByKey.has(candidateKey)) {
       return candidateKey;
     }
 
     const normalizedName = normalizeWhitespace(candidateName).toLowerCase();
+    const candidateOrigin = extractOrigin(candidateWebsiteUrl);
 
     for (const [existingKey, existingRecord] of recordByKey.entries()) {
+      if (
+        candidateOrigin &&
+        extractOrigin(existingRecord.websiteUrl) === candidateOrigin
+      ) {
+        return existingKey;
+      }
+
       if (normalizeWhitespace(existingRecord.name).toLowerCase() === normalizedName) {
         return existingKey;
       }
@@ -347,7 +361,9 @@ function mergeConnectorRecords(
       blockedFieldAudit: fact.blockedFieldAudit
     });
 
-    record.name = fact.name;
+    if (shouldReplaceRecordName(record.name, fact.name)) {
+      record.name = fact.name;
+    }
     if (fact.websiteUrl) {
       record.websiteUrl = fact.websiteUrl;
     }
@@ -378,8 +394,12 @@ function mergeConnectorRecords(
       sourceProvenance: [`vendor-website:${fact.websiteUrl}`]
     });
 
-    record.name = fact.name;
-    record.websiteUrl = fact.websiteUrl;
+    if (shouldReplaceRecordName(record.name, fact.name)) {
+      record.name = fact.name;
+    }
+    if (!record.websiteUrl) {
+      record.websiteUrl = fact.websiteUrl;
+    }
     if (fact.contactEmail) {
       record.contactEmail = fact.contactEmail;
     }
@@ -424,11 +444,56 @@ function toAbsoluteUrl(baseUrl: string, target: string) {
 }
 
 function createRecordKey(name: string, websiteUrl?: string) {
-  return websiteUrl?.toLowerCase() ?? normalizeWhitespace(name).toLowerCase();
+  if (websiteUrl) {
+    try {
+      return new URL(websiteUrl).origin.toLowerCase();
+    } catch {
+      return websiteUrl.toLowerCase();
+    }
+  }
+
+  return normalizeWhitespace(name).toLowerCase();
 }
 
 function newestTimestamp(current: string, candidate: string) {
   return current >= candidate ? current : candidate;
+}
+
+function extractOrigin(url?: string) {
+  if (!url) {
+    return null;
+  }
+
+  try {
+    return new URL(url).origin.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function shouldReplaceRecordName(currentName: string, incomingName: string) {
+  const normalizedCurrent = normalizeWhitespace(currentName).toLowerCase();
+  const normalizedIncoming = normalizeWhitespace(incomingName).toLowerCase();
+
+  if (!normalizedCurrent) {
+    return true;
+  }
+
+  if (isGenericWebsitePageName(normalizedIncoming) && !isGenericWebsitePageName(normalizedCurrent)) {
+    return false;
+  }
+
+  if (normalizedCurrent === normalizedIncoming) {
+    return false;
+  }
+
+  return normalizedIncoming.length >= normalizedCurrent.length;
+}
+
+function isGenericWebsitePageName(value: string) {
+  return ["preise", "kontakt", "home", "startseite", "leistungen", "portfolio"].includes(
+    value
+  );
 }
 
 function mergeArrays(target: string[], additions: string[]) {
