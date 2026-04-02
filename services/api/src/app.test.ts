@@ -187,6 +187,15 @@ describe("POST /planning/bootstrap", () => {
     const body = response.json();
     expect(body.plan.vendorMatches).toEqual([
       {
+        id: "berlin-kranich-catering",
+        name: "Kranich Catering",
+        category: "catering",
+        region: "Berlin",
+        fitScore: 95,
+        priceBandLabel: "ca. 3.200-4.100 EUR",
+        reasonSummary: "Skaliert gut auf 80 Gaeste, bleibt nah am Catering-Rahmen und passt zu moderner saisonaler Planung."
+      },
+      {
         id: "berlin-spree-loft",
         name: "Spree Loft Atelier",
         category: "venue",
@@ -203,15 +212,6 @@ describe("POST /planning/bootstrap", () => {
         fitScore: 95,
         priceBandLabel: "ca. 1.800-2.600 EUR",
         reasonSummary: "Trifft den Stil, liegt im Foto-Budget und ist auf urbane Feiern im Berliner Raum ausgerichtet."
-      },
-      {
-        id: "berlin-kranich-catering",
-        name: "Kranich Catering",
-        category: "catering",
-        region: "Berlin",
-        fitScore: 95,
-        priceBandLabel: "ca. 3.200-4.100 EUR",
-        reasonSummary: "Skaliert gut auf 80 Gaeste, bleibt nah am Catering-Rahmen und passt zu moderner saisonaler Planung."
       }
     ]);
     expect(body.plan.runtimeTopology).toEqual({
@@ -219,6 +219,11 @@ describe("POST /planning/bootstrap", () => {
       hosting: "vps-web-api-only",
       note:
         "Inference, Dokumentenverarbeitung und spaetere Modell-Orchestrierung laufen auf Shadow; der VPS hostet Web und API."
+    });
+    expect(body.plan.vendorSearchStrategy).toMatchObject({
+      mode: "curated-plus-refresh",
+      requiresPaidRefresh: true,
+      curatedCoverageAreaIds: ["berlin-core"]
     });
   });
 
@@ -271,7 +276,7 @@ describe("POST /planning/bootstrap", () => {
     );
   });
 
-  it("returns an expanded local vendor directory for 67454 with richer categories and review metadata", async () => {
+  it("returns an expanded local vendor directory for 67454 with richer categories and first-party evidence links", async () => {
     const app = buildApp();
     openApps.push(app);
 
@@ -300,10 +305,7 @@ describe("POST /planning/bootstrap", () => {
           serviceLabel: "DJ & Moderation",
           websiteUrl: "https://www.djstefankietz.de/",
           portfolioUrl: "https://www.djstefankietz.de/",
-          reviewRatingValue: 9.8,
-          reviewRatingScale: 10,
-          reviewCount: 95,
-          reviewSourceLabel: "Trustlocal DJ-Ranking Neustadt an der Weinstrasse"
+          sourceLabel: "Offizielle DJ-Seite"
         }),
         expect.objectContaining({
           id: "iman-bader-bridal-styling",
@@ -311,9 +313,7 @@ describe("POST /planning/bootstrap", () => {
           city: "Neustadt an der Weinstrasse",
           serviceLabel: "Brautstyling & Make-up",
           websiteUrl: "https://imanbader.de/brautpakete/",
-          reviewRatingValue: 4.9,
-          reviewRatingScale: 5,
-          reviewCount: 71
+          sourceLabel: "Offizielle Brautpakete-Seite"
         }),
         expect.objectContaining({
           id: "floristik-ringelblume-deidesheim",
@@ -350,6 +350,48 @@ describe("POST /planning/bootstrap", () => {
         expect.objectContaining({ id: "pfalz-markus-husner" })
       ])
     );
+    expect(body.plan.vendorSearchStrategy).toMatchObject({
+      mode: "curated-plus-refresh",
+      requiresPaidRefresh: true,
+      curatedCoverageAreaIds: ["67454-radius-40km"]
+    });
+  });
+
+  it("creates a paid vendor refresh job for uncovered regions with a source-safe plan", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/prototype/vendor-refresh-jobs",
+      payload: {
+        paidOrderId: "order_koeln_001",
+        region: "50667 Koeln",
+        categories: ["venue", "photography", "music", "magician"],
+        requestedBy: "customer-payment"
+      }
+    });
+
+    expect(response.statusCode).toBe(201);
+
+    const body = response.json();
+    expect(body.job.plan.strategy).toMatchObject({
+      mode: "refresh-only",
+      requiresPaidRefresh: true
+    });
+    expect(body.job.plan.connectors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "directory-discovery",
+          discoveryOnly: true
+        }),
+        expect.objectContaining({
+          id: "vendor-websites",
+          discoveryOnly: false
+        })
+      ])
+    );
+    expect(body.job.plan.publishGate.blockedFields).toContain("thirdPartyReviewScore");
   });
 });
 

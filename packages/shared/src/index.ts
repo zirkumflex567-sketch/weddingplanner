@@ -4,6 +4,12 @@ import {
   type VendorSeed,
   type VendorSeedCategory
 } from "./vendor-seeds";
+import {
+  buildVendorSearchStrategy,
+  type VendorSearchStrategy
+} from "./vendor-refresh";
+
+export * from "./vendor-refresh";
 
 export type PlannedEventId =
   | "civil-ceremony"
@@ -92,11 +98,6 @@ export interface VendorMatch {
   sourceUrl?: string;
   sourceLabel?: string;
   freshnessLabel?: string;
-  reviewRatingValue?: number;
-  reviewRatingScale?: number;
-  reviewCount?: number;
-  reviewSourceUrl?: string;
-  reviewSourceLabel?: string;
 }
 
 export interface RuntimeTopology {
@@ -291,6 +292,7 @@ export interface WeddingBootstrapPlan {
   adminReminders: AdminReminder[];
   eventBlueprints: EventBlueprint[];
   vendorMatches: VendorMatch[];
+  vendorSearchStrategy: VendorSearchStrategy;
   runtimeTopology: RuntimeTopology;
   nextSteps: string[];
 }
@@ -564,25 +566,6 @@ function formatPriceBandLabel(
   return `${prefix}${formatCurrency(priceMin)}-${formatCurrency(priceMax)} EUR`;
 }
 
-function resolveCoverageAreaIds(region: string) {
-  const normalizedRegion = normalizeSearchText(region);
-  const coverageAreaIds: string[] = [];
-
-  if (normalizedRegion.includes("berlin")) {
-    coverageAreaIds.push("berlin-core");
-  }
-
-  if (normalizedRegion.includes("potsdam")) {
-    coverageAreaIds.push("potsdam-core");
-  }
-
-  if (normalizedRegion.includes("67454") || normalizedRegion.includes("hassloch")) {
-    coverageAreaIds.push("67454-radius-40km");
-  }
-
-  return coverageAreaIds;
-}
-
 function estimateBudgetRange(vendor: VendorSeed, guestCountTarget: number) {
   if (vendor.pricingModel === "per-person") {
     return {
@@ -622,14 +605,15 @@ function hasAliasMatch(vendor: VendorSeed, normalizedRegion: string, regionToken
 
 function createVendorMatches(
   profile: WeddingProfile,
-  budgetCategories: BudgetCategory[]
+  budgetCategories: BudgetCategory[],
+  vendorSearchStrategy: VendorSearchStrategy
 ): VendorMatch[] {
   const budgetByCategory = new Map(
     budgetCategories.map((category) => [category.category, category.plannedAmount])
   );
   const normalizedRegion = normalizeSearchText(profile.region);
   const regionTokens = tokenizeSearchText(profile.region);
-  const coverageAreaIds = resolveCoverageAreaIds(profile.region);
+  const coverageAreaIds = vendorSearchStrategy.curatedCoverageAreaIds;
 
   return curatedVendorSeeds
     .filter(
@@ -678,16 +662,7 @@ function createVendorMatches(
         ...(vendor.portfolioLabel ? { portfolioLabel: vendor.portfolioLabel } : {}),
         ...(vendor.sourceUrl ? { sourceUrl: vendor.sourceUrl } : {}),
         ...(vendor.sourceLabel ? { sourceLabel: vendor.sourceLabel } : {}),
-        ...(vendor.freshnessLabel ? { freshnessLabel: vendor.freshnessLabel } : {}),
-        ...(typeof vendor.reviewRatingValue === "number"
-          ? { reviewRatingValue: vendor.reviewRatingValue }
-          : {}),
-        ...(typeof vendor.reviewRatingScale === "number"
-          ? { reviewRatingScale: vendor.reviewRatingScale }
-          : {}),
-        ...(typeof vendor.reviewCount === "number" ? { reviewCount: vendor.reviewCount } : {}),
-        ...(vendor.reviewSourceUrl ? { reviewSourceUrl: vendor.reviewSourceUrl } : {}),
-        ...(vendor.reviewSourceLabel ? { reviewSourceLabel: vendor.reviewSourceLabel } : {})
+        ...(vendor.freshnessLabel ? { freshnessLabel: vendor.freshnessLabel } : {})
       };
     })
     .sort((left, right) => {
@@ -697,27 +672,16 @@ function createVendorMatches(
         return fitDelta;
       }
 
-      const leftReviewScore =
-        typeof left.reviewRatingValue === "number" && typeof left.reviewRatingScale === "number"
-          ? left.reviewRatingValue / left.reviewRatingScale
-          : 0;
-      const rightReviewScore =
-        typeof right.reviewRatingValue === "number" && typeof right.reviewRatingScale === "number"
-          ? right.reviewRatingValue / right.reviewRatingScale
-          : 0;
-      const reviewDelta = rightReviewScore - leftReviewScore;
+      const sourceDelta =
+        Number(Boolean(right.websiteUrl)) +
+        Number(Boolean(right.portfolioUrl)) -
+        (Number(Boolean(left.websiteUrl)) + Number(Boolean(left.portfolioUrl)));
 
-      if (reviewDelta !== 0) {
-        return reviewDelta;
+      if (sourceDelta !== 0) {
+        return sourceDelta;
       }
 
-      const reviewCountDelta = (right.reviewCount ?? 0) - (left.reviewCount ?? 0);
-
-      if (reviewCountDelta !== 0) {
-        return reviewCountDelta;
-      }
-
-      return 0;
+      return left.name.localeCompare(right.name, "de-DE");
     });
 }
 
@@ -767,6 +731,14 @@ export function createBootstrapPlan(input: WeddingBootstrapInput): WeddingBootst
 
   const milestones = createMilestones(profile.targetDate);
   const budgetCategories = createBudgetCategories(profile.budgetTotal);
+  const vendorSearchStrategy = buildVendorSearchStrategy(profile.region, [
+    "venue",
+    "photography",
+    "catering",
+    "music",
+    "florals",
+    "attire"
+  ]);
 
   return {
     profile,
@@ -775,7 +747,8 @@ export function createBootstrapPlan(input: WeddingBootstrapInput): WeddingBootst
     vendorStarterCategories: createVendorStarterCategories(),
     adminReminders: createAdminReminders(profile.targetDate),
     eventBlueprints: createEventBlueprints(profile.plannedEvents),
-    vendorMatches: createVendorMatches(profile, budgetCategories),
+    vendorMatches: createVendorMatches(profile, budgetCategories, vendorSearchStrategy),
+    vendorSearchStrategy,
     runtimeTopology: createRuntimeTopology(),
     nextSteps: milestones.map((milestone) => milestone.title)
   };
@@ -1259,14 +1232,9 @@ function formatVendorListForChat(matches: VendorMatch[]) {
     .map((vendor, index) => {
       const cityLabel = vendor.city ? ` in ${vendor.city}` : "";
       const serviceLabel = vendor.serviceLabel ? `, ${vendor.serviceLabel}` : "";
-      const reviewLabel =
-        typeof vendor.reviewRatingValue === "number" && typeof vendor.reviewRatingScale === "number"
-          ? `, Bewertung ${vendor.reviewRatingValue.toLocaleString("de-DE")}/${vendor.reviewRatingScale}${
-              typeof vendor.reviewCount === "number" ? ` bei ${vendor.reviewCount} Reviews` : ""
-            }`
-          : "";
+      const freshnessLabel = vendor.freshnessLabel ? `, ${vendor.freshnessLabel}` : "";
 
-      return `${index + 1}. ${vendor.name}${cityLabel} (${vendor.priceBandLabel}${serviceLabel}${reviewLabel})`;
+      return `${index + 1}. ${vendor.name}${cityLabel} (${vendor.priceBandLabel}${serviceLabel}${freshnessLabel})`;
     })
     .join(" ");
 }

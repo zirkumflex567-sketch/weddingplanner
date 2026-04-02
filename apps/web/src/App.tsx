@@ -904,29 +904,12 @@ function DashboardApp() {
     }));
   }
 
-  function formatVendorReview(vendor: VendorMatch) {
-    if (
-      typeof vendor.reviewRatingValue !== "number" ||
-      typeof vendor.reviewRatingScale !== "number"
-    ) {
-      return vendor.freshnessLabel ?? null;
+  function formatVendorEvidence(vendor: VendorMatch) {
+    if (vendor.sourceLabel && vendor.freshnessLabel) {
+      return `${vendor.sourceLabel} / ${vendor.freshnessLabel}`;
     }
 
-    const rating = vendor.reviewRatingValue.toLocaleString("de-DE", {
-      minimumFractionDigits: vendor.reviewRatingValue % 1 === 0 ? 0 : 1,
-      maximumFractionDigits: 1
-    });
-    const countLabel =
-      typeof vendor.reviewCount === "number"
-        ? ` bei ${vendor.reviewCount.toLocaleString("de-DE")} Bewertungen`
-        : "";
-    const sourceLabel = vendor.reviewSourceLabel
-      ? ` / ${vendor.reviewSourceLabel}`
-      : vendor.freshnessLabel
-        ? ` / ${vendor.freshnessLabel}`
-        : "";
-
-    return `Bewertung ${rating}/${vendor.reviewRatingScale}${countLabel}${sourceLabel}`;
+    return vendor.sourceLabel ?? vendor.freshnessLabel ?? null;
   }
 
   function getVendorTrackerEntry(vendorId: string) {
@@ -934,8 +917,7 @@ function DashboardApp() {
   }
 
   function getVendorPortfolioLink(vendor: VendorMatch) {
-    const href =
-      vendor.portfolioUrl ?? vendor.websiteUrl ?? vendor.sourceUrl ?? vendor.reviewSourceUrl;
+    const href = vendor.portfolioUrl ?? vendor.websiteUrl ?? vendor.sourceUrl;
 
     if (!href) {
       return null;
@@ -967,7 +949,6 @@ function DashboardApp() {
 
     pushLink(vendor.websiteUrl, "Website");
     pushLink(vendor.sourceUrl, vendor.sourceLabel ?? "Quelle");
-    pushLink(vendor.reviewSourceUrl, "Bewertungen");
 
     return links;
   }
@@ -999,7 +980,7 @@ function DashboardApp() {
       locationLabel,
       vendor.serviceLabel ?? null
     ].filter(Boolean);
-    const reviewLine = formatVendorReview(vendor);
+    const reviewLine = formatVendorEvidence(vendor);
     const vendorLinks = getVendorLinks(vendor);
 
     return (
@@ -1287,9 +1268,10 @@ function DashboardApp() {
       <div className="guided-step-body">
         <p className="guided-step-copy">
           Hier zieht ihr erst Venue, Stil und Budget sauber zusammen. Ihr seht die komplette
-          lokale Venue-Auswahl mit Preisbild, Quellen und sichtbaren Bewertungen, damit ihr
+          lokale Venue-Auswahl mit Preisbild, Quellen und Freshness-Hinweisen, damit ihr
           bewusst vergleichen koennt statt nur eine Mini-Shortlist anzustarren.
         </p>
+        <p className="guided-muted">{workspace?.plan.vendorSearchStrategy.note}</p>
         <div className="guided-card-stack guided-card-stack--vendors">
           {venueMatches.map((vendor) => renderVendorCard(vendor))}
         </div>
@@ -1455,8 +1437,9 @@ function DashboardApp() {
             Statt einer langen Gruppenwand arbeitet ihr hier jetzt bewusst je Vendor-Kategorie.
             Wechselt hart zwischen Foto, Catering, Musik, Floristik und Styling, filtert
             innerhalb der aktiven Kategorie und springt direkt in Portfolio, Referenzen oder
-            Bewertungsprofil.
+            die jeweils belastbarste Quelle.
           </p>
+          <p className="guided-muted">{workspace?.plan.vendorSearchStrategy.note}</p>
           <div className="guided-vendor-filter-bar">
             <div className="guided-vendor-filter-tabs" role="tablist" aria-label="Vendor-Kategorien">
               {vendorGroups.map((group) => (

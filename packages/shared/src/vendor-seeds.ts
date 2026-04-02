@@ -37,11 +37,6 @@ export interface VendorSeed {
   sourceUrl?: string;
   sourceLabel?: string;
   freshnessLabel?: string;
-  reviewRatingValue?: number;
-  reviewRatingScale?: number;
-  reviewCount?: number;
-  reviewSourceUrl?: string;
-  reviewSourceLabel?: string;
 }
 
 const pfalzTourismWeddingGuideUrl =
@@ -167,11 +162,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     websiteUrl: "https://www.gut-rehbach.de/",
     sourceUrl: gutRehbachReviewUrl,
     sourceLabel: "hochzeits-location.info",
-    freshnessLabel: "Review- und Locationprofil, Stand April 2026",
-    reviewRatingValue: 4.7,
-    reviewRatingScale: 5,
-    reviewSourceUrl: gutRehbachReviewUrl,
-    reviewSourceLabel: "hochzeits-location.info"
+    freshnessLabel: "Review- und Locationprofil, Stand April 2026"
   },
   {
     id: "deidesheim-rebe",
@@ -519,12 +510,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://fotos-fotodesign.de/",
     sourceUrl: trustlocalPhotographySourceUrl,
     sourceLabel: "Trustlocal Hochzeitsfotografen Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 8.3,
-    reviewRatingScale: 10,
-    reviewCount: 2,
-    reviewSourceUrl: trustlocalPhotographySourceUrl,
-    reviewSourceLabel: "Trustlocal Hochzeitsfotografen Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "mihael-klaudija-prebezac",
@@ -547,12 +533,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://hochzeiten.prebezac.de/",
     sourceUrl: trustlocalPhotographySourceUrl,
     sourceLabel: "Trustlocal Hochzeitsfotografen Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 9.9,
-    reviewRatingScale: 10,
-    reviewCount: 42,
-    reviewSourceUrl: trustlocalPhotographySourceUrl,
-    reviewSourceLabel: "Trustlocal Hochzeitsfotografen Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "christian-stumpf-photography",
@@ -575,12 +556,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://hochzeitsfotograf-christianstumpf.de/",
     sourceUrl: trustlocalPhotographySourceUrl,
     sourceLabel: "Trustlocal Hochzeitsfotografen Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 9.7,
-    reviewRatingScale: 10,
-    reviewCount: 44,
-    reviewSourceUrl: trustlocalPhotographySourceUrl,
-    reviewSourceLabel: "Trustlocal Hochzeitsfotografen Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "daniela-rupp-photoart",
@@ -603,12 +579,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://danielarupp.de/",
     sourceUrl: trustlocalPhotographySourceUrl,
     sourceLabel: "Trustlocal Hochzeitsfotografen Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 9.7,
-    reviewRatingScale: 10,
-    reviewCount: 30,
-    reviewSourceUrl: trustlocalPhotographySourceUrl,
-    reviewSourceLabel: "Trustlocal Hochzeitsfotografen Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "roger-rachel-photography",
@@ -631,12 +602,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://www.roger-rachel.de/hochzeitsfotograf-speyer-altrip",
     sourceUrl: trustlocalPhotographySourceUrl,
     sourceLabel: "Trustlocal Hochzeitsfotografen Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 9.6,
-    reviewRatingScale: 10,
-    reviewCount: 162,
-    reviewSourceUrl: trustlocalPhotographySourceUrl,
-    reviewSourceLabel: "Trustlocal Hochzeitsfotografen Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "hassloch-event-taste",
@@ -730,12 +696,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://mixguru.de/en/",
     sourceUrl: trustlocalCateringSourceUrl,
     sourceLabel: "Trustlocal Caterer Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 10,
-    reviewRatingScale: 10,
-    reviewCount: 31,
-    reviewSourceUrl: trustlocalCateringSourceUrl,
-    reviewSourceLabel: "Trustlocal Caterer Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "der-jaeger-kochts",
@@ -758,12 +719,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://www.der-jaeger-kochts.de/",
     sourceUrl: trustlocalCateringSourceUrl,
     sourceLabel: "Trustlocal Caterer Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 9.9,
-    reviewRatingScale: 10,
-    reviewCount: 50,
-    reviewSourceUrl: trustlocalCateringSourceUrl,
-    reviewSourceLabel: "Trustlocal Caterer Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "basten-kocht",
@@ -786,12 +742,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://bastenkocht.de/",
     sourceUrl: trustlocalCateringSourceUrl,
     sourceLabel: "Trustlocal Caterer Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 8.9,
-    reviewRatingScale: 10,
-    reviewCount: 7,
-    reviewSourceUrl: trustlocalCateringSourceUrl,
-    reviewSourceLabel: "Trustlocal Caterer Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "johannes-staehly-catering",
@@ -814,12 +765,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://www.metzgerei-staehly.de/",
     sourceUrl: trustlocalCateringSourceUrl,
     sourceLabel: "Trustlocal Caterer Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 8.7,
-    reviewRatingScale: 10,
-    reviewCount: 49,
-    reviewSourceUrl: trustlocalCateringSourceUrl,
-    reviewSourceLabel: "Trustlocal Caterer Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "hirschalm-eventmanagement",
@@ -843,12 +789,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://www.die-hirschalm.de/",
     sourceUrl: trustlocalCateringSourceUrl,
     sourceLabel: "Trustlocal Caterer Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 8.9,
-    reviewRatingScale: 10,
-    reviewCount: 36,
-    reviewSourceUrl: trustlocalCateringSourceUrl,
-    reviewSourceLabel: "Trustlocal Caterer Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "marc-nova-dj",
@@ -871,12 +812,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://www.marcnova.com/highlights/",
     sourceUrl: trustlocalDjSourceUrl,
     sourceLabel: "Trustlocal DJs Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 9.9,
-    reviewRatingScale: 10,
-    reviewCount: 64,
-    reviewSourceUrl: trustlocalDjSourceUrl,
-    reviewSourceLabel: "Trustlocal DJ-Ranking Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "dj-zone-premium",
@@ -899,12 +835,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://www.hochzeitsundeventdj.com/",
     sourceUrl: trustlocalDjSourceUrl,
     sourceLabel: "Trustlocal DJs Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 9.9,
-    reviewRatingScale: 10,
-    reviewCount: 56,
-    reviewSourceUrl: trustlocalDjSourceUrl,
-    reviewSourceLabel: "Trustlocal DJ-Ranking Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "dj-jan-mitchell",
@@ -927,12 +858,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://www.dj-janmitchell.de/post/dj-oder-livemusik-hochzeitsfeier",
     sourceUrl: trustlocalDjSourceUrl,
     sourceLabel: "Trustlocal DJs Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 9.9,
-    reviewRatingScale: 10,
-    reviewCount: 44,
-    reviewSourceUrl: trustlocalDjSourceUrl,
-    reviewSourceLabel: "Trustlocal DJ-Ranking Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "dj-franckey",
@@ -955,12 +881,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://djfranckey.com/",
     sourceUrl: trustlocalDjSourceUrl,
     sourceLabel: "Trustlocal DJs Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 9.9,
-    reviewRatingScale: 10,
-    reviewCount: 30,
-    reviewSourceUrl: trustlocalDjSourceUrl,
-    reviewSourceLabel: "Trustlocal DJ-Ranking Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "dj-fisch3r",
@@ -983,12 +904,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://dein-dj-party.de/",
     sourceUrl: trustlocalDjSourceUrl,
     sourceLabel: "Trustlocal DJs Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 9.9,
-    reviewRatingScale: 10,
-    reviewCount: 40,
-    reviewSourceUrl: trustlocalDjSourceUrl,
-    reviewSourceLabel: "Trustlocal DJ-Ranking Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "dj-williamb",
@@ -1010,12 +926,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioLabel: "Bewertungsprofil",
     sourceUrl: trustlocalDjSourceUrl,
     sourceLabel: "Trustlocal DJs Neustadt",
-    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026",
-    reviewRatingValue: 9.8,
-    reviewRatingScale: 10,
-    reviewCount: 34,
-    reviewSourceUrl: trustlocalDjSourceUrl,
-    reviewSourceLabel: "Trustlocal DJ-Ranking Neustadt an der Weinstrasse"
+    freshnessLabel: "Trustlocal, aktualisiert Maerz 2026"
   },
   {
     id: "dj-stefan-kietz",
@@ -1038,12 +949,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://www.djstefankietz.de/",
     sourceUrl: "https://www.djstefankietz.de/",
     sourceLabel: "Offizielle DJ-Seite",
-    freshnessLabel: "Offizielle Website und Trustlocal, Stand April 2026",
-    reviewRatingValue: 9.8,
-    reviewRatingScale: 10,
-    reviewCount: 95,
-    reviewSourceUrl: trustlocalDjSourceUrl,
-    reviewSourceLabel: "Trustlocal DJ-Ranking Neustadt an der Weinstrasse"
+    freshnessLabel: "Offizielle Website und Trustlocal, Stand April 2026"
   },
   {
     id: "floristik-ringelblume-deidesheim",
@@ -1067,12 +973,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://www.floristik-ringelblume.de/hochzeit/",
     sourceUrl: "https://www.floristik-ringelblume.de/",
     sourceLabel: "Offizielle Website",
-    freshnessLabel: "Offizielle Website und Bewertungsprofil, Stand April 2026",
-    reviewRatingValue: 4.4,
-    reviewRatingScale: 5,
-    reviewCount: 29,
-    reviewSourceUrl: ringelblumeReviewUrl,
-    reviewSourceLabel: "werkenntdenbesten.de"
+    freshnessLabel: "Offizielle Website und Bewertungsprofil, Stand April 2026"
   },
   {
     id: "blumen-jast-speyer",
@@ -1186,12 +1087,7 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     portfolioUrl: "https://imanbader.de/brautpakete/",
     sourceUrl: "https://imanbader.de/brautpakete/",
     sourceLabel: "Offizielle Brautpakete-Seite",
-    freshnessLabel: "Offizielle Website und Bewertungsprofil, Stand April 2026",
-    reviewRatingValue: 4.9,
-    reviewRatingScale: 5,
-    reviewCount: 71,
-    reviewSourceUrl: imanBaderReviewUrl,
-    reviewSourceLabel: "Hair and Lounge Branchenprofil"
+    freshnessLabel: "Offizielle Website und Bewertungsprofil, Stand April 2026"
   },
   {
     id: "marisa-hois-bridal-styling",

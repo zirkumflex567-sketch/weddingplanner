@@ -71,11 +71,13 @@ Wir bauen keine weitere passive Hochzeits-Checkliste, sondern einen proaktiven, 
 
 - `packages/shared` enthaelt jetzt einen ersten deterministischen Planning-Core
 - `services/api` liefert `POST /planning/bootstrap`
+- `services/api` kann jetzt bezahlte deutschlandweite Vendor-Refresh-Jobs als source-safe Pipeline-Plan anlegen
 - `services/api` speichert jetzt persistente Prototype-Workspaces inklusive Profilbibliothek, Guests, RSVP-Status, Ausgaben, Vendor-Tracking und Task-Status
 - `apps/web` ist jetzt auf einen Guided-Only-Modus umgestellt: Profilbibliothek, neues Profil, Profil loeschen und danach nur noch ein aktiver Planungsschritt plus Wedding Consultant
 - Gaeste bekommen jetzt einen oeffentlichen RSVP-Link fuer Selbstpflege von Antwort, Essenswahl und Nachricht
 - `packages/shared` nutzt jetzt eine datengetriebene Vendor-Seed-Basis statt reiner Berlin-Hardcodes
 - fuer `67454 / Hassloch` plus `40 km` liegt jetzt eine erste kuratierte Vendor-Abdeckung mit Quellenhinweisen vor
+- `packages/shared` trennt jetzt kuratierte Soforttreffer von einer deutschlandweiten `vendorSearchStrategy` fuer Paid Refresh
 - ein gefuehrter Copilot-Flow mit `Planung starten` fuehrt jetzt Schritt fuer Schritt durch Fundament, Venue, Kern-Vendoren, Gaeste, Admin und Finalisierung
 - der Beratungsmodus laeuft jetzt als Chat-Panel mit konkreten Antwortvorschlaegen, Freitext und Wiederaufnahme pro Workspace
 
@@ -90,6 +92,7 @@ Wir bauen keine weitere passive Hochzeits-Checkliste, sondern einen proaktiven, 
 - Vendor-Empfehlungen koennen als kontaktiert, angeboten, gebucht oder verworfen verfolgt werden
 - Quotes und Vendor-Notizen bleiben nach Reload im Workspace erhalten
 - lokale Vendor-Matches fuer `67454 / Hassloch` zeigen jetzt Website- und Quellenlinks direkt im Guided Mode
+- Drittportal-Reviewscores werden nicht mehr als Produkt-Truth in Vendor-Matches publiziert
 - Gaeste koennen ueber eine oeffentliche RSVP-Seite selbst antworten und Essenshinweise hinterlassen
 - der Couple-Workspace zieht tab-uebergreifende RSVP-Aenderungen jetzt frisch aus der API
 - Budget, Vendor-Matches, Event-Blueprints und DACH-Reminder reagieren auf das gespeicherte Profil

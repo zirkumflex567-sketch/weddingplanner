@@ -13,15 +13,23 @@ import {
   isUpdateVendorInput,
   type PrototypeWorkspaceStore
 } from "./prototype-store";
+import {
+  InMemoryVendorRefreshStore,
+  isVendorRefreshRequest,
+  type VendorRefreshStore
+} from "./vendor-refresh-store";
 
 interface BuildAppOptions {
   workspaceStore?: PrototypeWorkspaceStore;
+  vendorRefreshStore?: VendorRefreshStore;
 }
 
 export function buildApp(options: BuildAppOptions = {}) {
   const app = Fastify({ logger: false });
   const workspaceStore =
     options.workspaceStore ?? new InMemoryPrototypeWorkspaceStore();
+  const vendorRefreshStore =
+    options.vendorRefreshStore ?? new InMemoryVendorRefreshStore();
 
   app.register(cors, {
     origin: true
@@ -41,6 +49,33 @@ export function buildApp(options: BuildAppOptions = {}) {
     return {
       plan: createBootstrapPlan(request.body)
     };
+  });
+
+  app.post("/prototype/vendor-refresh-jobs", async (request, reply) => {
+    if (!isVendorRefreshRequest(request.body)) {
+      return reply.code(400).send({
+        error: "Invalid vendor refresh payload"
+      });
+    }
+
+    const job = await vendorRefreshStore.createJob(request.body);
+    return reply.code(201).send({ job });
+  });
+
+  app.get("/prototype/vendor-refresh-jobs", async () => {
+    const jobs = await vendorRefreshStore.listJobs();
+    return { jobs };
+  });
+
+  app.get("/prototype/vendor-refresh-jobs/:id", async (request, reply) => {
+    const params = request.params as { id: string };
+    const job = await vendorRefreshStore.getJob(params.id);
+
+    if (!job) {
+      return reply.code(404).send({ error: "Vendor refresh job not found" });
+    }
+
+    return { job };
   });
 
   app.post("/prototype/workspaces", async (request, reply) => {

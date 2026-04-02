@@ -103,12 +103,27 @@ Ohne diese Felder ist ein Match nur schwer glaubwuerdig.
 
 - nur ausreichend gute Datensaetze fuer Produktsuche freigeben
 
+## Paid Refresh Prinzip
+
+Deutschlandweite Daten werden nicht pauschal vorab gezogen.
+Stattdessen gilt:
+
+- kuratierte Seeds koennen als Sofortabdeckung dienen
+- aktuelle deutschlandweite Daten werden erst nach bezahlter Kundenanfrage ueber einen Refresh-Job gezogen
+- Discovery und Publish sind getrennt
+
+Das bedeutet konkret:
+
+- Portale und Verzeichnisse duerfen Kandidaten liefern
+- publiziert werden aber nur first-party Facts, strukturierte Business-Facts oder claimed data
+
 ## Qualitaetsregeln
 
 - jede Empfehlung braucht einen Quellenkontext
 - unvollstaendige Daten duerfen nicht mit falscher Praezision dargestellt werden
 - Preisangaben sind als Band oder Approximation zu behandeln, solange keine echten Angebote vorliegen
 - Freshness muss sichtbar oder intern pruefbar sein
+- Drittportal-Rankings oder Review-Scores sind keine Produkt-Truth und gehoeren nicht in publizierte Vendor-Matches
 
 ## Arbeitsannahme fuer die erste Umsetzung
 

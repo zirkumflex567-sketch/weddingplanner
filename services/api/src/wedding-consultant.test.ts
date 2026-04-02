@@ -56,7 +56,7 @@ describe("wedding consultant conversation", () => {
     expect(opening.stepId).toBe("venue-and-date");
     expect(opening.focusArea).toBe("vendors");
     expect(opening.assistantMessage).toContain("Location-Schicht");
-    expect(opening.assistantMessage).toContain("Rebe Deidesheim");
+    expect(opening.assistantMessage).toContain("Gut Rehbach");
     expect(opening.suggestedReplies.map((item) => item.id)).toEqual([
       "venue-style-fit",
       "venue-budget-fit",

@@ -12,6 +12,9 @@ Aktueller Stand:
 
 - `GET /health`
 - `POST /planning/bootstrap`
+- `POST /prototype/vendor-refresh-jobs`
+- `GET /prototype/vendor-refresh-jobs`
+- `GET /prototype/vendor-refresh-jobs/:id`
 - `npm run dev --workspace @wedding/api` startet die lokale API auf `127.0.0.1:3001`
 - `POST /prototype/workspaces`
 - `GET /prototype/workspaces/:id`
@@ -32,9 +35,10 @@ Die Bootstrap-Route liefert aktuell einen ersten deterministischen Plan aus Onbo
 - DACH-Admin-Reminder
 - Event-Blueprints
 - kuratierte Vendor-Matches
+- vendor search strategy fuer kuratierte Sofortabdeckung plus deutschlandweiten Paid Refresh
 - Runtime-Topologie fuer Shadow/VPS
 
 Der Prototype-Store laeuft lokal dateibasiert fuer die App-Nutzung und ist bewusst nur Prototypenpersistenz, keine finale Produktionsdatenhaltung.
 Bestehende persistierte Workspaces werden beim Laden auf neue Felder wie Vendor-Tracking normalisiert, damit Prototyp-Daten nicht bei jedem Ausbau verloren gehen.
 Gaeste bekommen ausserdem einen stabilen Access-Token fuer oeffentliche RSVP-Links mit Antwort, Essenswahl und Nachricht.
-Vendor-Matches werden jetzt datengetrieben aus `packages/shared/src/vendor-seeds.ts` erzeugt, inklusive Alias-Matching fuer `67454` bzw. `Hassloch` und Quellenmetadaten fuer die Seed-Eintraege.
+Vendor-Matches werden jetzt datengetrieben aus `packages/shared/src/vendor-seeds.ts` erzeugt, waehrend die neue Refresh-Route source-safe Connector-Plaene fuer deutschlandweite Kundenanfragen erzeugt.

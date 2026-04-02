@@ -1,10 +1,16 @@
 # services/ai-orchestrator
 
-Hier soll spaeter die KI-Orchestrierung leben:
+Testbare KI-Orchestrierung fuer strukturierte Research- und Enrichment-Workflows.
 
-- Prompts
-- strukturierte Outputs
-- Tool-Aufrufe
-- Vergleichs- und Planungsworkflows
+## Aktueller Code
 
-Ziel ist eine testbare, austauschbare KI-Schicht statt verteilter Prompt-Strings.
+- `src/index.ts` erzeugt einen Vendor-Research-Brief fuer Refresh-Jobs
+
+## Rolle im Zielsystem
+
+- Prompting fuer Vendor-Enrichment
+- strukturierte Extraktion aus first-party Quellen
+- Vergleichs- und Begruendungslogik
+- spaetere Dokumenten- und Angebotsauswertung
+
+Ziel bleibt eine austauschbare KI-Schicht statt verteilter Prompt-Strings in UI oder API.

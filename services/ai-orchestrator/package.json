@@ -1,0 +1,19 @@
+{
+  "name": "@wedding/ai-orchestrator",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@wedding/ingestion": "0.0.0",
+    "@wedding/shared": "0.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  }
+}
