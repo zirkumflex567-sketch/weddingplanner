@@ -145,6 +145,53 @@ function summarizeSiggiState(state: SiggiConversationState) {
   ].join("\n");
 }
 
+function formatSiggiProductArea(productArea: string | null | undefined) {
+  if (!productArea) {
+    return null;
+  }
+
+  if (/roll/i.test(productArea)) {
+    return "Rollladen";
+  }
+
+  if (/fenster/i.test(productArea)) {
+    return "Fenster";
+  }
+
+  if (/flieg/i.test(productArea)) {
+    return "Fliegengitter";
+  }
+
+  if (/mark/i.test(productArea)) {
+    return "Markise";
+  }
+
+  return productArea;
+}
+
+export function buildSiggiFallbackReply(request: SiggiConversationRequest) {
+  if (request.summary.readyToSubmit) {
+    return "Danke, ich habe jetzt alles Wichtige zusammen. Soll ich deine Anfrage direkt an das Team von FR-SIEG weitergeben?";
+  }
+
+  const productArea = formatSiggiProductArea(request.state.productArea);
+  const locationParts = [request.state.city, request.state.roomPosition].filter(Boolean);
+  const locationHint =
+    locationParts.length > 0 ? ` in ${locationParts.join(", ")}` : "";
+  const intro = productArea
+    ? `Danke, ich habe den ${productArea}${locationHint} schon notiert.`
+    : "Danke, ich habe dein Anliegen schon notiert.";
+
+  if (
+    request.summary.missingFields.length === 1 &&
+    /kontakt|telefon|e-mail/i.test(request.summary.missingFields[0] ?? "")
+  ) {
+    return `${intro} Schick mir bitte noch kurz deine Telefonnummer oder E-Mail, dann kann ich die Anfrage sauber weitergeben.`;
+  }
+
+  return `${intro} Damit ich die Anfrage sauber weitergeben kann, brauche ich noch ${request.summary.missingFields.join(", ")}.`;
+}
+
 function coerceAssistantMessage(payload: unknown) {
   if (!payload || typeof payload !== "object") {
     return null;
@@ -540,14 +587,14 @@ export function buildAiOrchestratorApp(options: AiOrchestratorOptions = {}) {
   });
 
   app.post("/chat/siggi-intake", async (request, reply) => {
-    const fallbackMessage =
-      "Danke, ich habe das aufgenommen. Ich frage gleich gezielt nach dem naechsten wichtigen Punkt, falls noch etwas fehlt.";
-
     if (!isSiggiConversationRequest(request.body)) {
       return reply.code(400).send({ error: "Invalid Siggi payload" });
     }
 
-    const response = await orchestrator.createSiggiReply(request.body, fallbackMessage);
+    const response = await orchestrator.createSiggiReply(
+      request.body,
+      buildSiggiFallbackReply(request.body)
+    );
     return { response };
   });
 

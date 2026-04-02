@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   buildAiOrchestratorApp,
+  buildSiggiFallbackReply,
   createVendorResearchBrief,
   OllamaChatClient,
   type AssistantChatMessage
@@ -141,6 +142,26 @@ describe("ai orchestrator", () => {
 
     const payload = await client.generateText("system", "user");
     expect(payload).toContain("THE SPACE");
+  });
+
+  it("builds a grounded Siggi fallback reply from the missing intake fields", () => {
+    const payload = buildSiggiFallbackReply({
+      state: {
+        name: "Kevin",
+        city: "Hassloch",
+        productArea: "rolllaeden",
+        roomPosition: "Wohnzimmer"
+      },
+      userMessage: "Mein Rollladen klemmt.",
+      transcript,
+      summary: {
+        missingFields: ["mindestens eine Kontaktmoeglichkeit (Telefon oder E-Mail)"],
+        readyToSubmit: false
+      }
+    });
+
+    expect(payload).toContain("Rollladen");
+    expect(payload).toContain("Telefonnummer oder E-Mail");
   });
 
   it("rewrites wedding consultant replies through the app endpoint", async () => {
