@@ -1,0 +1,351 @@
+Hier ist die **sauber konsolidierte Version** aus deinen vier Entwürfen, bereinigt auf eine klare Richtung, mit der ihr **direkt in die Produkt- und Entwicklungsarbeit** gehen könnt. Grundlage sind deine vier Texte.    
+
+# Konsolidierte Produkt- und MVP-Spezifikation
+
+## 1. Produkt in einem Satz
+
+Ihr baut **keine weitere Hochzeitsplanungs-App**, sondern einen **KI-gestützten Hochzeits-Co-Piloten für den DACH-Raum**, der aus wenigen Eingaben einen realistischen Plan, passende lokale Anbieter, Budgetkontrolle, Gästemanagement und operative Unterstützung bis zum Hochzeitstag erzeugt.
+
+## 2. Die eigentliche Positionierung
+
+Der Markt ist schon besetzt. The Knot bündelt inzwischen Budget, Anbieter, Website, Einladungen und Gästeliste in einer durchgehenden Planungserfahrung; Zola deckt Gästeliste, Online-RSVPs, Essenswünsche, Songwünsche und mehrere Events ab; Joy ist stark bei Hochzeitswebsite, RSVP, Ablaufplan und Gästestrukturen wie Haushalten/Begleitungen; WeddyPlace bietet im DACH-Raum bereits Dienstleistersuche, Kommunikationsverwaltung, Budgetplaner, Hochzeitswebsite, Einladungen und Gästerückmeldungen. Daraus folgt: Ihr gewinnt **nicht** mit „Checkliste + Budget + Gästeliste“, sondern mit **besserer lokaler Suchqualität, Preis-/Angebotslogik, operativer KI und DACH-spezifischer Logik**. ([The Knot Worldwide][1])
+
+## 3. Zielgruppe
+
+Primäre Zielgruppe sind Paare im DACH-Raum, die ihre Hochzeit selbst planen wollen, aber keine Lust auf 50 offene Tabs, unklare Preise, verstreute Dienstleisterkommunikation und chaotische To-do-Listen haben.
+
+Das Produkt ist damit zwischen zwei Welten positioniert:
+
+* günstiger und skalierbarer als ein professioneller Hochzeitsplaner,
+* deutlich hilfreicher und operativer als reine Inspirations- oder Listen-Tools.
+
+## 4. Das Kernproblem, das ihr löst
+
+Hochzeitsplanung scheitert selten an fehlender Inspiration. Sie scheitert an:
+
+* zu vielen Entscheidungen in der falschen Reihenfolge,
+* fehlender Preistransparenz,
+* unstrukturierter Anbietersuche,
+* manueller Gästekommunikation,
+* Fristen, Zahlungen und Verträgen,
+* fehlender DACH-/Standesamt-Logik,
+* und am Übergang von „Idee“ zu „echter Umsetzung“.
+
+**Produktthese:**
+Die App soll nicht nur Vorschläge machen, sondern **Arbeit abnehmen**:
+
+* priorisieren,
+* vergleichen,
+* erinnern,
+* zusammenfassen,
+* Daten strukturieren,
+* Entscheidungen vorbereiten.
+
+## 5. Was das Produkt fachlich abdecken muss
+
+### A. Grunddaten der Hochzeit
+
+Pflichtdaten im Onboarding:
+
+* Namen des Paars
+* Wunschdatum oder Datumsfenster
+* Region / maximale Fahrzeit
+* grobe Gästezahl
+* Gesamtbudget
+* Stilpräferenzen
+* Must-haves und No-Gos
+* welche Events geplant sind: Standesamt, freie Trauung, Feier, Brunch etc.
+
+### B. Deutschland-/DACH-Admin
+
+Ein rechtliches Modul gehört in den Kern, nicht in „später“. In Deutschland ist die Anmeldung der Eheschließung typischerweise frühestens sechs Monate vor dem Termin möglich, danach sechs Monate gültig; bei fremdsprachigen Unterlagen können Übersetzungen sowie Apostille oder Legalisation nötig sein. Das Produkt muss dafür Erinnerungen, Dokumentenlisten und Sonderpfade unterstützen. ([ServicePortal Berlin][2])
+
+### C. Anbieter- und Venue-Management
+
+Das Produkt muss lokale Anbieter nicht nur auflisten, sondern vergleichbar machen:
+
+* Venue
+* Catering
+* Foto/Video
+* DJ/Band
+* Floristik
+* Styling
+* Papeterie
+* Torte
+* Transport
+* Unterkunft
+
+Wichtige Vergleichsdimensionen:
+
+* Region / Umkreis
+* Preisrahmen
+* Stil-Fit
+* Kapazität
+* Verfügbarkeit
+* inkludierte Leistungen
+* Antwortgeschwindigkeit
+* Bewertungen
+* Plan-B-Tauglichkeit
+* Hotels / Parken / Barrierefreiheit
+
+### D. Budget, Angebote, Verträge
+
+Das Budgetmodul ist kein Taschenrechner, sondern ein Entscheidungsmodul:
+
+* Budget je Kategorie
+* Angebotsvergleich
+* Anzahlungen / Restzahlungen
+* Fälligkeiten
+* Forecast: „Wenn Venue X genommen wird, bleiben Y € für Foto/Musik“
+* Warnungen bei Budgetdrift
+* versteckte Kosten sichtbar machen
+
+### E. Gäste, Website, RSVP
+
+Das Produkt braucht von Anfang an:
+
+* Haushalte statt nur Einzelgäste
+* Plus-Ones und Kinder
+* mehrere Events pro Gast
+* RSVP-Tracking
+* Menüwünsche / Allergien
+* Songwünsche
+* Nachrichten / Updates
+* einfache Hochzeitswebsite
+* Export für Venue/Caterer/Papeterie
+
+### F. Operative Hochzeitssteuerung
+
+Nicht nur Planung, sondern Durchführung:
+
+* Tagesablauf
+* Ansprechpartner
+* Dienstleister-Timings
+* Lieferfenster
+* Notfallkontakte
+* Plan B bei Wetter
+* finaler Wedding Day Control Room
+
+## 6. Das eigentliche Produkt
+
+### Produktkern
+
+Die App ist ein **lebender Hochzeitsplan**, der aus den Eingangsdaten laufend folgende Dinge erzeugt:
+
+* priorisierte Timeline,
+* nächste sinnvolle To-dos,
+* passende Anbieter,
+* Budgetempfehlungen,
+* Kommunikationshilfen,
+* Erinnerungen und Warnungen.
+
+### Zentrale Nutzererfahrung
+
+Nach dem Onboarding soll der Nutzer **nicht** in leeren Modulen landen, sondern sofort sehen:
+
+* „Das sind eure nächsten 3 Entscheidungen“
+* „Das ist euer realistischer Budgetrahmen je Kategorie“
+* „Das sind 5 passende Anbieter in eurer Region“
+* „Diese Fristen kommen als Nächstes“
+* „Hier fehlen euch noch Daten“
+
+## 7. MVP: Was ihr zuerst baut
+
+Das MVP sollte bewusst klein, aber wertvoll sein. Keine native App zuerst. Erst **responsive Web-App / PWA**.
+
+### MVP-Modul 1: Onboarding + Profil
+
+Erfassung aller Hochzeits-Grunddaten, Präferenzen, No-Gos, Budget und Region.
+
+### MVP-Modul 2: KI-Masterplan
+
+Der Assistent erzeugt:
+
+* personalisierte Timeline,
+* priorisierte Aufgaben,
+* kritische Pfade,
+* Budgetgrundstruktur,
+* Warnungen bei unrealistischen Kombinationen.
+
+### MVP-Modul 3: Vendor-Suche für 4–6 Kernkategorien
+
+Start nur mit:
+
+* Venue
+* Foto
+* Catering
+* Musik
+* Floristik
+* Styling
+
+### MVP-Modul 4: Budget + Angebote + Zahlungen
+
+* Budgetstruktur
+* Angebotsdaten erfassen
+* Verträge anhängen
+* Anzahlungen/Fälligkeiten tracken
+
+### MVP-Modul 5: Gästeliste + RSVP + einfache Website
+
+* Gäste importieren / anlegen
+* Online-RSVP
+* Essenswünsche
+* Event-Zuordnung
+* einfache Website mit Basisinfos
+
+### MVP-Modul 6: DACH-Admin-Modul
+
+* Standesamt-Reminder
+* Dokumentenliste
+* Sonderpfad bei Auslandsbezug
+* Fristenlogik
+
+## 8. Was **nicht** ins erste MVP gehört
+
+Diese Punkte sind wertvoll, aber sollten **Phase 2** sein:
+
+* vollwertiger Seating-/Floor-Planer
+* Vendor-Portal mit Self-Service
+* Deal-/Schnäppchen-Engine
+* Papeterie-/Bild-KI als fertiges Designstudio
+* automatische Anbieteranfragen in eurem Namen
+* komplexe Marketplace-Monetarisierung
+* native iOS-/Android-App
+
+## 9. Datenstrategie: so baut ihr den Burggraben
+
+Hier muss eine klare Entscheidung fallen: **kein unkontrolliertes „alles scrapen“**.
+
+### Saubere Datenquellen
+
+1. **Places/Maps-Daten** für Business-Fakten
+   Google Places kann über Place Details strukturierte Daten wie Adresse, Telefonnummer, Ratings und Reviews liefern; bei der Anzeige gelten Attributionsvorgaben. ([Google for Developers][3])
+
+2. **OSM/Nominatim** für Geocoding, Radius-Suche und Kartenbasis
+   Die öffentliche Nominatim-Policy gilt ausdrücklich nur für den öffentlichen OSM-Server, nicht für selbst gehostete Instanzen. OSM-Daten stehen unter ODbL und verlangen Attribution. Das passt gut zu einer self-hosted Architektur. ([OSMF Operations][4])
+
+3. **Claimed Vendor Data**
+   Google Business Profile APIs sind für das Verwalten eigener Business- und Standortdaten gedacht; für allgemeine Endnutzer-Lokalsuche verweist Google auf die Maps-Plattform. Für euch heißt das: Partner sollen ihre Daten primär selbst pflegen. ([Google for Developers][5])
+
+4. **Kontrollierte Extraktion aus Vendor-Websites + First-Party-Daten**
+   Erlaubt ist nur eine saubere Extraktion öffentlicher Business-Fakten, keine Vollkopie fremder Portale.
+
+### Rechtliche Leitplanken
+
+In der EU kann Datenbankschutz greifen; je nach Fall sind Struktur oder Inhalt über Urheberrecht bzw. sui-generis-Datenbankrecht geschützt. Zusätzlich betont die CNIL, dass Web-Scraping personenbezogener Daten Schutzmaßnahmen für die Rechte der Betroffenen braucht. Praktisch heißt das: keine massenhafte Übernahme fremder Verzeichnisse, keine ungeprüfte Review-Kopie, keine personenbezogene Massenextraktion. ([European Union][6])
+
+## 10. Empfohlene Architektur
+
+### Produktarchitektur
+
+* **Frontend:** Next.js als responsive Web-App / PWA
+* **Backend:** FastAPI
+* **Datenbank:** PostgreSQL als Source of Truth
+* **Geodaten:** PostGIS
+* **Jobs/Worker:** Celery oder RQ
+* **Dateien:** S3-kompatibler Storage
+* **Auth:** E-Mail + Magic Link / OAuth
+
+### KI-Layer
+
+Ollama ist für euren Stack sinnvoll, weil es eine OpenAI-kompatible API bietet und sowohl **Structured Outputs** als auch **Tool Calling** unterstützt. Genau das braucht ihr, um aus unstrukturierten Eingaben verlässliche JSON-Strukturen für Timeline, Budgetvorschläge, Dokumenten-Parsing und Anbietervergleiche zu erzeugen. ([Ollama Dokumentation][7])
+
+### Bild-/Design-Layer
+
+ComfyUI eignet sich für spätere lokale Bildgenerierung, weil es lokal auf Windows, macOS und Linux läuft und eine lokale API zur Integration bereitstellt. Für den MVP würde ich das aber **noch nicht** zum Kern machen. ([ComfyUI Dokumentation][8])
+
+### Semantische Suche / RAG
+
+Wenn ihr später PDFs, Angebote, Verträge, FAQs und Vendor-Profile semantisch durchsuchbar machen wollt, ist ein dedizierter Vektor-/Hybrid-Search-Layer sinnvoll. Qdrant ist dafür passend, weil es Hybrid Retrieval, Metadata Filtering und Echtzeit-Updates unterstützt. Für den MVP reicht aber erstmal PostgreSQL plus klassische Filterlogik. ([Qdrant][9])
+
+## 11. Zentrale Datenobjekte
+
+Damit die Entwicklung sauber starten kann, solltet ihr euer Datenmodell grob um diese Entitäten herum aufbauen:
+
+* `users`
+* `couples`
+* `weddings`
+* `wedding_events`
+* `guest_households`
+* `guests`
+* `rsvps`
+* `budget_categories`
+* `expenses`
+* `vendors`
+* `vendor_categories`
+* `vendor_matches`
+* `vendor_quotes`
+* `contracts`
+* `payment_milestones`
+* `checklist_tasks`
+* `timeline_items`
+* `documents`
+* `notes`
+* `messages`
+* `style_profiles`
+
+Wichtig: **Venue ist am Anfang kein eigenes Objekt**, sondern ein Vendor mit Kategorie `venue`. Das hält das Modell schlank.
+
+## 12. Rollen im System
+
+Am Anfang braucht ihr nur drei Rollen:
+
+* **Couple/User**
+* **Admin**
+* **Vendor** (erst vorbereiten, nicht voll ausbauen)
+
+Der Vendor-Zugang kann im ersten Release intern oder invite-only sein.
+
+## 13. Sinnvolle Release-Reihenfolge
+
+### Phase 1
+
+Onboarding, KI-Masterplan, Vendor-Suche, Budget, Angebote, Gästeliste, RSVP, Website, DACH-Admin.
+
+### Phase 2
+
+Day-of Control Room, Seating, Dokumentenintelligenz, semantische Suche, Vendor-Claiming.
+
+### Phase 3
+
+Papeterie-/Designstudio, Deal-Logik, Vendor-Analytics, Monetarisierung.
+
+## 14. Die klare Produktentscheidung
+
+Die sauberste zusammengeführte Version lautet deshalb:
+
+**Ihr baut eine DACH-fokussierte, datenschutzfreundliche Hochzeitsplattform, die Planung nicht nur dokumentiert, sondern operativ steuert.**
+Der Kern ist ein selbst gehosteter KI-Assistent, der Onboarding-Daten in einen konkreten Plan, Anbieterempfehlungen, Budgetführung, Gästemanagement und Fristenkontrolle übersetzt.
+Der Differenzierungsfaktor ist nicht „noch mehr Inspiration“, sondern:
+
+* **lokale Anbieterqualität**
+* **Preis- und Angebotsintelligenz**
+* **echte Ausführungshilfe**
+* **DACH-/Standesamt-Logik**
+* **Datenschutz/Self-Hosting**
+
+## 15. Womit ihr sofort anfangen solltet
+
+Der sauberste Start ist:
+
+1. Datenmodell für `weddings`, `guests`, `vendors`, `quotes`, `tasks`
+2. Onboarding-Screen
+3. erster KI-Endpoint für strukturierten Masterplan
+4. Vendor-Suche mit Region + Budget + Kategorie
+5. Budget- und Angebotsmodul
+6. Gästeliste + RSVP
+7. DACH-Admin-Modul
+
+**Nicht zuerst:** native App, komplexer Marketplace, unkontrolliertes Scraping, Papeterie-Vollautomatisierung.
+
+Als nächstes lohnt sich direkt die **technische PRD mit Datenbankschema, API-Endpunkten und User-Flows**.
+
+[1]: https://www.theknotww.com/press-releases/the-knot-launches-new-ai-powered-planning-experience/ "The Knot Launches New AI-Powered Planning Experience - The Knot Worldwide"
+[2]: https://service.berlin.de/dienstleistung/318961/ "Eheschließung anmelden - ohne Auslandsbeteiligung - Dienstleistungen - Service Berlin - Berlin.de"
+[3]: https://developers.google.com/maps/documentation/places/web-service/place-details "Place Details (New)  |  Places API  |  Google for Developers"
+[4]: https://operations.osmfoundation.org/policies/nominatim/ "Nominatim Usage Policy (aka Geocoding Policy)"
+[5]: https://developers.google.com/my-business/content/overview "Business Profile overview  |  Google Business Profile APIs  |  Google for Developers"
+[6]: https://europa.eu/youreurope/business/running-business/intellectual-property/database-protection/index_en.htm "Database protection in the EU - Your Europe"
+[7]: https://docs.ollama.com/api/openai-compatibility "OpenAI compatibility - Ollama"
+[8]: https://docs.comfy.org/ "ComfyUI Official Documentation - ComfyUI"
+[9]: https://qdrant.tech/ "Qdrant - Vector Search Engine"

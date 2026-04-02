@@ -1,0 +1,277 @@
+# Dein KI-gestützter Hochzeitsplaner: "WeddingMate"
+
+## 1. Die Ausgangslage: Was gibt es bereits und wo setzt du an?
+
+### 1.1 Der Markt und die Konkurrenz
+
+Der globale Markt für Hochzeitsplanungs-Apps wird 2026 auf etwa **1,07 Mrd. USD** geschätzt und wächst bis 2035 mit einer **jährlichen Rate von 15,5 %** auf **4 Mrd. USD** . Das zeigt: Der Markt ist groß und wachsend – aber auch fragmentiert.
+
+**Bestehende Lösungen:**
+
+| **Tool/Kategorie** | **Stärken** | **Schwächen (deine Chance!)** |
+|---|---|---|
+| **Bridebook** | Gute Location-Suche, Gästeliste, Budget-Tool  | Keine echte KI, manuelle Eingaben, wenig Personalisierung |
+| **Planning.wedding** | Kostenlose Checklisten, Gästeliste als PDF  | Sehr basic, keine aktive Unterstützung, kein Anbieter-Matching |
+| **The Knot / WeddingWire (US)** | Große Anbieter-Datenbanken  | Oft nur englisch, US-fokussiert, keine KI-Planung |
+| **SanskaraAI (Indien)** | KI-Assistent, kulturelle Ritual-Begleitung  | Stark auf indische Hochzeiten spezialisiert |
+| **Pinterest** | Inspirationsquelle  | Nur Inspiration, keine Planungsfunktion |
+
+**Deine Differenzierungsmerkmale:**
+
+1. **Lokale KI mit Datenschutz**: Die Konkurrenz nutzt Cloud-KIs (OpenAI, Google). Du hostest deine eigene KI (Ollama) – das ist ein massiver **Datenschutz-Vorteil** (heikle Hochzeitsdaten bleiben lokal).
+2. **Deutschland/Europa-fokussiert**: Bestehende Apps sind oft US-zentriert. Du kannst lokale Anbieter, Bräuche und Gegebenheiten abdecken.
+3. **Hybrid aus KI-Assistent + echter Anbieter-Suche**: Keine reine Checkliste, sondern aktive, personalisierte Planung.
+4. **Lokale Bild-KI für Invitations**: Self-hosted Stable Diffusion für maßgeschneiderte Einladungen – kein Anbieter sieht die Daten.
+
+---
+
+## 2. Der ultimative Zeitplan: Was muss wann erledigt sein?
+
+Basierend auf der detaillierten Checkliste :
+
+### Phase 1: Grundsteinlegung (12–18 Monate vor der Hochzeit)
+| Aufgabe | Details |
+|---|---|
+| Budget festlegen | Gesamtbudget + Aufteilung auf Posten (Location, Catering, Kleidung, etc.) |
+| Grobe Gästeliste | Wunschliste mit max. Anzahl |
+| Wunschtermin | Saison, Wochentag, Alternativen |
+| Hochzeitsstil | "Was mag ich?" – als Stichworte (rustikal, modern, boho, vintage) |
+| Location-Recherche | Erste Angebote einholen |
+
+### Phase 2: Verbindliche Buchungen (9–12 Monate vorher)
+| Aufgabe | Details |
+|---|---|
+| **Location buchen** | Die wichtigste Entscheidung! |
+| Standesamt/Kirche reservieren | Termin parallel zur Location abstimmen |
+| Fotograf/Videograf | Stil muss passen, schnell ausgebucht |
+| Catering | Probeessen einplanen |
+| Brautkleid/Anzug | Shopping starten (Lieferzeiten 4–8 Monate) |
+
+### Phase 3: Detailplanung (6–9 Monate vorher)
+| Aufgabe | Details |
+|---|---|
+| Save-the-Date versenden | 6–8 Monate vorher |
+| DJ/Band buchen | Live-Musik vs. Playlist entscheiden |
+| Florist | Farbkonzept, Trauung, Tische |
+| Hochzeitsreise planen | Frühbucher nutzen |
+
+### Phase 4: Einladungen & Feintuning (3–6 Monate vorher)
+| Aufgabe | Details |
+|---|---|
+| **Einladungen gestalten & versenden** | Mit RSVP-Link |
+| Menü & Getränke | Inkl. Alternativen (vegan, Allergien) |
+| Sitzplan erstellen | Das Puzzle! |
+| Ringe bestellen | 4–6 Wochen Lieferzeit einplanen |
+
+### Phase 5: Letzte Vorbereitungen (1–3 Monate vorher)
+| Aufgabe | Details |
+|---|---|
+| Sitzplan finalisieren | Namenskarten drucken |
+| Ablaufplan erstellen | Stundengenau für alle Beteiligten |
+| Gästeliste finalisieren | Letzte Rückmeldungen |
+| Zahlungen vorbereiten | Dienstleister rechtzeitig überweisen |
+
+### Phase 6: Die letzte Woche & der große Tag
+| Aufgabe | Details |
+|---|---|
+| Notfallset packen | Pflaster, Nadeln, Make-up, etc. |
+| Wetter-Plan B | Bei Open Air |
+| Aufgaben delegieren | Trauzeugen einweisen |
+| **Genießen!** | Alles läuft nach Plan |
+
+---
+
+## 3. Das Produkt: WeddingMate im Detail
+
+### 3.1 Der Kern: Dein persönlicher KI-Assistent
+
+**Technologie:** Ollama mit einem deutschen Sprachmodell (z.B. `gemma3:12b` oder `llama3.1` mit deutscher Anpassung) – komplett lokal oder auf deinem Linux VPS gehostet .
+
+**So funktioniert der Einstieg:**
+
+Nach dem Onboarding fragt die App:
+- 👰‍♀️🤵‍♂️ **Eure Namen**
+- 📅 **Wunschtermin** (oder Zeitraum)
+- 💰 **Gesamtbudget**
+- ❤️ **"Das mögen wir"** (z.B. "rustikal, nachhaltig, vegetarisches Essen")
+- ❌ **"Das mögen wir gar nicht"** (z.B. "Tortengrabbing, Stehtisch-Atmosphäre, klassische Hochzeitsmarsch-Musik")
+- 👥 **Ungefähre Gästezahl**
+
+**Daraufhin passiert Folgendes:**
+
+Der KI-Assistent erstellt einen **individuellen Zeitplan**, der auf euren Vorlieben und eurem Budget basiert – nicht einfach eine Standard-Checkliste. Der Assistent begleitet euch über die gesamte Planungszeit:
+
+- **Aktive Erinnerungen**: "Hey, in 3 Monaten ist es soweit – ihr solltet jetzt die Tischkarten drucken!"
+- **Budget-Wächter**: "Ihr habt schon 70 % eures Catering-Budgets ausgegeben. Hier sind günstigere Alternativen in eurer Region."
+- **Stil-Checker**: "Ihr mochtet rustikal – hier sind passende Locations und Floristen, die zu eurem Stil passen."
+
+### 3.2 Die intelligente Anbieter-Suche
+
+Hier liegt der **zweite große Mehrwert**. Du integrierst **Scraping-Mechanismen**, um lokale Anbieter zu finden :
+
+| **Funktion** | **Details** |
+|---|---|
+| **Umkreissuche** | "Zeige mir Locations im Umkreis von 50 km, die Platz für 80 Gäste bieten, rustikal sind und im Budget liegen." |
+| **Kategorien** | Locations, Caterer, Fotografen, Floristen, DJs/Bands, Hochzeitsmode, Boutiquen, Tortenbäcker, Juweliere (Ringe) |
+| **Filter nach** | Preisklasse, Entfernung, Bewertung, Stil, Kapazität |
+| **Schnäppchen & Angebote** | Eigene Sektion mit Deals (z.B. "20 % Rabatt auf Fotopakete im März") – gescrapt von Anbieter-Websites oder direkt eingepflegt |
+| **Bewertungen** | Aggregierte Bewertungen (Google, Instagram, spezifische Hochzeitsportale) |
+| **Direkte Kontaktdaten** | Telefon, E-Mail, Website – alles an einem Ort |
+
+**Wie bekommst du die Daten?**
+
+- **Scraping mit Apify**: Du kannst den "Wedding Vendor Scraper" nutzen, der The Knot, WeddingWire, Bridebook, Zola und andere durchsucht . Kostet ca. $1–5 pro 1.000 Ergebnisse – sehr günstig.
+- **Manuelle Pflege**: Für Deutschland/Europa pflegst du anfangs selbst eine Liste hochwertiger Anbieter ein (als Alleinstellungsmerkmal).
+- **Partnerschaften**: Später kannst du mit Anbietern kooperieren und gegen Provision oder Listenplatz deren Sichtbarkeit erhöhen.
+
+### 3.3 Die Bild-KI für Einladungskarten
+
+Du hostest lokal eine **Bild-KI** (z.B. Stable Diffusion mit ComfyUI oder Automatic1111) auf deiner Windows-Workstation. Das ist möglich, weil deine Workstation stark genug ist.
+
+**Anwendung:**
+1. Paar gibt Prompt ein: *"Rustikale Hochzeit im Wald, goldene Akzente, Eulen-Motiv, Vintage-Stil"*
+2. Deine lokale Bild-KI generiert **10 Varianten**.
+3. Paar wählt Favorit aus, passt an (Text, Farben).
+4. **Export**: Als PDF/PNG für Druck oder als digitale Version mit RSVP-Link.
+
+**Vorteil gegenüber Canva & Co.:** Unbegrenzt viele personalisierte Designs, keine externen Dienstleister, volle Kontrolle über die Daten.
+
+### 3.4 Der umfassende Funktionsumfang im Überblick
+
+| **Modul** | **Funktionen** |
+|---|---|
+| **Dashboard** | Zentrale Übersicht: Fortschrittsbalken, nächste Aufgaben, Budget-Status, KI-Assistent als Chat-Fenster |
+| **Gästeliste** | CSV-Import, RSVP-Tracking, Essensauswahl pro Gast, Tischzuordnung, Erinnerungen per E-Mail/WhatsApp |
+| **Budget-Tool** | Kategorien mit individuellen Budgets, Ausgaben-Tracking, Warnungen bei Überschreitung, Zahlungserinnerungen |
+| **Checkliste** | Dynamisch generiert basierend auf euren Daten (Termin, Stil, Budget) – mit Häkchen und Fortschrittsanzeige |
+| **Anbieter-Suche** | Kartenansicht, Filter, Preisvergleich, Bewertungen, Kontaktdaten, Favoritenliste |
+| **Sitzplaner** | Drag-and-Drop-Tischplaner mit Gäste-Import, Druckfunktion |
+| **Einladungsstudio** | Text-KI für Einladungstexte + Bild-KI für Designs, digitale Zustellung mit RSVP-Tracking |
+| **Tagesablauf** | Stundengenaue Timeline mit Aufgaben für Dienstleister, Trauzeugen, Familie – als PDF exportierbar |
+| **Notfallset-Generator** | Checkliste fürs Notfallset (personalisiert basierend auf Location und Wetter) |
+| **Vendor Dashboard** (für später) | Anbieter können Profile verwalten, Angebote posten, Nachrichten empfangen |
+
+---
+
+## 4. Die Architektur: Wie baust du das?
+
+### 4.1 Technologie-Stack
+
+| **Ebene** | **Technologie** | **Begründung** |
+|---|---|---|
+| **Frontend** | React / Next.js | Performant, SEO-freundlich, große Community  |
+| **Backend** | Node.js + Express | Einfach, skalierbar, große Paketvielfalt  |
+| **Datenbank** | PostgreSQL (z.B. auf VPS) | Strukturierte Daten, ACID-konform  |
+| **Authentication** | Firebase Auth oder Supabase | Sicher, einfach, mit sozialen Logins  |
+| **Hosting** | Frontend: Netlify / Vercel (kostenlos) Backend: Dein Linux VPS (z.B. Hetzner, DigitalOcean) | Kosteneffizient, volle Kontrolle |
+| **KI-Orchestrierung** | Ollama (auf VPS oder Workstation) | Lokale LLMs, kein Vendor Lock-in |
+| **Bild-KI** | Stable Diffusion + ComfyUI | Auf Windows-Workstation, API-Exposition für Backend |
+| **Scraping** | Apify API + eigenes Python-Scraping | Strukturierte Anbieterdaten aus verschiedenen Quellen  |
+| **Payments** | Stripe | Für Premium-Abos oder Provisionen |
+
+### 4.2 Datenfluss
+
+1. **Nutzer registriert sich** → Firebase Auth
+2. **Onboarding-Daten** → PostgreSQL (`couples`-Tabelle)
+3. **KI-Assistent**: Frontend fragt Backend an → Backend nutzt Ollama-API (auf VPS) → Antwort zurück an Nutzer
+4. **Anbieter-Suche**:
+   - Backend ruft Apify-Worker auf oder greift auf eigene Datenbank zu
+   - Ergebnisse werden gecached (Redis oder ähnlich)
+5. **Einladungsstudio**:
+   - Nutzer gibt Prompt → Backend leitet an Workstation mit Stable Diffusion weiter
+   - Generierte Bilder werden auf Backblaze B2 (günstiger Cloud-Speicher) gespeichert 
+   - Download-Link an Nutzer
+
+---
+
+## 5. Das Geschäftsmodell
+
+### 5.1 Einnahmequellen
+
+| **Quelle** | **Modell** | **Details** |
+|---|---|---|
+| **Premium-Abo** | € 9,99/Monat oder € 49,99 einmalig | Unbegrenzte KI-Nachrichten, alle Funktionen, höhere Bildgenerierungs-Kontingente |
+| **Freemium** | Kostenlos | Basis-Checkliste, 5 Anbieter-Anfragen/Monat, 3 Bildgenerierungen |
+| **Anbieter-Provision** | 5–15 % pro Buchung | Später skalieren: Anbieter zahlen Provision bei erfolgreicher Vermittlung über die App |
+| **Anbieter-Listings** | € 29/Monat | Anbieter können ihr Profil hervorheben, Top-Platzierungen bei Suche |
+| **White-Label** | Auf Anfrage | Für Hochzeitsplaner, die ihre eigene Branded-App nutzen wollen |
+
+### 5.2 Kosten
+
+| **Kostenpunkt** | **Monatlich (geschätzt)** | **Bemerkung** |
+|---|---|---|
+| VPS (Linux) | € 20–50 | Für Backend + Ollama (je nach Modellgröße) |
+| Apify Scraping | € 10–100 | Nutzungsabhängig, skalierbar |
+| Cloud Storage (Backblaze) | € 5–20 | Für hochgeladene Bilder |
+| Domain & SSL | € 5 | |
+| Stripe-Gebühren | 2,9 % + € 0,25 | Pro Transaktion |
+| **Gesamt (Start)** | **€ 50–150** | Gut kalkulierbar |
+
+---
+
+## 6. Der Weg von Null zu Neu
+
+### Phase 1: Konzeption & Prototyp (Wochen 1–4)
+- [x] Marktrecherche abgeschlossen (du bist hier!)
+- [ ] Wireframes für die wichtigsten Screens (Dashboard, KI-Chat, Anbieter-Suche)
+- [ ] Technologie-Stack finalisieren
+- [ ] Erste Ollama-Installation auf VPS testen (`ollama pull gemma3:12b`)
+- [ ] Simple Proof of Concept: Ein Chat, der auf Budget + Termin reagiert
+
+### Phase 2: MVP (Wochen 5–12)
+- [ ] Backend: Node.js + PostgreSQL auf VPS
+- [ ] Frontend: Landing Page + Registrierung + Dashboard
+- [ ] Kernfunktionen:
+  - [ ] Dynamische Checkliste
+  - [ ] Gästeliste mit CSV-Import
+  - [ ] Budget-Tracker
+  - [ ] KI-Assistent (erste Version – gibt Tipps, erstellt Zeitplan)
+  - [ ] Anbieter-Suche: Manuell gepflegte Liste mit 50–100 deutschen Anbietern
+- [ ] Deployment: Frontend auf Netlify, Backend auf VPS
+
+### Phase 3: KI-Integration & Bildgenerierung (Wochen 13–20)
+- [ ] Stable Diffusion auf Windows-Workstation einrichten + API-Endpunkt
+- [ ] Einladungsstudio: Nutzer kann Prompts eingeben, Bilder generieren und Texte anpassen
+- [ ] Verbesserung des KI-Assistenten: Integration mit Anbieter-Datenbank ("Zeige mir Floristen, die zu meinem Stil passen")
+- [ ] Apify-Integration: Automatische Anbieter-Suche über WeddingWire, The Knot etc.
+
+### Phase 4: Beta-Test & Optimierung (Wochen 21–28)
+- [ ] 10–20 Test-Paare rekrutieren (z.B. über Instagram, Hochzeitsforen)
+- [ ] Feedback zu UX, KI-Genauigkeit, Anbieter-Daten
+- [ ] Performance-Optimierung: Caching, Ladezeiten
+- [ ] Preismodell finalisieren
+
+### Phase 5: Launch & Skalierung (ab Woche 29)
+- [ ] Öffentlicher Launch (Product Hunt, Social Media, Hochzeitsblogs)
+- [ ] Partnerschaften mit deutschen Anbietern aufbauen
+- [ ] Anbieter-Self-Service-Portal (Vendor Dashboard)
+- [ ] Erweiterung auf Österreich und Schweiz
+
+---
+
+## 7. Deine Werkzeuge im Überblick
+
+| **Werkzeug** | **Verwendung** |
+|---|---|
+| **Linux VPS** | Backend + Ollama + PostgreSQL + Redis |
+| **Windows Workstation** | Stable Diffusion (Bild-KI), Entwicklungsumgebung |
+| **ChatGPT Pro / Gemini Pro** | Code-Generierung, Prompt-Engineering, Testdaten-Erstellung |
+| **Adobe Creative Cloud** | UI/UX-Design, Marketing-Materialien, App-Icons |
+| **Cursor / VS Code** | Entwicklung mit KI-Assistenz |
+| **GitHub** | Versionskontrolle, ggf. GitHub Actions für CI/CD |
+| **Netlify** | Frontend-Hosting (kostenlos) |
+| **Apify** | Anbieter-Scraping  |
+
+---
+
+## 8. Fazit: Dein Alleinstellungsmerkmal
+
+**WeddingMate** ist nicht "noch eine Hochzeits-App", sondern **der erste datenschutzfreundliche, lokal betriebene KI-Hochzeitsplaner für den deutschsprachigen Raum**.
+
+- **Für Paare**: Entspannung statt Stress – eine KI, die wirklich hilft, nicht nur Checklisten abarbeitet.
+- **Für dich**: Ein skalierbares Geschäftsmodell mit wiederkehrenden Einnahmen, das mit deiner vorhandenen Infrastruktur umsetzbar ist.
+- **Technisch**: Du setzt auf moderne, selbst-gehostete KI – ein starkes Argument in Zeiten von Datenschutzbedenken bei US-Cloud-Anbietern.
+
+Dein nächster Schritt: **Den Prototypen bauen**. Installier Ollama auf deinem VPS, lass ein erstes deutsches Sprachmodell laufen und baue einen einfachen Chat, der auf "Budget" und "Gästezahl" reagiert. Der Rest kommt Schritt für Schritt.
+
+**Los geht's!** 🚀

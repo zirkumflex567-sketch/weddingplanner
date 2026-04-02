@@ -1,0 +1,136 @@
+**Ja, lass uns das direkt von null aufbauen.** Du hast eine super Idee: Eine App/Online-Service für Paare in der DACH-Region, die die Hochzeitsplanung selbst stemmen wollen (weil es stressig ist), aber keinen teuren Profi-Planer (5.000–15.000 €) brauchen. Der Kern ist ein **selbst gehosteter KI-Assistent** (Ollama + starkes Modell), der die Planung weitgehend automatisiert – kombiniert mit lokaler Bild-KI für Papeterie, Umkreissuchen und einer sauberen Vendor-Datenbank. Das ist der echte Mehrwert gegenüber der Konkurrenz.
+
+Ich habe alles gründlich recherchiert (aktuelle Marktübersicht 2026, komplette Hochzeits-Checklisten aus DE-Quellen, technische Optionen für lokale KI und DSGVO-konforme Location-Suchen). Hier kommt der komplette Plan: Konkurrenz, was wirklich zu planen ist, alle notwendigen Features, technische Umsetzung mit euren Ressourcen (Linux VPS + starke Windows-Workstation + Adobe CC + Gemini/ChatGPT Pro) und am Ende die exakte Produktbeschreibung.
+
+### 1. Konkurrenz – was gibt es schon und wo schlagen wir sie?
+Es gibt bereits starke Apps in DE (Stand 2026):
+
+- **Bridebook** (DE-Marktführer): Checkliste, Budget, Gästeliste, Vendor-Suche (Locations, Fotografen etc.), Hochzeitswebsite. Sehr gut, aber starre Checklisten, viel Vendor-Werbung, keine echte KI-Automatisierung.
+- **MeinEvent, MyWed, Joy, WeddyPlace**: Ähnlich – Gästeliste, Sitzplan, Budget-Tracker, Fotos. Oft US-lastig (The Knot, Zola, WeddingWire) mit riesigem Marketplace, aber Werbung, Lead-Verkauf an Vendoren und wenig Personalisierung.
+- **Pinterest + Trello**: Nur Inspiration + manuelle Tasks.
+
+**Was wir besser machen (dein USP):**
+- **KI-Planung aus einem Prompt**: Gib Namen, Termin, Budget, Gästeanzahl, Vorlieben/Abneigungen ein → die App erstellt den kompletten Zeitplan + konkrete Vendor-Vorschläge + Budget-Aufteilung.
+- **100 % DSGVO-konform & lokal**: Keine Cloud-KI (wie bei den anderen), alles auf deinem VPS/Workstation. Datenschutz als Verkaufsargument.
+- **Lokale Bild-KI** für Einladungskarten, Menükarten etc. (kein Canva/Midjourney-Abo).
+- **Echte Umkreis-Intelligenz** mit gescrpten/aggregierten DE-Daten + Bewertungen + Schnäppchen.
+- Keine nervige Vendor-Werbung im Free-Tier. Monetarisierung über Premium oder Affiliate (sauber).
+
+Das macht dich zur „smarten, günstigen Alternative zum Profi-Planer“.
+
+### 2. Was alles bei einer Hochzeit zu verwalten ist (umfassende Recherche)
+Aus aktuellen DE-Checklisten (Bridebook, Kartenmacherei, Renty-Event etc.) ergibt sich ein klarer 12–18-Monats-Zeitplan. Die App muss **alle** diese Kategorien abdecken:
+
+**Phase 1 – 12–18 Monate vorher (Grundgerüst)**
+- Termin & Trauungsart festlegen (Standesamt, Kirche, frei).
+- Budget grob + Puffer (typisch 10–25k €).
+- Vorläufige Gästeliste (mit +1, Kinder etc.).
+- Motto/Stil definieren (rustikal, modern, vintage…).
+- Location suchen/buchen.
+- Erste Vendoren: Fotograf, Caterer, DJ/Band.
+
+**Phase 2 – 6–12 Monate vorher**
+- Gästeliste finalisieren + Save-the-Date.
+- Weitere Vendoren: Florist/Deko, Torte, Hochzeitsauto, Brautmode/Boutiquen, Ringe, Transport, Unterkünfte für Gäste.
+- Papeterie (Einladungen, Menükarten, Tischkarten, Kirchenheft).
+- Flitterwochen + Urlaubsantrag.
+- Trauzeugen-Aufgaben verteilen.
+
+**Phase 3 – 3–6 Monate vorher**
+- Standesamt anmelden (spätestens 6 Monate vorher).
+- Einladungen versenden + RSVPs tracken.
+- Menüverkostung, Probeessen, Deko-Konzept.
+- Sitzplan, Playlist, Ablauf der Zeremonie/Feier.
+- Beauty-Termine (Friseur, Make-up, Probelauf).
+
+**Phase 4 – Letzte 4 Wochen + Nachbereitung**
+- Finale Bestätigungen aller Vendoren.
+- Hochzeitsbag (Notfall-Set), Zeitplan drucken.
+- JGA, Ringe abholen, Kleid/Anzug Probe.
+- Nach der Hochzeit: Danksagungen, Fotos sortieren, Rechnungen abschließen.
+
+**Zusätzliche immer-wichtige Themen:** Budget-Tracking (jede Ausgabe), Verträge & Zahlungen, Rechtliches (Dokumente), Schnäppchen/Angebote, Inspiration/Moodboard.
+
+Die App muss das alles in einer personalisierten, KI-gesteuerten Timeline abbilden – nicht nur als statische Liste.
+
+### 3. Welche Features die App zwingend haben muss
+**Kern-Feature: Der KI-Assistent (Ollama-basiert)**
+- Start-Prompt: „Wir heißen Anna & Max, heiraten am 15.09.2027 in München, 80 Gäste, Budget 18.000 €, wir mögen rustikal/natürlich, hassen Glamour & Disney.“  
+  → App erstellt komplette Timeline, Budget-Aufteilung, Vendor-Vorschläge + nächste 3 To-Dos.
+- Chat-Modus: „Welche Fotografen in 50 km Umkreis unter 2.500 €?“ oder „Generiere 3 Einladungstexte im Vintage-Stil“.
+- Automatische Anpassung bei Änderungen (Budget überschritten → Alternativen vorschlagen).
+
+**Vendor- & Location-Suche (dein „Service“, den du verkaufst)**
+- Umkreissuche (PLZ/Ort + Radius) nach: Locations (Schloss, Scheune, Restaurant…), Caterern, Fotografen/Videografen, Floristen, DJs/Bands, Boutiquen/Hochzeitsmode, Ringe, Autos, Hotels für Gäste.
+- Filter: Größe, Budget, Stil, Bewertungen (Google/Trustpilot), Verfügbarkeit, Preise.
+- Dazu: Telefonnummern, Webseite, Bewertungen, aktuelle Angebote/Schnäppchen („Hochzeitstorte 20 % günstiger im März“).
+- Datenquelle: Zuerst manuell/über APIs (siehe Technik), später User-Generierung + sauberes Scraping öffentlicher Daten (DSGVO-konform nur öffentliche Infos, keine personenbezogenen).
+
+**Weitere Must-Have-Features**
+- Gästeliste + RSVPs + Sitzplan (Drag & Drop).
+- Budget-Tracker (automatisch mit Vendor-Preisen verknüpft).
+- Papeterie-Generator: Lokale Bild-KI erstellt Einladungen, Save-the-Date, Menükarten, Tischkarten (mit euren Fotos + Stil).
+- Hochzeitswebsite (einfach, wie bei Joy).
+- Moodboard & Inspiration (integriert mit lokaler KI).
+- Checkliste + Erinnerungen (push + E-Mail).
+- Verträge & Zahlungs-Tracker.
+- Export (PDF Zeitplan, Excel Budget, Druckvorlagen).
+
+**Premium-Service (Monetarisierung):** Tieferes Scraping/Aggregation von Angeboten, persönliche KI-Beratung, fertige Vendor-Kontakte-Listen.
+
+### 4. Technische Umsetzung – von null mit euren Ressourcen
+**Backend (Linux VPS)**
+- Node.js/Python (FastAPI) oder Laravel.
+- Datenbank: PostgreSQL (User-Daten, Gästelisten, Vendor-DB).
+- Ollama: Llama 3.1 70B oder Mixtral/Mistral Large (je nach RAM/GPU). Läuft super lokal, datenschutzkonform. API-Endpunkt für den Chat-Assistenten.
+
+**Frontend**
+- React/Next.js (Web-App + PWA für Mobile-Feel). Funktioniert auf Smartphone wie eine echte App.
+- Maps: Leaflet.js + OpenStreetMap (kostenlos) oder Here/TomTom/Radar API (DSGVO-freundlicher & günstiger als Google).
+
+**Bild-KI (Windows Workstation)**
+- Stable Diffusion (Flux oder SD 3.5) mit Automatic1111 WebUI oder ComfyUI.
+- Expose als API (z. B. via ngrok oder internen Server) → Frontend ruft „Generiere Einladung im Vintage-Stil mit unserem Foto“ auf.
+- Adobe CC als Nachbearbeitung (InDesign für Profi-Papeterie).
+
+**Daten & Scraping**
+- Start: Manuell oder über öffentliche APIs (Open Data DE, Here Places).
+- Später: Sauberes Scraping mit Scrapy/Selenium nur öffentlicher Vendor-Seiten (keine personenbezogenen Daten). DSGVO-first: Nur was jeder sehen kann.
+
+**Hosting & Sicherheit**
+- VPS: Alles läuft dort (Web + Ollama).
+- Workstation: Nur für Bild-Generierung (kann bei Bedarf per API angesprochen werden).
+- Auth: Supabase oder Firebase-Alternative (lokal).
+
+Entwicklungsreihenfolge (von null):
+1. Ollama + LLM auf VPS testen + einfacher Chat.
+2. Bild-KI auf Workstation + API.
+3. Frontend mit Prompt → Timeline-Generierung.
+4. Vendor-DB + Maps-Suche.
+5. Gästeliste/Budget/Checkliste.
+6. Papeterie-Generator + Website-Builder.
+
+Du kannst Gemini/ChatGPT Pro parallel für Code-Generierung nutzen – ich gebe dir hier alle Prompts/Spezifikationen.
+
+### 5. Das finale Produkt – was es kann & welche Mehrwerte es bringt
+**Produktname-Vorschlag:** „HochzeitsKI“ oder „LiebesPlaner AI“.
+
+**Was es alles kann (in einem Satz):**  
+Eine komplett KI-gestützte, selbst gehostete Hochzeitsplanungs-Plattform, die aus einem einzigen Prompt (Namen + Termin + Budget + Vorlieben) einen maßgeschneiderten Plan inklusive Umkreis-Vendor-Vorschlägen, Budget-Tracking, Gästemanagement und personalisierter Papeterie erstellt – alles datenschutzkonform und ohne teuren Planer.
+
+**Mehrwerte für die Nutzer:**
+- Spart 70–90 % Stress & Zeit (KI plant statt stundenlangem Googlen).
+- Spart Geld (Schnäppchen-Vorschläge + smarte Budget-Optimierung).
+- Besser als Profi, weil hyper-personalisiert und jederzeit anpassbar.
+- Keine Werbung, keine Datenverkauf – reiner Nutzer-Fokus.
+- Lokale KI = maximale Privatsphäre (kein US-Cloud-Anbieter sieht eure Hochzeitsdaten).
+- Kosten: Free-Tier (Basis-Planung), Premium (tiefe Vendor-Daten + unbegrenzte Bild-Generierung) oder einmalige „Komplett-Plan-Paket“ für 99–199 €.
+
+Das ist der Service, den du verkaufst: **Die intelligenteste, lokalste und günstigste Hochzeitsplanung in Deutschland.**
+
+Wenn du willst, legen wir sofort los:
+- Ich gebe dir den genauen Tech-Stack + erste Code-Struktur.
+- Oder den detaillierten Prompt für Ollama-Modell-Feintuning.
+- Oder die Datenbank-Schema für Vendoren.
+
+Sag mir einfach, wo du starten willst – Backend, Frontend, KI-Integration oder erst den Namen/Logo-Ideen mit Bild-KI. Wir bauen das zusammen von null auf. 🚀

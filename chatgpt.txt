@@ -1,0 +1,271 @@
+Mein Fazit vorweg: **Ja, solche Produkte gibt es bereits**. International sind vor allem **The Knot, Zola, Joy und WeddingWire** stark; im DACH-Raum sind **WeddyPlace** und **Hochzeitsplaza** relevante Referenzen. Diese Produkte decken heute schon viele Basics ab: Checklisten, Budget, Gästelisten, Wedding Websites, RSVPs, Seating, Vendor-Suche und zum Teil sogar KI-gestützte Empfehlungen. **Ihr gewinnt also nicht mit “noch einer Hochzeitsplanungs-App”, sondern nur mit einem besseren Kernproblem:** **lokale, datenstarke, budget- und stilgesteuerte Hochzeitsplanung mit echter Ausführungshilfe statt nur Content und Listen.** ([The Knot][1])
+
+Was die aktuelle Konkurrenz konkret schon kann:
+**The Knot** bündelt Wedding Website, Registry, Gästemanagement, Vendor Manager, Checklist und bietet inzwischen sogar **AI-powered vendor recommendations** passend zu Stil und Ort; der **Budget Advisor** arbeitet mit lokalen Kostendaten. **WeddingWire** kombiniert Anbieter-Suche, Websites, Gästeliste, RSVPs und einen visuellen Seating-Chart. **Zola** ist ein All-in-one-Angebot aus Venue-Suche, Website, Registry und Planungstools. **Joy** ist besonders stark bei Website, RSVP, Gästeliste, Hotelblöcken und Gast-Zeitplänen. **WeddyPlace** bietet in Deutschland bereits Anbietersuche nach **Wunschdatum, Gästezahl, Budget und Stilrichtung** sowie Budget und Checkliste; **Hochzeitsplaza** bietet kostenlose Planungstools wie Checkliste, Gästeliste, Save-the-Date und digitalen Tischplaner. ([The Knot][2])
+
+Die Chance ist trotzdem real, weil der Schmerz groß ist: Laut The Knot wird im Schnitt **80 % der Planung vom Paar selbst** erledigt; Zola beschreibt Hochzeiten als Projekt mit **200+ Stunden Planungsaufwand**; The Knot spricht in seiner Vendor-Logik von **im Schnitt 14 Dienstleistern**; und WeddingPro nennt **Preistransparenz** den wichtigsten Faktor dafür, welche Anbieter Paare überhaupt kontaktieren. Gleichzeitig nutzen laut The Knot bereits **54 %** der Paare KI zumindest gelegentlich bei der Hochzeitsplanung. Das schreit nach einem Produkt, das **Arbeit abnimmt**, statt nur Inspiration zu sammeln. ([The Knot][3])
+
+**Meine Produktthese:** Baut kein “Wedding Pinterest mit To-do-Liste”, sondern ein **lokales Hochzeits-OS** für DACH. Der Nutzer gibt **Namen, Datum, Budget, Gästezahl, Stil, No-Gos, Wunschregion** ein; die App erzeugt daraus **einen lebenden Projektplan**, schlägt **passende Anbieter im Umkreis** vor, erklärt **warum** sie passen, sammelt **Preise/Verfügbarkeiten/Vertragsinfos**, baut die **Gästekommunikation** auf und führt das Paar bis zum Hochzeitstag durch.
+
+## Was bei einer Hochzeit wirklich verwaltet werden muss
+
+**1. Grundsatzentscheidungen**
+Art der Hochzeit, Stil, Größenordnung, Region, Saison, Indoor/Outdoor, Standesamt-only oder zusätzlich freie/kirchliche Trauung, Prioritäten, absolute No-Gos, Budgetobergrenze, wer zahlt was. Das ist die Basis für alles weitere. Zola und The Knot stellen diese Phase selbst als Startpunkt aus Budget, Gästeliste, Venue und Vendoren dar. ([zola.com][4])
+
+**2. Recht & Verwaltung in Deutschland**
+Die Eheschließung muss zuerst beim **Standesamt am Wohnort** angemeldet werden; danach kann in jedem Standesamt in Deutschland geheiratet werden. Die Anmeldung ist typischerweise **frühestens sechs Monate vor dem Termin** möglich und dann **sechs Monate gültig**. Bei **Auslandsbezug** kommen zusätzliche Dokumente hinzu; Übersetzungen und teils Apostille/Legalisation können erforderlich sein. Auch Fragen zu **Ehenamen**, Urkunden und späteren Änderungen nach der Hochzeit gehören dazu. ([ServicePortal Berlin][5])
+
+**3. Budget & Zahlungsplan**
+Nicht nur Gesamtbudget, sondern **Budgetverteilung**, Anzahlungen, Restzahlungen, Sicherheitsreserve, Kosten pro Gast, Prioritäten, Sparpotenziale und Warnungen bei Budgetdrift. The Knot positioniert genau dafür seinen Budget Advisor mit regionalen Kostendaten; WeddingWire und WeddyPlace haben ebenfalls Budget-Tracker. ([The Knot][2])
+
+**4. Venue-Suche**
+Kapazität, Verfügbarkeit, Preisrahmen, Stil, inkludierte Leistungen, Catering-Regeln, Plan B bei Regen, Parken, Barrierefreiheit, Hotels in der Nähe, Auf-/Abbauzeiten, Lautstärke-/Sperrstunden, exklusive Nutzung, Trauung + Feier an einem Ort. Zola und WeddingWire betonen genau diese Fragen; beliebte Venues können laut Zola weit im Voraus ausgebucht sein. ([zola.com][6])
+
+**5. Dienstleister-Management**
+Location, Fotograf:in, Videograf:in, Caterer, Konditor:in, Floristik, Dekoration, DJ/Band, Trauredner:in, Papeterie, Brautmode/Anzug, Styling, Transport, Hotelkontingente, Kinderbetreuung, Fotobox, Rental, Planer:in/Koordination. WeddyPlace und The Knot strukturieren die Planung genau entlang solcher Anbieter-Kategorien. ([WeddyPlace][7])
+
+**6. Gäste & Kommunikation**
+Haushalte, Plus-Ones, Kinder, Einladungsstatus, Adressen, Online-RSVPs, Menüwünsche, Allergien, Songwünsche, mehrere Events, Hotel-/Reiseinfos, Website, Nachrichten an Gäste, Sitzordnung und Export für Dienstleister. Diese Funktionen sind bei Zola, Joy und WeddingWire inzwischen klarer Standard. ([zola.com][8])
+
+**7. Design, Papeterie & Mode**
+Moodboard, Farbwelt, Blumenwelt, Einladung, Save-the-Date, Menükarten, Tischkarten, Beschilderung, Dresscode-Kommunikation, Brautkleid/Anzug, Accessoires, Beauty-Termine, Probe-Styling. The Knot nutzt dafür Stil- und Fashion-Quizze, teils schon mit KI; Joy und Zola koppeln Website, Einladungen und Design-Assets. ([helpcenter.theknot.com][9])
+
+**8. Tagesablauf & Logistik**
+Ablaufplan, Ansprechpartner, Ankunftszeiten, Aufbau, Technik, Musik-Cues, Transport, Zimmerverteilung, Notfallplan, Wetterplan, Lieferfenster, Vendor-Callsheet, Check-in und Freigaben. WeddingWire und Joy zeigen, dass Sitzplan, Export und personalisierte Gast-Zeitpläne wichtige operative Features sind. ([weddingwire.com][10])
+
+**9. Nach der Hochzeit**
+Dankeskarten, Restzahlungen, Rückgaben, Bilderlieferung, Namens-/Urkunden-Themen, Dokumentenablage und Erinnerungen. Auch offizielle Verwaltungsservices nach der Heirat spielen in Deutschland mit hinein. ([Bundesportal][11])
+
+## Das Produkt, das ihr bauen solltet
+
+Ich würde das Produkt in drei Schichten denken:
+
+### 1) Paar-App / Web-App
+
+Das ist das Kernprodukt.
+
+**Onboarding**
+
+* Namen, Hochzeitsdatum oder Datumsfenster
+* Budget und wer zahlt mit
+* Region / maximale Fahrtzeit
+* Gästezahl grob + Zielgröße
+* Stilpräferenzen, No-Gos, Must-haves
+* welche Events es geben soll: Standesamt, freie Trauung, Feier, Polterabend, Brunch usw.
+
+**KI-Masterplan**
+
+* erzeugt automatische Timeline
+* priorisiert nächste Entscheidungen
+* schlägt sinnvolle Reihenfolge vor
+* erkennt kritische Pfade: Venue zuerst, dann Foto/Video/Musik usw.
+* warnt bei unrealistischem Budget oder zu spätem Start
+* erzeugt konkrete To-dos statt allgemeiner Tipps
+
+**Lokale Anbieter-Suche**
+
+* Radius, Fahrtzeit oder gewünschte Region
+* Filter nach Budget, Stil, Gästezahl, Verfügbarkeit, Kapazität, Bewertungen
+* Vergleichsansichten mit “passt / passt nicht”
+* Telefonnummern, Website, E-Mail, Preisindikationen, Antwortgeschwindigkeit
+* “Bundle”-Vorschläge: Venue + Catering + DJ + Hotel, die logisch zusammenpassen
+* “Deal”-Vorschläge: freie Resttermine, Nebensaison, kurzfristige Slots, Sonderaktionen
+
+**Budget- und Angebotsmodul**
+
+* Top-down-Budgetverteilung
+* echte Angebots- und Vertragsverwaltung
+* Anzahlung / Restzahlung / Fälligkeiten
+* Prognose “Wenn ihr Venue X nehmt, bleibt für Foto + Musik Y”
+* Preisbenchmarks nach Region und Kategorie
+* Warnung vor versteckten Kosten
+
+**Gäste- und Kommunikationsmodul**
+
+* Haushalte statt nur Einzelgäste
+* mehrere Events pro Gast
+* RSVP, Menü, Allergien, Hotel, Transfer
+* Wedding Website
+* E-Mail-/WhatsApp-/SMS-Vorlagen
+* Sitzplan mit Drag-and-drop
+* PDF-/CSV-Export für Venue, Caterer, Papeterie
+
+**Design- und Inspirationsmodul**
+
+* Moodboards
+* Einladungskarten, Save-the-Date, Menükarten, Willkommensschild
+* Stil-Extraktion aus Pinterest/Instagram-Screenshots/Bildern
+* Dress-/Beauty-Inspiration
+* Farbpaletten, Floristik- und Dekor-Konzepte
+
+**Legal-/Admin-Modul für Deutschland**
+
+* Standesamt-Checklist
+* regionale Hinweise
+* Dokumenten-Reminder
+* Namens-/Urkundenthemen
+* Sonderpfad bei Auslandsbezug
+
+**Day-of Control Room**
+
+* finaler Tagesplan
+* Vendor-Timings
+* Ansprechpartner
+* Notfallkontakte
+* Wetter-/Plan-B-Hinweise
+* Checklisten für Aufbau, Feier, Abbau
+
+### 2) Vendor-Portal
+
+Das ist euer B2B-Hebel.
+
+* Profil claimen
+* Verfügbarkeit pflegen
+* Preisrahmen / Pakete / Mindestumsatz pflegen
+* Leistungen und Stil-Tags pflegen
+* Fotos/Portfolio hochladen
+* schnelle Angebotsantworten
+* Google-Business-/Kalender-Sync für verifizierte Partner
+* “freie Resttermine” aktiv pushen
+* Analytics: Profilaufrufe, Leads, Conversion
+
+### 3) Daten- und Admin-Schicht
+
+Das ist euer eigentlicher Burggraben.
+
+* lokaler Anbieter-Graph
+* Entity Resolution: gleiche Firma aus verschiedenen Quellen zusammenführen
+* Dublettenbereinigung
+* Daten-Freshness-Score
+* Review-/Rating-Quellen markieren
+* Preis-/Quote-Normalisierung
+* Moderation und Qualitätssicherung
+* Compliance-Logs
+
+## Was euch wirklich von der Konkurrenz unterscheiden kann
+
+**Nicht**: “Wir haben auch Checkliste, Budget und Gästeliste.”
+**Sondern**:
+
+**1. Bessere lokale Suche**
+WeddyPlace filtert bereits nach Datum, Gästezahl, Budget und Stil. Euer Suchprodukt muss deshalb tiefer gehen: **Verfügbarkeit, Preisrahmen, Inklusivleistungen, Plan-B-Tauglichkeit, Hotelnähe, Barrierefreiheit, Fahrzeit, Korkgeld, Sperrstunde, Kinder-/Hundetauglichkeit, Antwortgeschwindigkeit**. ([WeddyPlace][12])
+
+**2. Preisintelligenz statt nur Inspirationssuche**
+WeddingPro betont, dass **Preistransparenz** der wichtigste Kontaktfaktor für Paare ist. Daraus sollte euer stärkster USP entstehen: **Quote Intelligence**. Also nicht nur “dieser Fotograf ist schön”, sondern “dieser Fotograf passt zu eurem Stil, liegt 12 % unter dem Regionalmedian, liefert in 6 Wochen und hat Zweitfotograf im Paket”. ([WeddingPro][13])
+
+**3. KI, die handelt**
+The Knot nutzt bereits KI für Stil- und Vendor-Empfehlungen. Eure KI muss deshalb **operativ** sein: vergleichen, nachfassen, Daten strukturieren, Widersprüche markieren, Verträge zusammenfassen, Entscheidungen vorbereiten. ([The Knot][1])
+
+**4. Deutschland-/DACH-Logik**
+Standesamt, Auslandsbezug, Namensfragen, lokale Dienstleisterstrukturen, deutsche Preis- und Kommunikationsgewohnheiten. Das ist für DACH der sinnvollste Differenzierungsraum. ([ServicePortal Berlin][5])
+
+**5. Privacy / Self-hosting**
+Viele Paare laden Verträge, Gästedaten, Ausweisdokumente, Preisangebote und Inspirationsmaterial hoch. Ein **selbst gehosteter Assistent** ist hier ein echter Vertrauensvorteil.
+
+## Daten- und Suchstrategie: so würde ich es aufbauen
+
+Eure Idee “alles scrapen” würde ich in **vier Datenkanäle** übersetzen:
+
+**A. Lizenzierte Places-/Maps-Daten**
+Google Places kann für Orte Details wie **Adresse, Telefonnummer, Rating und Reviews** liefern; Google verlangt dabei die korrekte Attribution. Das ist ideal für Suchergebnisse und Ortseinträge. ([Google for Developers][14])
+
+**B. Offene Geodaten, selbst gehostet**
+Für Geocoding, Radius-Suche und Grundkarten ist **OpenStreetMap/Nominatim** attraktiv. Wichtig: Die öffentliche Nominatim-Policy gilt nur für den öffentlichen OSM-Server; für Power-Use verweist Nominatim ausdrücklich auf **selbst hosten**. Das passt gut zu eurem Linux-VPS. ([OSMF Operations][15])
+
+**C. Claimed Vendor Data**
+Für Partner-Anbieter solltet ihr auf **claimbare Profile** setzen. Google Business Profile APIs sind dafür da, **eigene bzw. verwaltete Business-Profile** zu managen; sie sind gerade **nicht** als allgemeine Fremd-Datenharvester gedacht. Das ist eine Chance: verifizierte Vendoren können ihre Daten selbst aktuell halten. ([Google for Developers][16])
+
+**D. Strukturierte Extraktion aus Vendor-Websites + User-Contributed Data**
+Ihr könnt öffentliche Business-Fakten wie Kategorien, Leistungen, Preisanker, FAQs, Bilder, PDF-Broschüren und Kontaktinfos strukturieren. Aber: In der EU können **Datenbanken geschützt** sein, und laut EU-IP-Helpdesk kann eine Rechtevorbehalt sogar in Website-Bedingungen genügen. Bei **personenbezogenen Daten** verlangt Scraping zusätzlich eine belastbare Rechtsgrundlage und Schutzmaßnahmen; CNIL hat dafür jüngst Leitlinien veröffentlicht, und es gab bereits Bußgelder in Scraping-Fällen. Deshalb: **keine Vollkopie fremder Portale**, keine unkontrollierte Review-Übernahme, keine personenbezogene Massenextraktion. ([European Union][17])
+
+Die richtige Formel ist also:
+**licensed data + claimed data + extracted business facts + anonymisierte Nutzerangebote/Quotes + eigener Freshness-Layer**.
+
+## KI-Stack auf eurer vorhandenen Infrastruktur
+
+Mit eurer **starken Windows-Workstation** und dem **Linux-VPS** ist ein lokaler/selbst gehosteter Stack absolut machbar.
+
+**Ollama ist dafür ein sinnvoller Kern**, weil es laut offizieller Doku **OpenAI-kompatible APIs**, **Structured Outputs**, **Tool Calling**, **Vision** und **Embeddings** unterstützt. Für Agenten-/Recherche-Use-Cases empfiehlt Ollama ausreichend große Context Windows; die Doku nennt für agentische Aufgaben mindestens **64k Tokens**. Ollama lässt sich auf **Linux und Windows** betreiben und bei Bedarf hinter einen Proxy wie **Nginx** hängen. ([Ollama Dokumentation][18])
+
+**Meine konkrete Empfehlung für euch:**
+
+* **Primärer Planungs-/Agenten-LLM:** `gpt-oss:20b` oder `qwen3:14b/30b` über Ollama. `gpt-oss` ist laut Ollama für **reasoning, agentic tasks und developer use cases** gedacht; `Qwen3` ist stark multilingual. ([Ollama][19])
+* **Vision-Modell:** `gemma3` oder `qwen3-vl`. `Gemma 3` ist multimodal, hat 128K Kontext und 140+ Sprachen; `Qwen3-VL` ist Qwens stärkstes Vision-Language-Modell. Das ist ideal für Inspirationboards, PDF-Broschüren, Menüs, Floorplans, Venue-Fotos, Mood-Analyse. ([Ollama][20])
+* **RAG/Knowledge Layer:** Ollama Embeddings + **Qdrant**. Qdrant ist ein Open-Source Vector Search Engine und unterstützt Hybrid Search; das passt perfekt für Vendor-Profile, FAQs, Verträge, Angebotsdokumente und Inspirationsdaten. ([Ollama Dokumentation][21])
+* **Bildgenerierung lokal:** **ComfyUI**. Die offizielle Doku beschreibt ComfyUI als starke Open-Source-Workflow-Umgebung mit **lokaler API**; das Projekt läuft auf Windows, Linux und macOS. Perfekt für Einladungsmotive, Monogramme, Hintergrundvarianten und Social Assets. ([ComfyUI Dokumentation][22])
+
+Wichtig dabei: Für **Einladungskarten und Drucksachen** würde ich KI **nicht** das ganze Endprodukt rendern lassen. Besser ist:
+
+* KI erzeugt **Motive, Muster, Illustrationen, Hintergrundvarianten**,
+* euer System setzt daraus **deterministische, druckfähige Layouts** zusammen,
+* Feinschliff bleibt in Adobe/Figma/Template-Engine.
+  So vermeidet ihr die typische “AI sieht nett aus, aber nicht hochwertig gedruckt” Falle.
+
+## Was ich zuerst bauen würde
+
+**Phase 1: Das eigentliche MVP**
+
+* responsive Web-App, keine native App zuerst
+* Onboarding
+* AI-Masterplan
+* Vendor-Suche für 4–6 Kernkategorien: Venue, Foto, Catering, Musik, Floristik, Styling
+* Budget + Angebote + Verträge
+* Gästeliste + RSVP + einfache Wedding Website
+* Deutschland-Legal-Modul
+
+**Phase 2: Datenmoat**
+
+* Vendor-Profil-Claiming
+* Daten-Freshness
+* Quote-Normalisierung
+* Deal-/Resttermin-Logik
+* Qualitäts- und Verfügbarkeits-Scores
+
+**Phase 3: Day-of + Design**
+
+* Seating / Floor Plan
+* Tagesablauf
+* Vendor Check-in
+* Einladungsgenerator
+* Moodboard / Style Extraction
+
+**Phase 4: Vendor-Side Monetization**
+
+* bezahlte verifizierte Profile
+* Pay-per-qualified-lead
+* Premium-Antwort-Tools
+* “Last-minute dates” / Off-peak promotion
+* Sponsored Deals, klar gekennzeichnet
+
+## Der Satz, auf den ich das Produkt reduzieren würde
+
+**Eure App ist kein Hochzeitsplaner, sondern ein lokaler, KI-gestützter Hochzeits-Co-Pilot.**
+Sie nimmt ein paar Eingaben vom Paar und verwandelt sie in **einen belastbaren Plan, eine priorisierte To-do-Liste, ein realistisches Budget, kuratierte lokale Anbieter, eine Gästekommunikation, Vertrags- und Fristenkontrolle sowie druckfähige Design-Assets**. Der wahre Mehrwert ist **weniger Stress, bessere Entscheidungen, schnellere Anbietersuche, mehr Preistransparenz und mehr Datenschutz durch Self-hosting**.
+
+Wenn ihr nur “Checkliste + Gästeliste + Inspiration” baut, tretet ihr gegen etablierte Produkte an und seid austauschbar.
+Wenn ihr **lokale Suchqualität + Angebots-/Preisintelligenz + operative KI + DACH-Legalität** baut, habt ihr eine echte Positionierung.
+
+Im nächsten Schritt kann ich daraus direkt eine **komplette Produkt-Spezifikation mit Modulen, Datenbank-Entities, User-Flows, Rollen, MVP-Scope und Tech-Architektur** formulieren.
+
+[1]: https://www.theknot.com/?utm_source=chatgpt.com "The Knot® Wedding Planning Website: Tools, Inspiration & More"
+[2]: https://www.theknot.com/content/the-knot-budget-advisor?utm_source=chatgpt.com "How a Wedding Budget Planner Tool Can Make Your Life Easier"
+[3]: https://www.theknot.com/content/wedding-data-insights/weddings-in-2024?utm_source=chatgpt.com "Weddings in 2024: A Look Back at Industry Statistics - The Knot"
+[4]: https://www.zola.com/expert-advice/wedding-planning-guide?utm_source=chatgpt.com "Wedding Planning 101: Ultimate Guide to Planning a Wedding - Zola"
+[5]: https://service.berlin.de/dienstleistung/318961/?utm_source=chatgpt.com "Eheschließung anmelden - ohne Auslandsbeteiligung - Service Berlin"
+[6]: https://www.zola.com/wedding-vendors/wedding-venues?utm_source=chatgpt.com "Find Wedding & Reception Venues - Zola"
+[7]: https://www.weddyplace.com/magazin/welche-dienstleister-fuer-hochzeit/?utm_source=chatgpt.com "Welche Dienstleister braucht man für eine Hochzeit?"
+[8]: https://www.zola.com/expert-advice/checklist/your-ultimate-wedding-planning-checklist?utm_source=chatgpt.com "The Ultimate Wedding Planning Checklist & Timeline for 2026"
+[9]: https://helpcenter.theknot.com/hc/en-us/articles/360042620091-What-is-my-Wedding-Vision?utm_source=chatgpt.com "What is my Wedding Vision? – The Knot"
+[10]: https://www.weddingwire.com/wedding-planning/wedding-seating-tables.html?utm_source=chatgpt.com "Wedding Seating Chart Tool | WeddingWire"
+[11]: https://verwaltung.bund.de/leistungsverzeichnis/EN/lagen/1020000/sublagen/1020300?utm_source=chatgpt.com "Bundesportal | Marriage"
+[12]: https://www.weddyplace.com/l/app/?utm_source=chatgpt.com "Die beste Hochzeitsplanungsapp für Deutschland!"
+[13]: https://pros.weddingpro.com/blog/vendor-storefront-pricing/?utm_source=chatgpt.com "Pricing Transparency: What Wins More Couples? - WeddingPro"
+[14]: https://developers.google.com/maps/documentation/places/web-service/place-details?utm_source=chatgpt.com "Place Details (New) | Places API | Google for Developers"
+[15]: https://operations.osmfoundation.org/policies/nominatim/?utm_source=chatgpt.com "Nominatim Usage Policy (aka Geocoding Policy) - OpenStreetMap Foundation"
+[16]: https://developers.google.com/my-business/content/overview?utm_source=chatgpt.com "Business Profile overview | Google Business Profile APIs | Google for ..."
+[17]: https://europa.eu/youreurope/business/running-business/intellectual-property/database-protection/index_en.htm?utm_source=chatgpt.com "Database protection in the EU - Your Europe"
+[18]: https://docs.ollama.com/api/openai-compatibility?utm_source=chatgpt.com "OpenAI compatibility - Ollama"
+[19]: https://ollama.com/library/gpt-oss%3Alatest?utm_source=chatgpt.com "gpt-oss - ollama.com"
+[20]: https://www.ollama.com/library/gemma3?utm_source=chatgpt.com "gemma3 - ollama.com"
+[21]: https://docs.ollama.com/capabilities/embeddings?utm_source=chatgpt.com "Embeddings - Ollama"
+[22]: https://docs.comfy.org/?utm_source=chatgpt.com "ComfyUI Official Documentation - ComfyUI"

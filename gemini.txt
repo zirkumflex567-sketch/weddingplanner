@@ -1,0 +1,88 @@
+Das ist ein absolut fantastisches Projekt! Die Nische, die du dir ausgesucht hast – die Lücke zwischen "komplett stressigem Do-It-Yourself" und "unbezahlbarem Hochzeitsplaner" – ist riesig. Viele Paare starten euphorisch in die Planung und sind nach vier Wochen vom Angebot, den Preisen und der Logistik völlig erschlagen.
+
+Genau hier setzt deine Idee an. Ich habe dir eine umfassende Blaupause erstellt, mit der wir dieses Projekt von null aufbauen können. Wir nutzen deine vorhandene Hardware und Tools optimal aus.
+
+Lass uns das Ganze strukturieren!
+
+---
+
+### 1. Marktanalyse: Gibt es das schon und was machen wir besser?
+
+**Der Status Quo:**
+Es gibt Apps wie *WeddyPlace* (sehr stark im DACH-Raum), *Bridebook*, *The Knot* oder *Zola*. Auch Pinterest wird massiv genutzt.
+*Was diese Apps tun:* Sie bieten Checklisten, Budgetplaner und verlinken auf Dienstleister (oft als reines Branchenbuch).
+*Was diese Apps NICHT tun:* Sie nehmen dem Paar nicht das **Denken und Verhandeln** ab. Sie sind passiv.
+
+**Unser USP (Unique Selling Proposition / Was wir besser machen):**
+Wir bauen kein Branchenbuch, wir bauen einen **proaktiven, KI-gesteuerten Hochzeits-Concierge**.
+Anstatt zu sagen: *"Hier sind 50 Fotografen in deiner Nähe"*, sagt unsere App: *"Basierend auf deinem Budget von 15.000 €, deinem Wunsch nach 'Boho-Stil' und dem Termin am 15. August habe ich 3 Fotografen im Umkreis von 30 km gefunden, die an diesem Tag noch frei sein müssten und genau diesen Bildstil anbieten. Soll ich ihnen eine unverbindliche Anfrage in deinem Namen entwerfen?"*
+
+---
+
+### 2. Domain-Wissen: Was gehört alles zu einer Hochzeit?
+
+Eine Hochzeit ist im Grunde ein hochkomplexes Event-Management-Projekt. Hier ist alles, was unsere App verwalten muss:
+
+* **Die Basis:** Datum, Ort, Gesamtbudget, Puffer für Unvorhergesehenes, Gästeliste (inkl. Plus-Eins, Kinder).
+* **Die Location & Verpflegung:** Standesamt, Kirche/Freie Trauung, Feier-Location, Catering (Menü vs. Buffet), Getränkepauschalen, Hochzeitstorte, Mitternachtssnack.
+* **Optik & Vibe (Hier glänzt unsere Bild-KI):** Brautkleid, Anzug, Ringe, Floristik (Brautstrauß, Tischdeko, Auto), Papeterie (Save-the-Date, Einladungen, Menükarten, Platzkarten, Dankeskarten), Gastgeschenke.
+* **Entertainment & Erinnerungen:** Fotograf, Videograf, DJ oder Live-Band, Fotobox, Kinderbetreuung.
+* **Styling:** Hair & Make-up (inkl. Probetermin).
+* **Logistik:** Sitzplan, Ablaufplan des Tages (wer muss wann wo sein?), Transport (Hochzeitsauto, Shuttle für Gäste), Übernachtungsmöglichkeiten für Gäste, Flitterwochen.
+
+---
+
+### 3. Das Produkt: "SmartWed" (Arbeitstitel)
+
+**Was es ist:**
+Eine Web-App, die als persönlicher digitaler Hochzeitsplaner agiert. Sie kombiniert tiefgreifende lokale Daten (gescrapte Dienstleister) mit generativer KI (Text & Bild), um die Planung zu 80 % zu automatisieren.
+
+**Der Mehrwert für den Kunden:**
+1.  **Massive Zeitersparnis:** Keine 100 Tabs mehr offen. Keine endlosen Google-Suchen nach "Catering Mainz günstig".
+2.  **Stressreduktion:** Die KI ordnet das Chaos, erinnert an Fristen ("Es ist Zeit, die Ringe zu bestellen!") und filtert unpassende Anbieter direkt heraus.
+3.  **Kostenkontrolle:** Die App warnt proaktiv: *"Wenn du dieses Kleid kaufst, musst du beim Catering 15 € pro Kopf einsparen."*
+4.  **Kreative Entfaltung:** Eigene Einladungskarten per KI generieren, ohne teure Grafikdesigner bezahlen zu müssen.
+
+---
+
+### 4. Feature-Katalog (Das Herzstück der App)
+
+* **Das magische Onboarding:** Der Nutzer gibt Namen, Termin, PLZ und Budget ein. Dann folgt ein Tinder-ähnliches Swipen durch Bilder (Boho, Klassisch, Modern, Vintage), um den Stil zu lernen. Auch Dealbreaker werden erfasst ("Keine Spiele", "Vegan").
+* **KI-Assistent (Powered by Ollama):** Ein Chatbot, der 24/7 Fragen beantwortet. *"Wie formuliere ich höflich, dass wir keine Kinder auf der Feier wollen?"* -> Die KI generiert den Text.
+* **Hyper-Lokale Umkreissuche:** Gefiltert nach Budget und Stil. Die App greift auf unsere gescrapten Daten zurück (Bewertungen, Preisniveaus, Stile).
+* **Das Kreativ-Studio (Bild-KI):** Ein Tool, in dem Paare Moodboards erstellen oder direkt druckfähige Designs für Einladungen generieren können.
+* **Smart Budget-Manager:** Verteilt das Budget automatisch auf Kategorien (z.B. 10% Kleidung, 40% Location, etc.) und passt sich dynamisch an.
+* **Drag & Drop Sitzplaner:** Verknüpft mit der digitalen Gästeliste und den Zu-/Absagen (RSVP).
+* **Angebots-Radar:** Ein Feature, das gezielt nach "Schnäppchen", Sale-Aktionen in Brautmodengeschäften der Umgebung oder Rabatten bei Dienstleistern sucht.
+
+---
+
+### 5. Technische Architektur & Ressourcen-Nutzung
+
+Wir haben ein tolles Setup zur Verfügung. So bauen wir das auf:
+
+**Die Windows Workstation (Dein "KI- & Data-Motor"):**
+> * **Ollama:** Läuft lokal. Du nimmst ein Modell wie `Llama 3` (8B oder 70B, je nach RAM) oder ein feingetuntes `Mistral`-Modell, das durch System-Prompts auf "empathischer Hochzeitsplaner" getrimmt wird.
+> * **Bild-KI:** Installation von `ComfyUI` oder `Automatic1111` (Stable Diffusion). Hier richtest du Workflows ein, um Einladungskarten-Designs über eine API an deine App zu schicken.
+> * **Der Scraper:** Python-Scripte (gebaut mit ChatGPT/Gemini), die regelmäßig Google Maps, Instagram (für Fotografen-Stile) und lokale Branchenbücher im Zielgebiet absuchen, Daten strukturieren und in deine Datenbank pushen.
+
+**Der Linux VPS (Dein "Public Server"):**
+> * Hier läuft das Frontend (z.B. Vue.js, React oder Svelte).
+> * Das Backend (Node.js, Python FastAPI).
+> * Die Datenbank (PostgreSQL für Nutzerdaten und die Dienstleister-Datenbank).
+> * **Die Brücke:** Der VPS schickt die KI-Anfragen der Nutzer über einen sicheren Tunnel (z.B. Wireguard, Ngrok oder Cloudflare Tunnels) an deine Windows Workstation zu Hause. So hostest du die KI extrem kostengünstig selbst.
+
+**Gemini Pro / ChatGPT Pro & Adobe CC:**
+> * Wir nutzen die großen KIs, um den kompletten Code für die Plattform zu schreiben, die Scraper zu entwickeln und die Datenbank-Architektur zu planen.
+> * Adobe CC nutzt du, um erste Mockups (UI/UX) zu designen oder Assets für das Frontend zu erstellen.
+
+---
+
+### Ein wichtiger Realitätscheck (Candor)
+
+* **Scraping:** Das massenhafte Scrapen von Google Maps oder Dienstleistern bewegt sich rechtlich in einer Grauzone bis hin zum AGB-Verstoß. Wir müssen hier klug vorgehen (Rate Limits beachten, öffentlich zugängliche Daten intelligent aggregieren) oder später auf offizielle APIs umsteigen.
+* **Skalierbarkeit:** Die Windows Workstation als Backend für Ollama und Stable Diffusion ist genial für einen Prototypen und die ersten 50 Nutzer. Wenn deine App aber viral geht und an einem Sonntagmittag 200 Leute gleichzeitig Einladungskarten generieren wollen, raucht dein PC ab. Wir müssen die Architektur so bauen, dass wir die KI später nahtlos in die Cloud (z.B. RunPod, AWS) auslagern können.
+
+Wir haben alle Zutaten für ein extrem spannendes SaaS (Software as a Service) Projekt. 
+
+**Wie möchtest du starten? Sollen wir zuerst das Daten-Modell (die Struktur der Dienstleister-Datenbank) entwerfen, oder wollen wir damit beginnen, den KI-Chatbot auf deiner Windows Workstation aufzusetzen und ihm das Hochzeits-Wissen einzutrichtern?**
