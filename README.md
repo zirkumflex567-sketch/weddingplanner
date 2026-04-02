@@ -67,6 +67,11 @@ Wir bauen keine weitere passive Hochzeits-Checkliste, sondern einen proaktiven, 
 - `npm run audit:app` fuer einen echten End-to-End-Audit ueber Profilbibliothek, Guided Mode, RSVP, Budget und Vendor-Tracking
 - `npm run test:consultant-smoke` fuer einen echten Browser-Smoke des Beratungs-Chats, solange API und Web lokal laufen
 
+## Subpath-Builds
+
+- fuer Deployments unter `/wedding/` die Web-App mit `VITE_BASE_PATH=/wedding/` bauen
+- lokal bleibt ohne Variable weiter `/` der Standard
+
 ## Bereits umgesetzt
 
 - `packages/shared` enthaelt jetzt einen ersten deterministischen Planning-Core
@@ -80,6 +85,7 @@ Wir bauen keine weitere passive Hochzeits-Checkliste, sondern einen proaktiven, 
 - `packages/shared` trennt jetzt kuratierte Soforttreffer von einer deutschlandweiten `vendorSearchStrategy` fuer Paid Refresh
 - ein gefuehrter Copilot-Flow mit `Planung starten` fuehrt jetzt Schritt fuer Schritt durch Fundament, Venue, Kern-Vendoren, Gaeste, Admin und Finalisierung
 - der Beratungsmodus laeuft jetzt als Chat-Panel mit konkreten Antwortvorschlaegen, Freitext und Wiederaufnahme pro Workspace
+- `services/ai-orchestrator` ist jetzt eine echte interne LLM-Schicht fuer Wedding Consultant und Siggi statt nur ein Platzhalter
 
 ## Aktuell nutzbarer Prototyp
 
