@@ -503,7 +503,7 @@ textarea {
 
 .consultant-composer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.8rem;
   margin-top: 1rem;
   align-items: end;
@@ -521,6 +521,23 @@ textarea {
 .consultant-send {
   width: auto;
   margin-top: 0;
+}
+
+.consultant-composer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-end;
+}
+
+.consultant-voice-button {
+  min-width: 9.5rem;
+}
+
+.consultant-voice-button--recording {
+  border-color: rgba(150, 39, 39, 0.32);
+  background: rgba(201, 91, 91, 0.14);
+  color: #7a1d1d;
 }
 
 .consultant-sidebar {

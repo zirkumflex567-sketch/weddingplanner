@@ -4,7 +4,8 @@ import {
   buildSiggiFallbackReply,
   createVendorResearchBrief,
   OllamaChatClient,
-  type AssistantChatMessage
+  type AssistantChatMessage,
+  type VoiceRuntimeClient
 } from "./index";
 import {
   calculateBudgetOverview,
@@ -71,6 +72,23 @@ const transcript: AssistantChatMessage[] = [
     content: baselineTurn.assistantMessage
   }
 ];
+
+const voiceRuntimeStub: VoiceRuntimeClient = {
+  async transcribe() {
+    return {
+      text: "Hallo, wir brauchen Hilfe mit dem Rollladen.",
+      language: "de",
+      durationSeconds: 2.5
+    };
+  },
+  async speak() {
+    return {
+      audioBase64: "dGVzdA==",
+      mimeType: "audio/wav",
+      sampleRate: 24000
+    };
+  }
+};
 
 describe("ai orchestrator", () => {
   it("keeps vendor research brief behaviour intact", () => {
@@ -235,6 +253,51 @@ describe("ai orchestrator", () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.json().response.assistantMessage).toContain("Telefonnummer");
+    await app.close();
+  });
+
+  it("exposes voice transcription through the app endpoint", async () => {
+    const app = buildAiOrchestratorApp({
+      voiceRuntime: voiceRuntimeStub
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/voice/transcribe",
+      payload: {
+        audioBase64: "dGVzdA==",
+        mimeType: "audio/webm"
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      text: expect.stringContaining("Rollladen"),
+      language: "de"
+    });
+    await app.close();
+  });
+
+  it("exposes voice synthesis through the app endpoint", async () => {
+    const app = buildAiOrchestratorApp({
+      voiceRuntime: voiceRuntimeStub
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/voice/speak",
+      payload: {
+        text: "Hallo von Siggi",
+        voice: "siggi"
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      audioBase64: "dGVzdA==",
+      mimeType: "audio/wav",
+      sampleRate: 24000
+    });
     await app.close();
   });
 });

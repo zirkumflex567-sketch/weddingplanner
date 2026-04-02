@@ -87,6 +87,7 @@ Wir bauen keine weitere passive Hochzeits-Checkliste, sondern einen proaktiven, 
 - der Beratungsmodus laeuft jetzt als Chat-Panel mit konkreten Antwortvorschlaegen, Freitext und Wiederaufnahme pro Workspace
 - `services/ai-orchestrator` ist jetzt eine echte interne LLM-Schicht fuer Wedding Consultant und Siggi statt nur ein Platzhalter
 - die KI-Laufzeit ist jetzt fuer kleine CPU-VPS optimiert: plain-text Generation statt harter JSON-Zwaenge, damit Wedding Consultant und Siggi merklich natuerlicher reagieren
+- `services/voice-runtime` enthaelt jetzt den lokalen Python-Worker fuer `faster-whisper` und `chatterbox`, damit Wedding Consultant und Siggi Push-to-Talk und Sprachantworten ueber denselben VPS-Stack nutzen koennen
 
 ## Aktuell nutzbarer Prototyp
 

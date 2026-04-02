@@ -81,6 +81,29 @@ export interface SiggiConversationResponse {
   model: string;
 }
 
+export interface VoiceTranscriptionRequest {
+  audioBase64: string;
+  mimeType?: string;
+  languageHint?: string;
+}
+
+export interface VoiceTranscriptionResponse {
+  text: string;
+  language: string;
+  durationSeconds?: number | null;
+}
+
+export interface VoiceSynthesisRequest {
+  text: string;
+  voice?: "consultant" | "siggi";
+}
+
+export interface VoiceSynthesisResponse {
+  audioBase64: string;
+  mimeType: string;
+  sampleRate: number;
+}
+
 export interface OllamaChatClientOptions {
   baseUrl?: string;
   model?: string;
@@ -90,9 +113,15 @@ export interface OllamaChatClientOptions {
 
 export interface AiOrchestratorOptions {
   ollama?: OllamaChatClient;
+  voiceRuntime?: VoiceRuntimeClient;
 }
 
 export interface AiOrchestratorHttpClientOptions {
+  baseUrl: string;
+  fetchImpl?: typeof fetch;
+}
+
+export interface VoiceRuntimeClientOptions {
   baseUrl: string;
   fetchImpl?: typeof fetch;
 }
@@ -355,9 +384,15 @@ export class OllamaChatClient {
 
 export class AiOrchestrator {
   private readonly ollama: OllamaChatClient;
+  private readonly voiceRuntime: VoiceRuntimeClient;
 
   constructor(options: AiOrchestratorOptions = {}) {
     this.ollama = options.ollama ?? new OllamaChatClient();
+    this.voiceRuntime =
+      options.voiceRuntime ??
+      new VoiceRuntimeHttpClient({
+        baseUrl: process.env.VOICE_RUNTIME_URL ?? "http://127.0.0.1:3020"
+      });
   }
 
   get modelName() {
@@ -471,6 +506,14 @@ export class AiOrchestrator {
       };
     }
   }
+
+  async transcribeVoice(request: VoiceTranscriptionRequest) {
+    return this.voiceRuntime.transcribe(request);
+  }
+
+  async synthesizeVoice(request: VoiceSynthesisRequest) {
+    return this.voiceRuntime.speak(request);
+  }
 }
 
 export class AiOrchestratorHttpClient {
@@ -529,6 +572,85 @@ export class AiOrchestratorHttpClient {
 
     return payload.response;
   }
+
+  async transcribeVoice(request: VoiceTranscriptionRequest) {
+    const response = await this.fetchImpl(`${this.baseUrl}/voice/transcribe`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI orchestrator request failed with ${response.status}`);
+    }
+
+    return (await response.json()) as VoiceTranscriptionResponse;
+  }
+
+  async synthesizeVoice(request: VoiceSynthesisRequest) {
+    const response = await this.fetchImpl(`${this.baseUrl}/voice/speak`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI orchestrator request failed with ${response.status}`);
+    }
+
+    return (await response.json()) as VoiceSynthesisResponse;
+  }
+}
+
+export interface VoiceRuntimeClient {
+  transcribe(request: VoiceTranscriptionRequest): Promise<VoiceTranscriptionResponse>;
+  speak(request: VoiceSynthesisRequest): Promise<VoiceSynthesisResponse>;
+}
+
+export class VoiceRuntimeHttpClient implements VoiceRuntimeClient {
+  private readonly baseUrl: string;
+  private readonly fetchImpl: typeof fetch;
+
+  constructor(options: VoiceRuntimeClientOptions) {
+    this.baseUrl = options.baseUrl.replace(/\/$/, "");
+    this.fetchImpl = options.fetchImpl ?? fetch;
+  }
+
+  async transcribe(request: VoiceTranscriptionRequest) {
+    const response = await this.fetchImpl(`${this.baseUrl}/transcribe`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Voice runtime request failed with ${response.status}`);
+    }
+
+    return (await response.json()) as VoiceTranscriptionResponse;
+  }
+
+  async speak(request: VoiceSynthesisRequest) {
+    const response = await this.fetchImpl(`${this.baseUrl}/speak`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Voice runtime request failed with ${response.status}`);
+    }
+
+    return (await response.json()) as VoiceSynthesisResponse;
+  }
 }
 
 function isAssistantChatMessage(value: unknown): value is AssistantChatMessage {
@@ -568,6 +690,29 @@ function isSiggiConversationRequest(value: unknown): value is SiggiConversationR
   );
 }
 
+function isVoiceTranscriptionRequest(value: unknown): value is VoiceTranscriptionRequest {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      typeof (value as JsonRecord).audioBase64 === "string" &&
+      ((value as JsonRecord).mimeType === undefined ||
+        typeof (value as JsonRecord).mimeType === "string") &&
+      ((value as JsonRecord).languageHint === undefined ||
+        typeof (value as JsonRecord).languageHint === "string")
+  );
+}
+
+function isVoiceSynthesisRequest(value: unknown): value is VoiceSynthesisRequest {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      typeof (value as JsonRecord).text === "string" &&
+      ((value as JsonRecord).voice === undefined ||
+        (value as JsonRecord).voice === "consultant" ||
+        (value as JsonRecord).voice === "siggi")
+  );
+}
+
 export function buildAiOrchestratorApp(options: AiOrchestratorOptions = {}) {
   const app = Fastify({ logger: false });
   const orchestrator = new AiOrchestrator(options);
@@ -596,6 +741,22 @@ export function buildAiOrchestratorApp(options: AiOrchestratorOptions = {}) {
       buildSiggiFallbackReply(request.body)
     );
     return { response };
+  });
+
+  app.post("/voice/transcribe", async (request, reply) => {
+    if (!isVoiceTranscriptionRequest(request.body)) {
+      return reply.code(400).send({ error: "Invalid voice transcription payload" });
+    }
+
+    return orchestrator.transcribeVoice(request.body);
+  });
+
+  app.post("/voice/speak", async (request, reply) => {
+    if (!isVoiceSynthesisRequest(request.body)) {
+      return reply.code(400).send({ error: "Invalid voice synthesis payload" });
+    }
+
+    return orchestrator.synthesizeVoice(request.body);
   });
 
   return app;

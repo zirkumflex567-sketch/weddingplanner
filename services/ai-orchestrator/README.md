@@ -13,6 +13,8 @@ Gemeinsame KI-Schicht fuer Wedding Consultant, Siggi und spaetere Research-Workf
 - `GET /health`
 - `POST /chat/wedding-consultant`
 - `POST /chat/siggi-intake`
+- `POST /voice/transcribe`
+- `POST /voice/speak`
 
 ## Zielbild
 
@@ -33,4 +35,4 @@ Gemeinsame KI-Schicht fuer Wedding Consultant, Siggi und spaetere Research-Workf
 
 ## Deployment-Hinweis
 
-Auf `htown` laeuft der Dienst als eigener Systemd-Service und wird von der Wedding API intern ueber `AI_ORCHESTRATOR_URL` angesprochen. Fuer Live-Deploys unter Subpfaden sollte die Web-App mit `VITE_BASE_PATH` gebaut werden.
+Auf `htown` laeuft der Dienst als eigener Systemd-Service und wird von der Wedding API intern ueber `AI_ORCHESTRATOR_URL` angesprochen. Fuer Voice-Features erwartet der Orchestrator zusaetzlich einen lokalen Python-Voice-Worker unter `VOICE_RUNTIME_URL`. Fuer Live-Deploys unter Subpfaden sollte die Web-App mit `VITE_BASE_PATH` gebaut werden.

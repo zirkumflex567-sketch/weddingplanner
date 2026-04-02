@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type {
   BudgetCategory,
@@ -26,6 +26,8 @@ import {
   listWorkspaceProfiles,
   replyWithWeddingConsultant,
   setTaskCompleted,
+  synthesizeWeddingConsultantVoice,
+  transcribeWeddingConsultantVoice,
   updateGuestRsvp,
   updateVendorLead,
   updateWorkspace
@@ -77,6 +79,30 @@ type StoredConsultationSession = {
 type AppView = "library" | "guided";
 type CoreVendorCategory = Exclude<VendorMatch["category"], "venue">;
 type CoreVendorFilterMode = "all" | "portfolio" | "active";
+type ConsultationVoiceStatus = "idle" | "recording" | "transcribing" | "speaking";
+
+async function blobToBase64(blob: Blob) {
+  const buffer = await blob.arrayBuffer();
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+
+  for (const value of bytes) {
+    binary += String.fromCharCode(value);
+  }
+
+  return window.btoa(binary);
+}
+
+function base64ToBlob(base64: string, mimeType: string) {
+  const binary = window.atob(base64);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return new Blob([bytes], { type: mimeType });
+}
 
 const storageKey = "wedding.prototype.workspaceId";
 const consultationStorageKeyPrefix = "wedding.prototype.consultation.";
@@ -470,6 +496,8 @@ function DashboardApp() {
   const [consultationMessages, setConsultationMessages] = useState<ConsultationMessage[]>([]);
   const [consultationDraft, setConsultationDraft] = useState("");
   const [consultationStatus, setConsultationStatus] = useState<"idle" | "sending">("idle");
+  const [consultationVoiceStatus, setConsultationVoiceStatus] =
+    useState<ConsultationVoiceStatus>("idle");
   const [status, setStatus] = useState<"loading" | "ready" | "saving">("loading");
   const [error, setError] = useState<string | null>(null);
   const [activeCoreVendorCategory, setActiveCoreVendorCategory] =
@@ -477,6 +505,11 @@ function DashboardApp() {
   const [coreVendorFilterMode, setCoreVendorFilterMode] =
     useState<CoreVendorFilterMode>("all");
   const [coreVendorSearch, setCoreVendorSearch] = useState("");
+  const consultationRecorderRef = useRef<MediaRecorder | null>(null);
+  const consultationStreamRef = useRef<MediaStream | null>(null);
+  const consultationChunksRef = useRef<Blob[]>([]);
+  const consultationAudioRef = useRef<HTMLAudioElement | null>(null);
+  const consultationShouldSpeakNextReplyRef = useRef(false);
 
   const guidedSession = workspace ? createGuidedPlanningSession(workspace) : null;
   const activeStepId = consultationTurn?.stepId ?? guidedSession?.currentStepId ?? "foundation";
@@ -583,6 +616,15 @@ function DashboardApp() {
     setConsultationMessages([createConsultationMessage("assistant", opening.assistantMessage)]);
     setConsultationDraft("");
   }, [workspace?.id]);
+
+  useEffect(() => {
+    return () => {
+      consultationRecorderRef.current?.stream.getTracks().forEach((track) => track.stop());
+      consultationStreamRef.current?.getTracks().forEach((track) => track.stop());
+      consultationAudioRef.current?.pause();
+      consultationAudioRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!workspace) {
@@ -1097,12 +1139,45 @@ function DashboardApp() {
     setConsultationDraft("");
   }
 
-  async function handleConsultationReply(optionId: string, label: string) {
-    if (!workspace || !consultationTurn) {
+  async function playConsultationVoiceReply(text: string) {
+    if (!text.trim()) {
       return;
     }
 
-    const nextUserMessage = createConsultationMessage("user", label);
+    setConsultationVoiceStatus("speaking");
+
+    try {
+      const response = await synthesizeWeddingConsultantVoice({ text });
+      const blob = base64ToBlob(response.audioBase64, response.mimeType);
+      const audioUrl = URL.createObjectURL(blob);
+
+      consultationAudioRef.current?.pause();
+      consultationAudioRef.current = new Audio(audioUrl);
+      consultationAudioRef.current.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      await consultationAudioRef.current.play();
+    } catch {
+      setError(
+        "Die Sprachantwort konnte gerade nicht erzeugt werden. Der Textchat funktioniert aber weiter."
+      );
+    } finally {
+      setConsultationVoiceStatus("idle");
+    }
+  }
+
+  async function submitConsultationMessage(
+    message: string,
+    options?: { speakReply?: boolean }
+  ) {
+    const trimmedMessage = message.trim();
+
+    if (!workspace || !consultationTurn || trimmedMessage.length === 0) {
+      return;
+    }
+
+    const nextUserMessage = createConsultationMessage("user", trimmedMessage);
     const nextMessages = [...consultationMessages, nextUserMessage];
 
     setConsultationStatus("sending");
@@ -1112,7 +1187,7 @@ function DashboardApp() {
         workspace,
         currentTurn: consultationTurn,
         messages: nextMessages,
-        userMessage: label
+        userMessage: trimmedMessage
       });
 
       setConsultationMessages([
@@ -1121,6 +1196,10 @@ function DashboardApp() {
       ]);
       setConsultationTurn(response.turn);
       setConsultationDraft("");
+
+      if (options?.speakReply) {
+        await playConsultationVoiceReply(response.turn.assistantMessage);
+      }
     } catch {
       setError(
         "Der KI-Consultant war gerade nicht erreichbar. Bitte versucht es in ein paar Sekunden noch einmal."
@@ -1130,39 +1209,114 @@ function DashboardApp() {
     }
   }
 
-  async function handleConsultationSend() {
-    const message = consultationDraft.trim();
-
-    if (!workspace || !consultationTurn || message.length === 0) {
+  async function handleConsultationReply(optionId: string, label: string) {
+    if (!workspace || !consultationTurn) {
       return;
     }
 
-    const nextUserMessage = createConsultationMessage("user", message);
-    const nextMessages = [...consultationMessages, nextUserMessage];
+    void submitConsultationMessage(label);
+  }
 
-    setConsultationStatus("sending");
+  async function handleConsultationSend() {
+    await submitConsultationMessage(consultationDraft);
+  }
+
+  async function handleConsultationVoiceToggle() {
+    if (consultationVoiceStatus === "recording") {
+      consultationRecorderRef.current?.stop();
+      return;
+    }
+
+    if (
+      consultationStatus === "sending" ||
+      consultationVoiceStatus === "transcribing" ||
+      consultationVoiceStatus === "speaking"
+    ) {
+      return;
+    }
+
+    if (
+      typeof navigator === "undefined" ||
+      !navigator.mediaDevices?.getUserMedia ||
+      typeof MediaRecorder === "undefined"
+    ) {
+      setError("Sprachaufnahme wird in diesem Browser gerade nicht unterstuetzt.");
+      return;
+    }
 
     try {
-      const response = await replyWithWeddingConsultant({
-        workspace,
-        currentTurn: consultationTurn,
-        messages: nextMessages,
-        userMessage: message
-      });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const preferredMimeType = [
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/ogg;codecs=opus"
+      ].find((candidate) => MediaRecorder.isTypeSupported(candidate));
+      const recorder = preferredMimeType
+        ? new MediaRecorder(stream, { mimeType: preferredMimeType })
+        : new MediaRecorder(stream);
 
-      setConsultationMessages([
-        ...nextMessages,
-        createConsultationMessage("assistant", response.turn.assistantMessage)
-      ]);
-      setConsultationTurn(response.turn);
-      setConsultationDraft("");
+      consultationChunksRef.current = [];
+      consultationStreamRef.current = stream;
+      consultationRecorderRef.current = recorder;
+      consultationShouldSpeakNextReplyRef.current = true;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          consultationChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const mimeType = recorder.mimeType || preferredMimeType || "audio/webm";
+        const audioBlob = new Blob(consultationChunksRef.current, { type: mimeType });
+        stream.getTracks().forEach((track) => track.stop());
+        consultationStreamRef.current = null;
+        consultationRecorderRef.current = null;
+        setConsultationVoiceStatus("transcribing");
+
+        try {
+          const audioBase64 = await blobToBase64(audioBlob);
+          const transcription = await transcribeWeddingConsultantVoice({
+            audioBase64,
+            mimeType
+          });
+
+          if (!transcription.text.trim()) {
+            setError("Ich habe gerade keine klare Sprache erkannt. Versuch es bitte noch einmal.");
+            setConsultationVoiceStatus("idle");
+            return;
+          }
+
+          setConsultationDraft(transcription.text);
+          await submitConsultationMessage(transcription.text, {
+            speakReply: consultationShouldSpeakNextReplyRef.current
+          });
+        } catch {
+          setError("Die Sprachaufnahme konnte gerade nicht verarbeitet werden.");
+        } finally {
+          consultationShouldSpeakNextReplyRef.current = false;
+          setConsultationVoiceStatus("idle");
+        }
+      };
+
+      recorder.start();
+      setConsultationVoiceStatus("recording");
     } catch {
-      setError(
-        "Der KI-Consultant war gerade nicht erreichbar. Bitte versucht es in ein paar Sekunden noch einmal."
-      );
-    } finally {
-      setConsultationStatus("idle");
+      setError("Das Mikrofon konnte gerade nicht geoeffnet werden.");
+      consultationShouldSpeakNextReplyRef.current = false;
     }
+  }
+
+  async function handleConsultationReplayAssistant() {
+    const lastAssistantMessage = [...consultationMessages]
+      .reverse()
+      .find((message) => message.role === "assistant");
+
+    if (!lastAssistantMessage) {
+      return;
+    }
+
+    await playConsultationVoiceReply(lastAssistantMessage.content);
   }
 
   function renderWorkspaceLibrary() {
@@ -1903,6 +2057,9 @@ function DashboardApp() {
             mode="embedded"
             isOpen
             isSending={consultationStatus === "sending"}
+            isRecording={consultationVoiceStatus === "recording"}
+            isTranscribing={consultationVoiceStatus === "transcribing"}
+            isSpeaking={consultationVoiceStatus === "speaking"}
             guidedSession={guidedSession}
             currentTurn={consultationTurn}
             messages={consultationMessages}
@@ -1913,6 +2070,8 @@ function DashboardApp() {
             onStepSelect={handleConsultationStepSelect}
             onReplySelect={handleConsultationReply}
             onSend={handleConsultationSend}
+            onToggleRecording={() => void handleConsultationVoiceToggle()}
+            onReplayAssistant={() => void handleConsultationReplayAssistant()}
           />
 
           <section className="panel guided-workbench">

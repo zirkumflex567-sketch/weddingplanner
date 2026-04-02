@@ -546,6 +546,58 @@ describe("POST /prototype/consultant/reply", () => {
       }
     });
   });
+
+  it("uses the injected consultant voice service when available", async () => {
+    const app = buildApp({
+      consultantVoiceService: {
+        async transcribe() {
+          return {
+            text: "Bitte schaut auf Location versus Budget.",
+            language: "de",
+            durationSeconds: 1.8
+          };
+        },
+        async speak() {
+          return {
+            audioBase64: "dGVzdA==",
+            mimeType: "audio/wav",
+            sampleRate: 24000
+          };
+        }
+      }
+    });
+    openApps.push(app);
+
+    const transcriptionResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/transcribe",
+      payload: {
+        audioBase64: "dGVzdA==",
+        mimeType: "audio/webm"
+      }
+    });
+
+    expect(transcriptionResponse.statusCode).toBe(200);
+    expect(transcriptionResponse.json()).toMatchObject({
+      text: expect.stringContaining("Location versus Budget"),
+      language: "de"
+    });
+
+    const speechResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/speak",
+      payload: {
+        text: "Hallo von eurer Hochzeitsberatung."
+      }
+    });
+
+    expect(speechResponse.statusCode).toBe(200);
+    expect(speechResponse.json()).toMatchObject({
+      audioBase64: "dGVzdA==",
+      mimeType: "audio/wav",
+      sampleRate: 24000
+    });
+  });
 });
 
 describe("prototype workspace flow", () => {

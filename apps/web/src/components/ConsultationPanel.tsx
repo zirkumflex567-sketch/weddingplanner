@@ -15,6 +15,9 @@ interface ConsultationPanelProps {
   mode?: "standalone" | "embedded";
   isOpen: boolean;
   isSending?: boolean;
+  isRecording?: boolean;
+  isTranscribing?: boolean;
+  isSpeaking?: boolean;
   guidedSession: GuidedPlanningSession;
   currentTurn: WeddingConsultantTurn | null;
   messages: ConsultationMessage[];
@@ -25,12 +28,17 @@ interface ConsultationPanelProps {
   onStepSelect(stepId: GuidedPlanningStepId): void;
   onReplySelect(optionId: string, label: string): void;
   onSend(): void;
+  onToggleRecording(): void;
+  onReplayAssistant(): void;
 }
 
 export function ConsultationPanel({
   mode = "standalone",
   isOpen,
   isSending = false,
+  isRecording = false,
+  isTranscribing = false,
+  isSpeaking = false,
   guidedSession,
   currentTurn,
   messages,
@@ -40,7 +48,9 @@ export function ConsultationPanel({
   onClose,
   onStepSelect,
   onReplySelect,
-  onSend
+  onSend,
+  onToggleRecording,
+  onReplayAssistant
 }: ConsultationPanelProps) {
   const transcriptRef = useRef<HTMLDivElement | null>(null);
   const isEmbedded = mode === "embedded";
@@ -150,13 +160,41 @@ export function ConsultationPanel({
               <textarea
                 className="consultant-input"
                 value={draft}
-                disabled={isSending}
+                disabled={isSending || isTranscribing}
                 onChange={(event) => onDraftChange(event.target.value)}
                 placeholder="Schreibt frei, was euch gerade beschaeftigt: Budget, Location, Gaeste, Unsicherheit, Bauchgefuehl ..."
               />
-              <button type="submit" className="primary-button consultant-send" disabled={isSending}>
-                {isSending ? "Consultant antwortet ..." : "Nachricht senden"}
-              </button>
+              <div className="consultant-composer-actions">
+                <button
+                  type="button"
+                  className={`secondary-button consultant-voice-button ${
+                    isRecording ? "consultant-voice-button--recording" : ""
+                  }`}
+                  disabled={isSending || isTranscribing}
+                  onClick={onToggleRecording}
+                >
+                  {isTranscribing
+                    ? "Wird transkribiert ..."
+                    : isRecording
+                      ? "Aufnahme stoppen"
+                      : "Push-to-Talk"}
+                </button>
+                <button
+                  type="button"
+                  className="secondary-button consultant-voice-button"
+                  disabled={messages.every((message) => message.role !== "assistant") || isSpeaking}
+                  onClick={onReplayAssistant}
+                >
+                  {isSpeaking ? "Antwort spricht ..." : "Antwort vorlesen"}
+                </button>
+                <button
+                  type="submit"
+                  className="primary-button consultant-send"
+                  disabled={isSending || isTranscribing}
+                >
+                  {isSending ? "Consultant antwortet ..." : "Nachricht senden"}
+                </button>
+              </div>
             </form>
           </div>
 

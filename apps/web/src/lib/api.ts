@@ -183,6 +183,18 @@ interface ConsultantReplyResponse {
   model: string;
 }
 
+export interface ConsultantVoiceTranscriptionResponse {
+  text: string;
+  language: string;
+  durationSeconds?: number | null;
+}
+
+export interface ConsultantVoiceSynthesisResponse {
+  audioBase64: string;
+  mimeType: string;
+  sampleRate: number;
+}
+
 const appBasePath = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 const apiBasePath = `${appBasePath}/api`;
 
@@ -406,6 +418,30 @@ export function replyWithWeddingConsultant(input: {
   userMessage: string;
 }) {
   return requestJson<ConsultantReplyResponse>("/prototype/consultant/reply", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function transcribeWeddingConsultantVoice(input: {
+  audioBase64: string;
+  mimeType?: string;
+  languageHint?: string;
+}) {
+  return requestJson<ConsultantVoiceTranscriptionResponse>("/prototype/consultant/transcribe", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function synthesizeWeddingConsultantVoice(input: { text: string }) {
+  return requestJson<ConsultantVoiceSynthesisResponse>("/prototype/consultant/speak", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

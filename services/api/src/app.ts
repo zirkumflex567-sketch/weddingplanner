@@ -10,7 +10,9 @@ import {
 } from "@wedding/shared";
 import {
   AiOrchestratorHttpClient,
-  type AssistantChatMessage
+  type AssistantChatMessage,
+  type VoiceSynthesisResponse,
+  type VoiceTranscriptionResponse
 } from "@wedding/ai-orchestrator";
 import {
   createVendorConnectorPreview,
@@ -37,6 +39,7 @@ interface BuildAppOptions {
   workspaceStore?: PrototypeWorkspaceStore;
   vendorRefreshStore?: VendorRefreshStore;
   consultantResponder?: WeddingConsultantResponder;
+  consultantVoiceService?: ConsultantVoiceService;
 }
 
 interface WeddingConsultantReplyPayload {
@@ -54,6 +57,23 @@ interface WeddingConsultantResponse {
 
 interface WeddingConsultantResponder {
   respond(payload: WeddingConsultantReplyPayload): Promise<WeddingConsultantResponse>;
+}
+
+interface WeddingConsultantVoiceTranscriptionPayload {
+  audioBase64: string;
+  mimeType?: string;
+  languageHint?: string;
+}
+
+interface WeddingConsultantVoiceSynthesisPayload {
+  text: string;
+}
+
+interface ConsultantVoiceService {
+  transcribe(
+    payload: WeddingConsultantVoiceTranscriptionPayload
+  ): Promise<VoiceTranscriptionResponse>;
+  speak(payload: WeddingConsultantVoiceSynthesisPayload): Promise<VoiceSynthesisResponse>;
 }
 
 export function shouldUseAiConsultantRewrite(
@@ -132,6 +152,25 @@ class AiWeddingConsultantResponder implements WeddingConsultantResponder {
   }
 }
 
+class AiWeddingConsultantVoiceService implements ConsultantVoiceService {
+  private readonly client: AiOrchestratorHttpClient;
+
+  constructor(baseUrl: string) {
+    this.client = new AiOrchestratorHttpClient({ baseUrl });
+  }
+
+  async transcribe(payload: WeddingConsultantVoiceTranscriptionPayload) {
+    return this.client.transcribeVoice(payload);
+  }
+
+  async speak(payload: WeddingConsultantVoiceSynthesisPayload) {
+    return this.client.synthesizeVoice({
+      text: payload.text,
+      voice: "consultant"
+    });
+  }
+}
+
 function isAssistantChatMessage(value: unknown): value is AssistantChatMessage {
   return Boolean(
     value &&
@@ -158,6 +197,30 @@ function isWeddingConsultantReplyPayload(
   );
 }
 
+function isWeddingConsultantVoiceTranscriptionPayload(
+  value: unknown
+): value is WeddingConsultantVoiceTranscriptionPayload {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      typeof (value as Record<string, unknown>).audioBase64 === "string" &&
+      ((value as Record<string, unknown>).mimeType === undefined ||
+        typeof (value as Record<string, unknown>).mimeType === "string") &&
+      ((value as Record<string, unknown>).languageHint === undefined ||
+        typeof (value as Record<string, unknown>).languageHint === "string")
+  );
+}
+
+function isWeddingConsultantVoiceSynthesisPayload(
+  value: unknown
+): value is WeddingConsultantVoiceSynthesisPayload {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      typeof (value as Record<string, unknown>).text === "string"
+  );
+}
+
 export function buildApp(options: BuildAppOptions = {}) {
   const app = Fastify({ logger: false });
   const workspaceStore =
@@ -169,6 +232,11 @@ export function buildApp(options: BuildAppOptions = {}) {
     (process.env.AI_ORCHESTRATOR_URL
       ? new AiWeddingConsultantResponder(process.env.AI_ORCHESTRATOR_URL)
       : new DeterministicWeddingConsultantResponder());
+  const consultantVoiceService =
+    options.consultantVoiceService ??
+    (process.env.AI_ORCHESTRATOR_URL
+      ? new AiWeddingConsultantVoiceService(process.env.AI_ORCHESTRATOR_URL)
+      : null);
 
   app.register(cors, {
     origin: true
@@ -197,11 +265,35 @@ export function buildApp(options: BuildAppOptions = {}) {
       });
     }
 
-    const response = await consultantResponder.respond(request.body);
-    return response;
-  });
+      const response = await consultantResponder.respond(request.body);
+      return response;
+    });
 
-  app.post("/prototype/vendor-refresh-jobs", async (request, reply) => {
+    app.post("/prototype/consultant/transcribe", async (request, reply) => {
+      if (!consultantVoiceService) {
+        return reply.code(503).send({ error: "Voice service unavailable" });
+      }
+
+      if (!isWeddingConsultantVoiceTranscriptionPayload(request.body)) {
+        return reply.code(400).send({ error: "Invalid consultant voice payload" });
+      }
+
+      return consultantVoiceService.transcribe(request.body);
+    });
+
+    app.post("/prototype/consultant/speak", async (request, reply) => {
+      if (!consultantVoiceService) {
+        return reply.code(503).send({ error: "Voice service unavailable" });
+      }
+
+      if (!isWeddingConsultantVoiceSynthesisPayload(request.body)) {
+        return reply.code(400).send({ error: "Invalid consultant speech payload" });
+      }
+
+      return consultantVoiceService.speak(request.body);
+    });
+
+    app.post("/prototype/vendor-refresh-jobs", async (request, reply) => {
     if (!isVendorRefreshRequest(request.body)) {
       return reply.code(400).send({
         error: "Invalid vendor refresh payload"
