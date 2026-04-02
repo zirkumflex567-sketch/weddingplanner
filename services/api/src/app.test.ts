@@ -1,4 +1,5 @@
 import type {
+  PublishableVendorRecord,
   VendorRefreshExecutionInput,
   VendorRefreshExecutor,
   VendorRefreshRun
@@ -591,6 +592,165 @@ describe("POST /planning/bootstrap", () => {
       category: "photography"
     });
     expect(executeJobRun).toHaveBeenCalledTimes(1);
+  });
+
+  it("turns refresh run records into review candidates and publishes approved vendors into the catalog", async () => {
+    const publishableRecord: PublishableVendorRecord = {
+      name: "Studio Beispiel",
+      category: "photography",
+      region: "67454 Hassloch",
+      websiteUrl: "https://example-vendor.de/hochzeit",
+      contactEmail: "hallo@example-vendor.de",
+      contactPhone: "+49 6321 123456",
+      priceAnchors: ["ab 2.400 EUR"],
+      serviceHints: ["hochzeitsreportagen", "paarshootings"],
+      sourceProvenance: [
+        "directory:Brave Search",
+        "google-places:places/abc123",
+        "vendor-website:https://example-vendor.de/hochzeit"
+      ],
+      freshnessTimestamp: "2026-04-02T12:00:00.000Z",
+      blockedFieldAudit: ["thirdPartyReviewScore", "thirdPartyReviewCount"]
+    };
+
+    const executeJobRun = vi.fn(
+      async ({ job, category }: VendorRefreshExecutionInput): Promise<VendorRefreshRun> => ({
+        id: "run_review_001",
+        jobId: job.id,
+        category,
+        createdAt: "2026-04-02T12:00:00.000Z",
+        completedAt: "2026-04-02T12:00:05.000Z",
+        status: "completed",
+        connectorResults: [
+          {
+            connectorId: "directory-discovery",
+            status: "success",
+            executedAt: "2026-04-02T12:00:01.000Z",
+            itemCount: 1
+          }
+        ],
+        preview: {
+          googlePlacesRequest: {
+            endpoint: "https://places.googleapis.com/v1/places:searchText",
+            method: "POST",
+            fieldMask: "places.displayName",
+            body: {
+              textQuery: `${category} ${job.request.region}`,
+              languageCode: "de",
+              regionCode: "DE",
+              maxResultCount: 10
+            }
+          },
+          discoveryCandidates: [],
+          businessFacts: [],
+          websiteFacts: [],
+          publishableRecords: [publishableRecord]
+        },
+        quality: {
+          status: "ready-for-review",
+          publishableRecordCount: 1,
+          issues: [
+            {
+              severity: "warning",
+              code: "blocked-fields-audited",
+              message: "Blocked source fields were audited and not published."
+            }
+          ]
+        }
+      })
+    );
+    const vendorRefreshExecutor: VendorRefreshExecutor = {
+      executeJobRun
+    };
+
+    const app = buildApp({ vendorRefreshExecutor });
+    openApps.push(app);
+
+    const createJobResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/vendor-refresh-jobs",
+      payload: {
+        paidOrderId: "order_publish_001",
+        region: "67454 Hassloch",
+        categories: ["photography"],
+        requestedBy: "customer-payment"
+      }
+    });
+
+    const jobId = createJobResponse.json().job.id;
+
+    const runResponse = await app.inject({
+      method: "POST",
+      url: `/prototype/vendor-refresh-jobs/${jobId}/runs`,
+      payload: {
+        category: "photography"
+      }
+    });
+
+    expect(runResponse.statusCode).toBe(201);
+
+    const candidatesResponse = await app.inject({
+      method: "GET",
+      url: `/prototype/vendor-refresh-jobs/${jobId}/candidates`
+    });
+
+    expect(candidatesResponse.statusCode).toBe(200);
+    expect(candidatesResponse.json().candidates).toEqual([
+      expect.objectContaining({
+        jobId,
+        runId: "run_review_001",
+        name: "Studio Beispiel",
+        reviewStatus: "pending",
+        publicationStatus: "unpublished"
+      })
+    ]);
+
+    const candidateId = candidatesResponse.json().candidates[0].id;
+
+    const approveResponse = await app.inject({
+      method: "PATCH",
+      url: `/prototype/vendor-refresh-jobs/${jobId}/candidates/${candidateId}`,
+      payload: {
+        reviewStatus: "approved",
+        reviewNote: "Saubere first-party Quellen, kann in den Katalog."
+      }
+    });
+
+    expect(approveResponse.statusCode).toBe(200);
+    expect(approveResponse.json().candidate).toMatchObject({
+      id: candidateId,
+      reviewStatus: "approved",
+      reviewNote: "Saubere first-party Quellen, kann in den Katalog."
+    });
+
+    const publishResponse = await app.inject({
+      method: "POST",
+      url: `/prototype/vendor-refresh-jobs/${jobId}/publish`
+    });
+
+    expect(publishResponse.statusCode).toBe(201);
+    expect(publishResponse.json().publishedRecords).toEqual([
+      expect.objectContaining({
+        sourceCandidateId: candidateId,
+        name: "Studio Beispiel",
+        category: "photography",
+        region: "67454 Hassloch"
+      })
+    ]);
+
+    const catalogResponse = await app.inject({
+      method: "GET",
+      url: "/prototype/vendor-catalog"
+    });
+
+    expect(catalogResponse.statusCode).toBe(200);
+    expect(catalogResponse.json().records).toEqual([
+      expect.objectContaining({
+        sourceCandidateId: candidateId,
+        name: "Studio Beispiel",
+        publicationSource: "vendor-refresh-review"
+      })
+    ]);
   });
 });
 

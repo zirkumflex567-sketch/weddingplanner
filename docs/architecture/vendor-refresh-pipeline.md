@@ -23,6 +23,12 @@ Die Pipeline arbeitet in zwei Modi:
 7. Dedupe und Quality entscheiden, was publiziert werden darf.
 8. Erst danach erscheinen neue Datensaetze im Produkt.
 
+Zwischen Quality und Produkt-Publish liegt jetzt explizit ein Review-Schritt:
+
+- Run erzeugt reviewbare Kandidaten
+- Kandidaten werden intern approved oder rejected
+- nur approved Kandidaten gehen in den internen Katalog
+
 ## Connector-Klassen
 
 - `directory-discovery`: nur Kandidatenfindung, nie Produkt-Truth
@@ -62,6 +68,7 @@ Die erste ausfuehrbare Runtime ist jetzt im Repo vorhanden:
 - Google Places Text Search fuer strukturierte Business-Facts
 - Vendor-Website-Fetching mit leichtem Same-Origin-Crawling fuer first-party Facts
 - Run-Persistenz mit Connector-Status, Preview-Daten und Qualitaetsreport
+- Review-Kandidaten und interner Publish-Katalog
 
 Qualitaetsreports unterscheiden aktuell zwischen:
 

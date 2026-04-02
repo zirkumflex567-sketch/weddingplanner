@@ -174,6 +174,60 @@ export function buildApp(options: BuildAppOptions = {}) {
     return { run };
   });
 
+  app.get("/prototype/vendor-refresh-jobs/:id/candidates", async (request, reply) => {
+    const params = request.params as { id: string };
+    const job = await vendorRefreshStore.getJob(params.id);
+
+    if (!job) {
+      return reply.code(404).send({ error: "Vendor refresh job not found" });
+    }
+
+    const candidates = await vendorRefreshStore.listCandidates(params.id);
+    return { candidates };
+  });
+
+  app.patch("/prototype/vendor-refresh-jobs/:id/candidates/:candidateId", async (request, reply) => {
+    const params = request.params as { id: string; candidateId: string };
+    const job = await vendorRefreshStore.getJob(params.id);
+
+    if (!job) {
+      return reply.code(404).send({ error: "Vendor refresh job not found" });
+    }
+
+    if (!isVendorReviewDecisionRequest(request.body)) {
+      return reply.code(400).send({ error: "Invalid review decision payload" });
+    }
+
+    const candidate = await vendorRefreshStore.updateCandidate(
+      params.id,
+      params.candidateId,
+      request.body
+    );
+
+    if (!candidate) {
+      return reply.code(404).send({ error: "Vendor review candidate not found" });
+    }
+
+    return { candidate };
+  });
+
+  app.post("/prototype/vendor-refresh-jobs/:id/publish", async (request, reply) => {
+    const params = request.params as { id: string };
+    const job = await vendorRefreshStore.getJob(params.id);
+
+    if (!job) {
+      return reply.code(404).send({ error: "Vendor refresh job not found" });
+    }
+
+    const publishedRecords = await vendorRefreshStore.publishApprovedCandidates(params.id);
+    return reply.code(201).send({ publishedRecords });
+  });
+
+  app.get("/prototype/vendor-catalog", async () => {
+    const records = await vendorRefreshStore.listPublishedRecords();
+    return { records };
+  });
+
   app.post("/prototype/workspaces", async (request, reply) => {
     if (!isWeddingBootstrapInput(request.body)) {
       return reply.code(400).send({
@@ -422,6 +476,19 @@ function isVendorRefreshRunRequest(
   category: VendorSearchCategory;
 } {
   return isPlainObject(value) && isVendorSearchCategory(value.category);
+}
+
+function isVendorReviewDecisionRequest(
+  value: unknown
+): value is {
+  reviewStatus: "approved" | "rejected";
+  reviewNote?: string;
+} {
+  return (
+    isPlainObject(value) &&
+    (value.reviewStatus === "approved" || value.reviewStatus === "rejected") &&
+    (value.reviewNote === undefined || typeof value.reviewNote === "string")
+  );
 }
 
 function isDirectoryDiscoveryResultInputArray(

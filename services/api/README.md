@@ -19,6 +19,10 @@ Aktueller Stand:
 - `POST /prototype/vendor-refresh-jobs/:id/runs`
 - `GET /prototype/vendor-refresh-jobs/:id/runs`
 - `GET /prototype/vendor-refresh-jobs/:id/runs/:runId`
+- `GET /prototype/vendor-refresh-jobs/:id/candidates`
+- `PATCH /prototype/vendor-refresh-jobs/:id/candidates/:candidateId`
+- `POST /prototype/vendor-refresh-jobs/:id/publish`
+- `GET /prototype/vendor-catalog`
 - `npm run dev --workspace @wedding/api` startet die lokale API auf `127.0.0.1:3001`
 - `POST /prototype/workspaces`
 - `GET /prototype/workspaces/:id`
@@ -61,3 +65,16 @@ Die API speichert pro Run:
 - normalisierte Preview-Daten
 - Qualitaetsstatus mit Issues
 - Persistenz fuer spaetere Review- und Publish-Schritte
+
+## Review und Publish
+
+Aus jedem Run entstehen reviewbare Kandidaten auf Basis der publishbaren Records.
+Der aktuelle Flow ist:
+
+- Run ausfuehren
+- Kandidaten pro Job pruefen
+- einzelne Kandidaten auf `approved` oder `rejected` setzen
+- approved Kandidaten in den internen Vendor-Katalog publizieren
+
+Der Katalog unter `GET /prototype/vendor-catalog` ist damit der erste Produkt-Endpoint,
+der nicht nur Connector-Rohdaten zeigt, sondern bewusst reviewed und publizierte Vendors.
