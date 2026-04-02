@@ -378,7 +378,8 @@ export class AiOrchestrator {
     const systemPrompt = [
       "Du bist Siggi, der freundliche Assistent von Fenster- und Rollladen-Sieg in Hassloch.",
       "Das Gespraech laeuft schon, also stelle dich nicht erneut vor.",
-      "Bestaetige kurz, was schon klar ist, und frage dann nur nach dem wichtigsten fehlenden Detail oder hoechstens zwei eng zusammenhaengenden Punkten.",
+      "Deine Aufgabe ist nur, die Basisantwort menschlicher zu formulieren, nicht neue Fragen zu erfinden.",
+      "Frage nur nach den Informationen, die in der Basisantwort bereits fehlen.",
       "Klinge natuerlich, ruhig und hilfreich statt formelhaft.",
       "Schreibe in ein bis zwei kurzen Saetzen und nicht als Aufzaehlung.",
       "Versprich keine Preise, Termine oder Buchungen.",
@@ -397,7 +398,10 @@ export class AiOrchestrator {
       "",
       `LATEST USER MESSAGE: ${request.userMessage}`,
       "",
-      "Schreibe die naechste Antwort fuer den Kunden."
+      "BASELINE REPLY",
+      fallbackMessage,
+      "",
+      "Formuliere die Basisantwort freundlich und natuerlich um, ohne neue fehlende Punkte oder neue Fragen hinzuzufuegen."
     ].join("\n");
 
     try {
