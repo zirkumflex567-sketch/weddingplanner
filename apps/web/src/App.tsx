@@ -162,6 +162,12 @@ const vendorPortfolioFallbackLabels: Record<VendorMatch["category"], string> = {
   attire: "Looks & Auswahl"
 };
 
+const appBasePath = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function toTagArray(value: string) {
   return value
     .split(",")
@@ -234,11 +240,12 @@ function createVendorDraftMap(workspace: PrototypeWorkspace | null) {
 }
 
 function createGuestRsvpPath(accessToken: string) {
-  return `/rsvp/${accessToken}`;
+  return `${appBasePath}/rsvp/${accessToken}`;
 }
 
 function getPublicRsvpTokenFromPath(pathname: string) {
-  const match = pathname.match(/^\/rsvp\/([^/]+)$/);
+  const basePrefix = appBasePath.length > 0 ? escapeRegex(appBasePath) : "";
+  const match = pathname.match(new RegExp(`^${basePrefix}/rsvp/([^/]+)$`));
   return match?.[1] ? decodeURIComponent(match[1]) : null;
 }
 

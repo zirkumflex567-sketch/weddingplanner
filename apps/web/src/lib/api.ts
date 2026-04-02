@@ -45,8 +45,15 @@ interface UpdatePublicRsvpInput {
   message?: string;
 }
 
+const appBasePath = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+const apiBasePath = `${appBasePath}/api`;
+
+function createApiPath(path: string) {
+  return `${apiBasePath}${path}`;
+}
+
 async function requestJson<T>(path: string, init?: RequestInit) {
-  const response = await fetch(path, {
+  const response = await fetch(createApiPath(path), {
     ...init,
     cache: "no-store"
   });
@@ -59,7 +66,7 @@ async function requestJson<T>(path: string, init?: RequestInit) {
 }
 
 export function createWorkspace(input: WeddingBootstrapInput) {
-  return requestJson<WorkspaceResponse>("/api/prototype/workspaces", {
+  return requestJson<WorkspaceResponse>("/prototype/workspaces", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -69,15 +76,15 @@ export function createWorkspace(input: WeddingBootstrapInput) {
 }
 
 export function listWorkspaceProfiles() {
-  return requestJson<WorkspaceProfilesResponse>("/api/prototype/workspaces");
+  return requestJson<WorkspaceProfilesResponse>("/prototype/workspaces");
 }
 
 export function getWorkspace(id: string) {
-  return requestJson<WorkspaceResponse>(`/api/prototype/workspaces/${id}`);
+  return requestJson<WorkspaceResponse>(`/prototype/workspaces/${id}`);
 }
 
 export async function deleteWorkspace(id: string) {
-  const response = await fetch(`/api/prototype/workspaces/${id}`, {
+  const response = await fetch(createApiPath(`/prototype/workspaces/${id}`), {
     method: "DELETE",
     cache: "no-store"
   });
@@ -88,11 +95,11 @@ export async function deleteWorkspace(id: string) {
 }
 
 export function getPublicRsvpSession(token: string) {
-  return requestJson<PrototypePublicRsvpSession>(`/api/public/rsvp/${token}`);
+  return requestJson<PrototypePublicRsvpSession>(`/public/rsvp/${token}`);
 }
 
 export function updateWorkspace(id: string, input: WeddingBootstrapInput) {
-  return requestJson<WorkspaceResponse>(`/api/prototype/workspaces/${id}/onboarding`, {
+  return requestJson<WorkspaceResponse>(`/prototype/workspaces/${id}/onboarding`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json"
@@ -102,7 +109,7 @@ export function updateWorkspace(id: string, input: WeddingBootstrapInput) {
 }
 
 export function addGuest(workspaceId: string, input: CreateGuestInput) {
-  return requestJson<WorkspaceResponse>(`/api/prototype/workspaces/${workspaceId}/guests`, {
+  return requestJson<WorkspaceResponse>(`/prototype/workspaces/${workspaceId}/guests`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -117,7 +124,7 @@ export function updateGuestRsvp(
   rsvpStatus: PrototypeGuest["rsvpStatus"]
 ) {
   return requestJson<WorkspaceResponse>(
-    `/api/prototype/workspaces/${workspaceId}/guests/${guestId}`,
+    `/prototype/workspaces/${workspaceId}/guests/${guestId}`,
     {
       method: "PATCH",
       headers: {
@@ -129,7 +136,7 @@ export function updateGuestRsvp(
 }
 
 export function submitPublicRsvp(token: string, input: UpdatePublicRsvpInput) {
-  return requestJson<PrototypePublicRsvpSession>(`/api/public/rsvp/${token}`, {
+  return requestJson<PrototypePublicRsvpSession>(`/public/rsvp/${token}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json"
@@ -139,7 +146,7 @@ export function submitPublicRsvp(token: string, input: UpdatePublicRsvpInput) {
 }
 
 export function addExpense(workspaceId: string, input: CreateExpenseInput) {
-  return requestJson<WorkspaceResponse>(`/api/prototype/workspaces/${workspaceId}/expenses`, {
+  return requestJson<WorkspaceResponse>(`/prototype/workspaces/${workspaceId}/expenses`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -154,7 +161,7 @@ export function updateVendorLead(
   input: UpdateVendorInput
 ) {
   return requestJson<WorkspaceResponse>(
-    `/api/prototype/workspaces/${workspaceId}/vendors/${vendorId}`,
+    `/prototype/workspaces/${workspaceId}/vendors/${vendorId}`,
     {
       method: "PATCH",
       headers: {
@@ -171,7 +178,7 @@ export function setTaskCompleted(
   completed: boolean
 ) {
   return requestJson<WorkspaceResponse>(
-    `/api/prototype/workspaces/${workspaceId}/tasks/${taskId}`,
+    `/prototype/workspaces/${workspaceId}/tasks/${taskId}`,
     {
       method: "PATCH",
       headers: {
