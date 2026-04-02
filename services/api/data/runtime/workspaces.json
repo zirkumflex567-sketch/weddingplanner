@@ -1,0 +1,260 @@
+{
+  "workspaces": [
+    {
+      "id": "d25bcfdb-aca6-4e4b-8639-c54330348611",
+      "createdAt": "2026-04-02T01:55:11.608Z",
+      "updatedAt": "2026-04-02T01:55:11.608Z",
+      "coupleName": "Mira & Leon",
+      "onboarding": {
+        "coupleName": "Mira & Leon",
+        "targetDate": "2027-09-15",
+        "region": "Berlin",
+        "guestCountTarget": 80,
+        "budgetTotal": 18000,
+        "stylePreferences": [
+          "modern",
+          "natural"
+        ],
+        "noGoPreferences": [
+          "ballroom"
+        ],
+        "plannedEvents": [
+          "civil-ceremony",
+          "celebration",
+          "brunch"
+        ]
+      },
+      "plan": {
+        "profile": {
+          "coupleName": "Mira & Leon",
+          "targetDate": "2027-09-15",
+          "region": "Berlin",
+          "guestCountTarget": 80,
+          "budgetTotal": 18000,
+          "stylePreferences": [
+            "modern",
+            "natural"
+          ],
+          "noGoPreferences": [
+            "ballroom"
+          ],
+          "plannedEvents": [
+            "civil-ceremony",
+            "celebration",
+            "brunch"
+          ],
+          "planningWindowMonths": 12
+        },
+        "milestones": [
+          {
+            "id": "venue-shortlist",
+            "title": "Location shortlist finalisieren",
+            "dueDate": "2026-09-15",
+            "category": "venue",
+            "rationale": "Location und Termin bestimmen fast alle spaeteren Vendor-Entscheidungen."
+          },
+          {
+            "id": "photo-direction",
+            "title": "Foto- und Stilrichtung fixieren",
+            "dueDate": "2026-11-15",
+            "category": "photography",
+            "rationale": "Fotografie ist in beliebten Zeitraeumen frueh ausgebucht und haengt stark vom Stilprofil ab."
+          },
+          {
+            "id": "guest-framework",
+            "title": "Gaeste- und Budgetrahmen absichern",
+            "dueDate": "2027-03-15",
+            "category": "planning",
+            "rationale": "Gaestezahl und Budgetrahmen steuern Catering, Seating und Kommunikationsaufwand."
+          }
+        ],
+        "budgetCategories": [
+          {
+            "category": "venue",
+            "label": "Location",
+            "plannedAmount": 7200,
+            "rationale": "Venue und Termin blockieren den groessten Teil des operativen Rahmens."
+          },
+          {
+            "category": "catering",
+            "label": "Catering",
+            "plannedAmount": 3600,
+            "rationale": "Essens- und Getraenkekosten skalieren direkt mit der finalen Gaestezahl."
+          },
+          {
+            "category": "photography",
+            "label": "Foto",
+            "plannedAmount": 1800,
+            "rationale": "Fotografie wird frueh gebucht und ist stark vom Stilprofil abhaengig."
+          },
+          {
+            "category": "music",
+            "label": "Musik",
+            "plannedAmount": 1260,
+            "rationale": "Musik und Moderation steuern die Stimmung und den Ablauf am Tag selbst."
+          },
+          {
+            "category": "attire",
+            "label": "Outfits",
+            "plannedAmount": 1800,
+            "rationale": "Kleidung und Anpassungen benoetigen Vorlauf und passen selten in Restbudgets."
+          },
+          {
+            "category": "florals",
+            "label": "Floristik & Deko",
+            "plannedAmount": 1440,
+            "rationale": "Floristik und Dekor werden spaeter konkret, brauchen aber frueh einen Rahmen."
+          },
+          {
+            "category": "stationery-admin",
+            "label": "Papeterie & Admin",
+            "plannedAmount": 900,
+            "rationale": "Papeterie, Standesamt, Dokumente und Kleinposten sollten frueh sichtbar sein."
+          }
+        ],
+        "vendorStarterCategories": [
+          {
+            "category": "venue",
+            "label": "Locations",
+            "whyItMatters": "Die Location setzt Stil, Kapazitaet, Zeitfenster und viele Folgeentscheidungen."
+          },
+          {
+            "category": "photography",
+            "label": "Fotografie",
+            "whyItMatters": "Fotografie ist stilpraegend und in Kernmonaten oft frueh ausgebucht."
+          },
+          {
+            "category": "catering",
+            "label": "Catering",
+            "whyItMatters": "Catering skaliert mit Gaestezahl und beeinflusst Budget und Tagesablauf direkt."
+          }
+        ],
+        "adminReminders": [
+          {
+            "id": "documents-check",
+            "title": "Standesamt-Unterlagen vorpruefen",
+            "dueDate": "2027-01-15",
+            "category": "legal-admin",
+            "rationale": "Fuer Deutschland sollten Ausweise, Geburtsregister und moegliche Sonderunterlagen frueh geklaert sein."
+          },
+          {
+            "id": "civil-registration-window",
+            "title": "Eheschliessung beim Standesamt anmelden",
+            "dueDate": "2027-03-15",
+            "category": "legal-admin",
+            "rationale": "Die Anmeldung ist in Deutschland typischerweise fruehestens sechs Monate vor dem Termin moeglich."
+          }
+        ],
+        "eventBlueprints": [
+          {
+            "id": "civil-ceremony",
+            "label": "Standesamt",
+            "planningFocus": "Termin, Unterlagen und moegliche Sonderfaelle frueh absichern."
+          },
+          {
+            "id": "celebration",
+            "label": "Feier",
+            "planningFocus": "Venue, Catering, Musik und Ablauf als zusammenhaengenden Haupttag planen."
+          },
+          {
+            "id": "brunch",
+            "label": "Brunch",
+            "planningFocus": "Unterkuenfte, Reisewege und lockeren Folgetag fuer Gaeste mitdenken."
+          }
+        ],
+        "vendorMatches": [
+          {
+            "id": "berlin-spree-loft",
+            "name": "Spree Loft Atelier",
+            "category": "venue",
+            "region": "Berlin",
+            "fitScore": 95,
+            "priceBandLabel": "5.500-8.500 EUR",
+            "reasonSummary": "Passt zu Berlin, 80 Gaesten und einem modernen naturnahen Stil."
+          },
+          {
+            "id": "berlin-nordlicht-photo",
+            "name": "Studio Nordlicht",
+            "category": "photography",
+            "region": "Berlin",
+            "fitScore": 95,
+            "priceBandLabel": "1.800-2.600 EUR",
+            "reasonSummary": "Trifft den Stil, liegt im Foto-Budget und ist auf urbane Feiern im Berliner Raum ausgerichtet."
+          },
+          {
+            "id": "berlin-kranich-catering",
+            "name": "Kranich Catering",
+            "category": "catering",
+            "region": "Berlin",
+            "fitScore": 95,
+            "priceBandLabel": "3.200-4.100 EUR",
+            "reasonSummary": "Skaliert gut auf 80 Gaeste, bleibt nah am Catering-Rahmen und passt zu moderner saisonaler Planung."
+          }
+        ],
+        "runtimeTopology": {
+          "aiExecution": "shadow-workstation",
+          "hosting": "vps-web-api-only",
+          "note": "Inference, Dokumentenverarbeitung und spaetere Modell-Orchestrierung laufen auf Shadow; der VPS hostet Web und API."
+        },
+        "nextSteps": [
+          "Location shortlist finalisieren",
+          "Foto- und Stilrichtung fixieren",
+          "Gaeste- und Budgetrahmen absichern"
+        ]
+      },
+      "tasks": [
+        {
+          "id": "venue-shortlist",
+          "title": "Location shortlist finalisieren",
+          "dueDate": "2026-09-15",
+          "category": "venue",
+          "completed": false,
+          "sourceType": "milestone"
+        },
+        {
+          "id": "photo-direction",
+          "title": "Foto- und Stilrichtung fixieren",
+          "dueDate": "2026-11-15",
+          "category": "photography",
+          "completed": false,
+          "sourceType": "milestone"
+        },
+        {
+          "id": "guest-framework",
+          "title": "Gaeste- und Budgetrahmen absichern",
+          "dueDate": "2027-03-15",
+          "category": "planning",
+          "completed": false,
+          "sourceType": "milestone"
+        },
+        {
+          "id": "documents-check",
+          "title": "Standesamt-Unterlagen vorpruefen",
+          "dueDate": "2027-01-15",
+          "category": "legal-admin",
+          "completed": false,
+          "sourceType": "admin-reminder"
+        },
+        {
+          "id": "civil-registration-window",
+          "title": "Eheschliessung beim Standesamt anmelden",
+          "dueDate": "2027-03-15",
+          "category": "legal-admin",
+          "completed": false,
+          "sourceType": "admin-reminder"
+        }
+      ],
+      "guests": [],
+      "guestSummary": {
+        "total": 0,
+        "pending": 0,
+        "attending": 0,
+        "declined": 0
+      },
+      "progress": {
+        "completedTasks": 0,
+        "totalTasks": 5
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "wedding",
+  "private": true,
+  "packageManager": "npm@11.10.0",
+  "workspaces": [
+    "apps/web",
+    "services/api",
+    "packages/shared"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "audit:app": "node scripts/app-audit.cjs",
+    "test:consultant-smoke": "node scripts/consultant-smoke.cjs",
+    "dev:web": "npm run dev --workspace @wedding/web",
+    "dev:api": "npm run dev --workspace @wedding/api"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1",
+    "typescript": "^6.0.2"
+  }
+}
