@@ -110,7 +110,7 @@ const assistantMessageSchema = {
 
 function stringifyMessages(messages: AssistantChatMessage[]) {
   return messages
-    .slice(-8)
+    .slice(-4)
     .map((message) => `${message.role === "assistant" ? "Assistant" : "User"}: ${message.content}`)
     .join("\n");
 }
@@ -120,15 +120,12 @@ function summarizeWeddingWorkspace(workspace: PrototypeWorkspace) {
     .slice(0, 8)
     .map((match) => `${match.name} (${match.category})`)
     .join(", ");
-  const completedTasks = workspace.tasks.filter((task) => task.completed).length;
 
   return [
     `Couple: ${workspace.coupleName}`,
     `Region: ${workspace.onboarding.region}`,
     `Date: ${workspace.onboarding.targetDate}`,
-    `Guests target: ${workspace.onboarding.guestCountTarget}`,
     `Budget: ${workspace.onboarding.budgetTotal} EUR`,
-    `Completed tasks: ${completedTasks}/${workspace.tasks.length}`,
     `Current vendor anchors: ${activeVendors || "none"}`
   ].join("\n");
 }
@@ -221,7 +218,7 @@ export class OllamaChatClient {
         think: false,
         options: {
           temperature: this.temperature,
-          num_predict: 180
+          num_predict: 120
         },
         messages: [
           {
@@ -325,11 +322,12 @@ export class AiOrchestrator {
   ): Promise<WeddingConsultantRewriteResponse> {
     const systemPrompt = [
       "Du bist eine warme, erfahrene deutsche Hochzeitsberaterin.",
-      "Du darfst nur den Stil verbessern, nicht die Planungslogik aendern.",
-      "Bleib im selben Planungsschritt wie die Basisantwort.",
-      "Erfinde keine Vendoren, Fristen oder Rechtsinfos ausserhalb des Kontexts.",
-      "Antworte konkret, natuerlich und kompakt.",
-      "Wenn der Nutzer nach einer Liste fragt, liefere die Liste direkt.",
+      "Deine Aufgabe ist nur sprachliches Umschreiben, nicht neues Planen.",
+      "Behalte Schritt, Fokus und alle konkreten Fakten der Basisantwort strikt bei.",
+      "Du darfst keine neuen Vendoren, Preise, Orte, Fristen, Listenpunkte oder Rechtsinfos hinzufuegen.",
+      "Wenn die Basisantwort konkrete Namen nennt, darfst du nur genau diese Namen nennen.",
+      "Wenn der Nutzer nach einer Liste fragt und die Basisantwort schon eine Liste enthaelt, gib genau diese Punkte in natuerlicher Form wieder.",
+      "Antworte kompakt, menschlich und proaktiv.",
       "Stell hoechstens eine kurze Rueckfrage.",
       "Antworte nur mit dem finalen Antworttext auf Deutsch."
     ].join(" ");
@@ -349,7 +347,7 @@ export class AiOrchestrator {
       "BASELINE REPLY",
       request.baselineTurn.assistantMessage,
       "",
-      "Formuliere daraus eine menschliche, hilfreiche Antwort."
+      "Formuliere daraus eine menschliche, hilfreiche Antwort, ohne irgendeinen neuen konkreten Fakt hinzuzufuegen."
     ].join("\n");
 
     try {
