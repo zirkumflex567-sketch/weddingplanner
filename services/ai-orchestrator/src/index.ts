@@ -202,8 +202,10 @@ export class OllamaChatClient {
         model: this.model,
         stream: false,
         format: "json",
+        think: false,
         options: {
-          temperature: this.temperature
+          temperature: this.temperature,
+          num_predict: 180
         },
         messages: [
           {
