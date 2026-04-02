@@ -98,6 +98,15 @@ export interface AiOrchestratorHttpClientOptions {
 }
 
 type JsonRecord = Record<string, unknown>;
+const assistantMessageSchema = {
+  type: "object",
+  properties: {
+    assistantMessage: {
+      type: "string"
+    }
+  },
+  required: ["assistantMessage"]
+} as const;
 
 function stringifyMessages(messages: AssistantChatMessage[]) {
   return messages
@@ -201,7 +210,7 @@ export class OllamaChatClient {
       body: JSON.stringify({
         model: this.model,
         stream: false,
-        format: "json",
+        format: assistantMessageSchema,
         think: false,
         options: {
           temperature: this.temperature,
