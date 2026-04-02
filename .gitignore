@@ -1,0 +1,43 @@
+# Node / web
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+.svelte-kit/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Local env
+.env
+.env.*
+!.env.example
+
+# Logs and temp
+*.log
+tmp/
+.tmp/
+output/
+
+# Coverage / test output
+coverage/
+playwright-report/
+test-results/
+.playwright-cli/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.bg-shell/
+
+# Generated or imported data
+data/generated/
+data/imports/
+data/tmp/
+data/runtime/

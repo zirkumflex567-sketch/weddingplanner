@@ -1,0 +1,368 @@
+[
+  {
+    "id": "hassloch-the-space",
+    "name": "THE SPACE",
+    "category": "venue",
+    "region": "Pfalz",
+    "city": "Hassloch",
+    "postalCode": "67454",
+    "coverageAreaIds": [
+      "67454-radius-40km"
+    ],
+    "searchAliases": [
+      "67454",
+      "hassloch",
+      "the space"
+    ],
+    "pricingModel": "estimated-total",
+    "priceMin": 4500,
+    "priceMax": 7000,
+    "baseFeeMin": null,
+    "baseFeeMax": null,
+    "supportedGuestsMin": 30,
+    "supportedGuestsMax": 90,
+    "styleTags": [
+      "modern",
+      "industrial",
+      "urban"
+    ],
+    "reasonSummary": "Direkt in Hassloch und stark fuer moderne Hochzeitsfeiern, Welcome-Abende oder kleinere Dinner-Formate.",
+    "websiteUrl": "https://the-space.bar/reservieren/",
+    "sourceUrl": "https://the-space.bar/reservieren/",
+    "sourceLabel": "Offizielle Reservierungsseite",
+    "freshnessLabel": "Offizielle Website, Stand April 2026"
+  },
+  {
+    "id": "deidesheim-rebe",
+    "name": "Rebe Deidesheim",
+    "category": "venue",
+    "region": "Pfalz",
+    "city": "Deidesheim",
+    "postalCode": "67146",
+    "coverageAreaIds": [
+      "67454-radius-40km"
+    ],
+    "searchAliases": [
+      "deidesheim",
+      "67146",
+      "rebe deidesheim"
+    ],
+    "pricingModel": "estimated-total",
+    "priceMin": 6500,
+    "priceMax": 9800,
+    "baseFeeMin": null,
+    "baseFeeMax": null,
+    "supportedGuestsMin": 50,
+    "supportedGuestsMax": 120,
+    "styleTags": [
+      "natural",
+      "romantic",
+      "wine-estate"
+    ],
+    "reasonSummary": "Weinbergs-Setting mit Hochzeitserfahrung und guter Passung fuer natuerliche oder romantische Feiern.",
+    "websiteUrl": "https://www.rebe-deidesheim.de/",
+    "sourceUrl": "https://www.rebe-deidesheim.de/kontakt",
+    "sourceLabel": "Offizielle Kontaktseite",
+    "freshnessLabel": "Offizielle Website, Stand April 2026"
+  },
+  {
+    "id": "neustadt-hambacher-schloss",
+    "name": "Hambacher Schloss",
+    "category": "venue",
+    "region": "Pfalz",
+    "city": "Neustadt an der Weinstrasse",
+    "postalCode": null,
+    "coverageAreaIds": [
+      "67454-radius-40km"
+    ],
+    "searchAliases": [
+      "hambacher schloss",
+      "neustadt",
+      "hambach"
+    ],
+    "pricingModel": "per-person-plus-fixed",
+    "priceMin": 155,
+    "priceMax": 210,
+    "baseFeeMin": 1500,
+    "baseFeeMax": 1500,
+    "supportedGuestsMin": 40,
+    "supportedGuestsMax": 100,
+    "styleTags": [
+      "romantic",
+      "historic",
+      "natural"
+    ],
+    "reasonSummary": "Schlosskulisse mit offizieller Hochzeitsbroschuere, freier Trauung und belastbarer Schlechtwetter-Option.",
+    "websiteUrl": "https://www.hambacherschloss-pfalz.de/",
+    "sourceUrl": "https://www.hambacherschloss-pfalz.de/hochzeitsbroschuere.pdf",
+    "sourceLabel": "Offizielle Hochzeitsbroschuere",
+    "freshnessLabel": "Offizielle Broschuere, Stand April 2026"
+  },
+  {
+    "id": "deidesheimer-hof",
+    "name": "Deidesheimer Hof",
+    "category": "venue",
+    "region": "Pfalz",
+    "city": "Deidesheim",
+    "postalCode": "67146",
+    "coverageAreaIds": [
+      "67454-radius-40km"
+    ],
+    "searchAliases": [
+      "deidesheimer hof",
+      "deidesheim",
+      "67146"
+    ],
+    "pricingModel": "per-person",
+    "priceMin": 165,
+    "priceMax": 189,
+    "baseFeeMin": null,
+    "baseFeeMax": null,
+    "supportedGuestsMin": 25,
+    "supportedGuestsMax": 110,
+    "styleTags": [
+      "classic",
+      "elegant",
+      "romantic"
+    ],
+    "reasonSummary": "Klassisches Hotel-Setting am Marktplatz mit offiziellen Hochzeitspauschalen und klaren Prozessdaten.",
+    "websiteUrl": "https://www.deidesheimerhof.de/de/feiern3/hochzeitsfeiern/hochzeitsarrangement",
+    "sourceUrl": "https://www.deidesheimerhof.de/storage/app/media/Documents/Flyer%20Hochzeiten.pdf",
+    "sourceLabel": "Offizieller Hochzeitsflyer",
+    "freshnessLabel": "Offizielle Preisinformation, Stand April 2026"
+  },
+  {
+    "id": "hassloch-nicitello",
+    "name": "Nicitello Fotografie",
+    "category": "photography",
+    "region": "Pfalz",
+    "city": "Hassloch",
+    "postalCode": "67454",
+    "coverageAreaIds": [
+      "67454-radius-40km"
+    ],
+    "searchAliases": [
+      "nicitello",
+      "67454",
+      "hassloch",
+      "marco nici"
+    ],
+    "pricingModel": "estimated-total",
+    "priceMin": 1800,
+    "priceMax": 2800,
+    "baseFeeMin": null,
+    "baseFeeMax": null,
+    "supportedGuestsMin": 20,
+    "supportedGuestsMax": 130,
+    "styleTags": [
+      "romantic",
+      "natural",
+      "documentary"
+    ],
+    "reasonSummary": "Direkt aus Hassloch, klar auf Hochzeitsreportagen in der Pfalz ausgerichtet und nah an natuerlichen Paarstories.",
+    "websiteUrl": "https://www.nicitello.de/",
+    "sourceUrl": "https://www.nicitello.de/kontakt/",
+    "sourceLabel": "Offizielle Kontaktseite",
+    "freshnessLabel": "Offizielle Website, Stand April 2026"
+  },
+  {
+    "id": "speyer-foto-speyer",
+    "name": "Foto Speyer",
+    "category": "photography",
+    "region": "Pfalz",
+    "city": "Speyer",
+    "postalCode": "67346",
+    "coverageAreaIds": [
+      "67454-radius-40km"
+    ],
+    "searchAliases": [
+      "foto speyer",
+      "speyer",
+      "67346"
+    ],
+    "pricingModel": "flat-total",
+    "priceMin": 1600,
+    "priceMax": 2200,
+    "baseFeeMin": null,
+    "baseFeeMax": null,
+    "supportedGuestsMin": 20,
+    "supportedGuestsMax": 140,
+    "styleTags": [
+      "documentary",
+      "classic",
+      "natural"
+    ],
+    "reasonSummary": "Speyerer Reportage-Fokus mit oeffentlichen Paketankern fuer standesamtliche Formate bis Tagesbegleitung.",
+    "websiteUrl": "https://www.foto-speyer.de/hochzeitsfotograf",
+    "sourceUrl": "https://www.foto-speyer.de/hochzeitsfotograf",
+    "sourceLabel": "Offizielle Angebotsseite",
+    "freshnessLabel": "Offizielle Website, Stand April 2026"
+  },
+  {
+    "id": "pfalz-markus-husner",
+    "name": "Markus Husner",
+    "category": "photography",
+    "region": "Pfalz",
+    "city": "Bad Duerkheim",
+    "postalCode": null,
+    "coverageAreaIds": [
+      "67454-radius-40km"
+    ],
+    "searchAliases": [
+      "markus husner",
+      "bad duerkheim",
+      "pfalz"
+    ],
+    "pricingModel": "estimated-total",
+    "priceMin": 1700,
+    "priceMax": 2600,
+    "baseFeeMin": null,
+    "baseFeeMax": null,
+    "supportedGuestsMin": 20,
+    "supportedGuestsMax": 120,
+    "styleTags": [
+      "documentary",
+      "natural",
+      "editorial"
+    ],
+    "reasonSummary": "Dokumentarischer Pfalz-Stil mit ruhiger Begleitung und guter Passung fuer entspannte Hochzeitsreportagen.",
+    "websiteUrl": "https://www.markushusner.com/hochzeitsfotograf/",
+    "sourceUrl": "https://www.markushusner.com/hochzeitsfotograf/",
+    "sourceLabel": "Offizielle Hochzeitsfotografie-Seite",
+    "freshnessLabel": "Offizielle Website, Stand April 2026"
+  },
+  {
+    "id": "neustadt-lina-wissen",
+    "name": "Lina Wissen Fotografie",
+    "category": "photography",
+    "region": "Pfalz",
+    "city": "Neustadt an der Weinstrasse",
+    "postalCode": "67433",
+    "coverageAreaIds": [
+      "67454-radius-40km"
+    ],
+    "searchAliases": [
+      "lina wissen",
+      "neustadt",
+      "67433",
+      "suedpfalz"
+    ],
+    "pricingModel": "estimated-total",
+    "priceMin": 1800,
+    "priceMax": 2600,
+    "baseFeeMin": null,
+    "baseFeeMax": null,
+    "supportedGuestsMin": 20,
+    "supportedGuestsMax": 120,
+    "styleTags": [
+      "romantic",
+      "natural",
+      "editorial"
+    ],
+    "reasonSummary": "Neustadter Fotografin mit starkem Netzwerk in der Region und romantischem, lichtem Bildstil.",
+    "websiteUrl": "https://www.linawissen.com/",
+    "sourceUrl": "https://www.linawissen.com/",
+    "sourceLabel": "Offizielle Portfolio-Seite",
+    "freshnessLabel": "Offizielle Website, Stand April 2026"
+  },
+  {
+    "id": "hassloch-event-taste",
+    "name": "Event Taste",
+    "category": "catering",
+    "region": "Pfalz",
+    "city": "Hassloch",
+    "postalCode": "67454",
+    "coverageAreaIds": [
+      "67454-radius-40km"
+    ],
+    "searchAliases": [
+      "event taste",
+      "67454",
+      "hassloch",
+      "fronmuehle"
+    ],
+    "pricingModel": "estimated-total",
+    "priceMin": 3500,
+    "priceMax": 5200,
+    "baseFeeMin": null,
+    "baseFeeMax": null,
+    "supportedGuestsMin": 30,
+    "supportedGuestsMax": 100,
+    "styleTags": [
+      "modern",
+      "seasonal",
+      "natural"
+    ],
+    "reasonSummary": "Lokales Catering- und Eventteam in Hassloch mit starkem Genuss- und Eventfokus fuer moderne Feiern.",
+    "websiteUrl": "https://www.eventtaste.de/",
+    "sourceUrl": "https://www.eventtaste.de/",
+    "sourceLabel": "Offizielle Menue- und Kontaktseite",
+    "freshnessLabel": "Offizielle Website, Stand April 2026"
+  },
+  {
+    "id": "landau-luckies-catering",
+    "name": "Luckies Catering",
+    "category": "catering",
+    "region": "Pfalz",
+    "city": "Landau / Herxheim",
+    "postalCode": null,
+    "coverageAreaIds": [
+      "67454-radius-40km"
+    ],
+    "searchAliases": [
+      "luckies catering",
+      "landau",
+      "herxheim"
+    ],
+    "pricingModel": "estimated-total",
+    "priceMin": 3800,
+    "priceMax": 6000,
+    "baseFeeMin": null,
+    "baseFeeMax": null,
+    "supportedGuestsMin": 50,
+    "supportedGuestsMax": 150,
+    "styleTags": [
+      "classic",
+      "natural",
+      "full-service"
+    ],
+    "reasonSummary": "Full-Service-Caterer fuer Landau und Herxheim mit Vor-Ort-Beratung und Hochzeitserfahrung.",
+    "websiteUrl": "https://luckies-catering.de/",
+    "sourceUrl": "https://luckies-catering.de/",
+    "sourceLabel": "Offizielle Catering-Seite",
+    "freshnessLabel": "Offizielle Website, Stand April 2026"
+  },
+  {
+    "id": "speyer-straub-catering",
+    "name": "Straub Catering",
+    "category": "catering",
+    "region": "Pfalz",
+    "city": "Speyer",
+    "postalCode": null,
+    "coverageAreaIds": [
+      "67454-radius-40km"
+    ],
+    "searchAliases": [
+      "straub catering",
+      "speyer",
+      "rebe deidesheim"
+    ],
+    "pricingModel": "estimated-total",
+    "priceMin": 4200,
+    "priceMax": 6500,
+    "baseFeeMin": null,
+    "baseFeeMax": null,
+    "supportedGuestsMin": 50,
+    "supportedGuestsMax": 160,
+    "styleTags": [
+      "classic",
+      "natural",
+      "full-service"
+    ],
+    "reasonSummary": "Etablierter Caterer aus der Region mit sichtbarer Hochzeitserfahrung an Pfalz-Locations wie der Rebe.",
+    "websiteUrl": "https://www.straub-catering.de/",
+    "sourceUrl": "https://www.straub-catering.de/locations/rebe-deidesheim/",
+    "sourceLabel": "Offizielle Location-Referenz",
+    "freshnessLabel": "Offizielle Website, Stand April 2026"
+  }
+]
