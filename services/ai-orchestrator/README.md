@@ -4,9 +4,9 @@ Gemeinsame KI-Schicht fuer Wedding Consultant, Siggi und spaetere Research-Workf
 
 ## Aktueller Code
 
-- `src/index.ts` enthaelt den Ollama-Client, strukturierte Chat-Orchestrierung und weiter den Vendor-Research-Brief
+- `src/index.ts` enthaelt den Ollama-Client, plain-text Chat-Orchestrierung fuer kleine CPU-Modelle, strukturierte Fallbacks und weiter den Vendor-Research-Brief
 - `src/server.ts` startet den internen Fastify-Dienst
-- `src/index.test.ts` deckt JSON-Parsing und beide Chat-Endpunkte ab
+- `src/index.test.ts` deckt JSON-Parsing, plain-text Antworten und beide Chat-Endpunkte ab
 
 ## Interne Endpunkte
 
@@ -23,7 +23,13 @@ Gemeinsame KI-Schicht fuer Wedding Consultant, Siggi und spaetere Research-Workf
 ## Wichtige Umgebungsvariablen
 
 - `OLLAMA_BASE_URL`, Standard `http://127.0.0.1:11434`
-- `OLLAMA_MODEL`, aktuell fuer CPU-first VPS auf kleine Qwen-Modelle ausgelegt
+- `OLLAMA_MODEL`, Standard `qwen3:1.7b`
+
+## CPU-first Empfehlung
+
+- fuer natuerlichere Gespräche auf einem kleinen CPU-VPS ist `qwen3:1.7b` aktuell die stabile Standardwahl
+- fuer noch mehr Tempo kann `qwen3:0.6b` als Fast-Mode genutzt werden, klingt aber knapper
+- die Chat-Orchestrierung nutzt bewusst plain-text Antworten statt strikter JSON-Ausgabe, weil kleine Modelle damit auf CPU deutlich robuster und schneller antworten
 
 ## Deployment-Hinweis
 

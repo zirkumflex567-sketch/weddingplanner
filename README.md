@@ -86,6 +86,7 @@ Wir bauen keine weitere passive Hochzeits-Checkliste, sondern einen proaktiven, 
 - ein gefuehrter Copilot-Flow mit `Planung starten` fuehrt jetzt Schritt fuer Schritt durch Fundament, Venue, Kern-Vendoren, Gaeste, Admin und Finalisierung
 - der Beratungsmodus laeuft jetzt als Chat-Panel mit konkreten Antwortvorschlaegen, Freitext und Wiederaufnahme pro Workspace
 - `services/ai-orchestrator` ist jetzt eine echte interne LLM-Schicht fuer Wedding Consultant und Siggi statt nur ein Platzhalter
+- die KI-Laufzeit ist jetzt fuer kleine CPU-VPS optimiert: plain-text Generation statt harter JSON-Zwaenge, damit Wedding Consultant und Siggi merklich natuerlicher reagieren
 
 ## Aktuell nutzbarer Prototyp
 

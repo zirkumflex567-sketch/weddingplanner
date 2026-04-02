@@ -159,6 +159,14 @@ function coerceAssistantMessage(payload: unknown) {
     : null;
 }
 
+function normalizeAssistantText(raw: string) {
+  return raw
+    .replace(/^["'`]+|["'`]+$/g, "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function extractJsonPayload(raw: string) {
   const direct = safeJsonParse(raw);
 
@@ -192,13 +200,59 @@ export class OllamaChatClient {
 
   constructor(options: OllamaChatClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? process.env.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434";
-    this.model = options.model ?? process.env.OLLAMA_MODEL ?? "qwen3.5:4b";
+    this.model = options.model ?? process.env.OLLAMA_MODEL ?? "qwen3:1.7b";
     this.temperature = options.temperature ?? 0.5;
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
 
   get modelName() {
     return this.model;
+  }
+
+  async generateText(systemPrompt: string, userPrompt: string) {
+    const response = await this.fetchImpl(`${this.baseUrl}/api/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: this.model,
+        stream: false,
+        think: false,
+        options: {
+          temperature: this.temperature,
+          num_predict: 180
+        },
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: userPrompt
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama request failed with ${response.status}`);
+    }
+
+    const payload = (await response.json()) as {
+      message?: {
+        content?: string;
+      };
+    };
+
+    const raw = payload.message?.content;
+
+    if (!raw) {
+      throw new Error("Ollama returned no content");
+    }
+
+    return normalizeAssistantText(raw);
   }
 
   async generateJson<T extends JsonRecord>(systemPrompt: string, userPrompt: string) {
@@ -270,13 +324,14 @@ export class AiOrchestrator {
     request: WeddingConsultantRewriteRequest
   ): Promise<WeddingConsultantRewriteResponse> {
     const systemPrompt = [
-      "You are a premium German wedding consultant.",
-      "You must keep the planning logic from the provided baseline reply, but make the wording feel human, warm, natural, and specific.",
-      "Do not invent vendors or legal facts beyond the provided context.",
-      "Stay in the same planning step unless the baseline already moved to another step.",
-      "Keep the answer compact, conversational, and proactive.",
-      "Ask at most one focused follow-up question.",
-      'Return JSON only with {"assistantMessage":"..."} .'
+      "Du bist eine warme, erfahrene deutsche Hochzeitsberaterin.",
+      "Du darfst nur den Stil verbessern, nicht die Planungslogik aendern.",
+      "Bleib im selben Planungsschritt wie die Basisantwort.",
+      "Erfinde keine Vendoren, Fristen oder Rechtsinfos ausserhalb des Kontexts.",
+      "Antworte konkret, natuerlich und kompakt.",
+      "Wenn der Nutzer nach einer Liste fragt, liefere die Liste direkt.",
+      "Stell hoechstens eine kurze Rueckfrage.",
+      "Antworte nur mit dem finalen Antworttext auf Deutsch."
     ].join(" ");
 
     const userPrompt = [
@@ -294,15 +349,11 @@ export class AiOrchestrator {
       "BASELINE REPLY",
       request.baselineTurn.assistantMessage,
       "",
-      "Rewrite the baseline so it sounds like a thoughtful human consultant."
+      "Formuliere daraus eine menschliche, hilfreiche Antwort."
     ].join("\n");
 
     try {
-      const payload = await this.ollama.generateJson<{ assistantMessage?: string }>(
-        systemPrompt,
-        userPrompt
-      );
-      const assistantMessage = coerceAssistantMessage(payload);
+      const assistantMessage = await this.ollama.generateText(systemPrompt, userPrompt);
 
       if (!assistantMessage) {
         throw new Error("Missing assistantMessage");
@@ -327,12 +378,12 @@ export class AiOrchestrator {
     fallbackMessage: string
   ): Promise<SiggiConversationResponse> {
     const systemPrompt = [
-      "You are Siggi, a natural German-speaking assistant for Fenster- & Rollladen-Sieg in Hassloch.",
-      "Your job is to collect enough information for a lead without sounding robotic.",
-      "Acknowledge what is already known, then ask only for the most important next missing detail or two.",
-      "Be friendly, practical, and concise.",
-      "Do not claim that a technician is booked or promise pricing.",
-      'Return JSON only with {"assistantMessage":"..."} .'
+      "Du bist Siggi, der freundliche Assistent von Fenster- und Rollladen-Sieg in Hassloch.",
+      "Das Gespraech laeuft schon, also stelle dich nicht erneut vor.",
+      "Bestaetige kurz, was schon klar ist, und frage dann nur nach dem wichtigsten fehlenden Detail oder hoechstens zwei eng zusammenhaengenden Punkten.",
+      "Klinge natuerlich, ruhig und hilfreich statt formelhaft.",
+      "Versprich keine Preise, Termine oder Buchungen.",
+      "Antworte nur mit dem finalen Antworttext auf Deutsch."
     ].join(" ");
 
     const userPrompt = [
@@ -347,15 +398,11 @@ export class AiOrchestrator {
       "",
       `LATEST USER MESSAGE: ${request.userMessage}`,
       "",
-      "Write the next assistant reply in natural German."
+      "Schreibe die naechste Antwort fuer den Kunden."
     ].join("\n");
 
     try {
-      const payload = await this.ollama.generateJson<{ assistantMessage?: string }>(
-        systemPrompt,
-        userPrompt
-      );
-      const assistantMessage = coerceAssistantMessage(payload);
+      const assistantMessage = await this.ollama.generateText(systemPrompt, userPrompt);
 
       if (!assistantMessage) {
         throw new Error("Missing assistantMessage");

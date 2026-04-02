@@ -126,6 +126,23 @@ describe("ai orchestrator", () => {
     expect(payload.assistantMessage).toBe("Natuerliche Antwort");
   });
 
+  it("accepts plain text answers from Ollama for lightweight chat flows", async () => {
+    const client = new OllamaChatClient({
+      fetchImpl: vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          message: {
+            content:
+              "Klar, rund um Hassloch wuerde ich mir zuerst THE SPACE, Rebe Deidesheim und das Hambacher Schloss anschauen. Was ist euch davon am wichtigsten?"
+          }
+        })
+      })) as unknown as typeof fetch
+    });
+
+    const payload = await client.generateText("system", "user");
+    expect(payload).toContain("THE SPACE");
+  });
+
   it("rewrites wedding consultant replies through the app endpoint", async () => {
     const app = buildAiOrchestratorApp({
       ollama: new OllamaChatClient({
@@ -133,10 +150,8 @@ describe("ai orchestrator", () => {
           ok: true,
           json: async () => ({
             message: {
-              content: JSON.stringify({
-                assistantMessage:
-                  "Dann lasst uns die Venue-Liste einmal sauber durchgehen. Rund um Haßloch sind THE SPACE, Rebe Deidesheim und Hambacher Schloss die ersten starken Gespraeche."
-              })
+              content:
+                "Dann lasst uns die Venue-Liste einmal sauber durchgehen. Rund um Hassloch sind THE SPACE, Rebe Deidesheim und Hambacher Schloss die ersten starken Gespraeche."
             }
           })
         })) as unknown as typeof fetch
@@ -166,10 +181,8 @@ describe("ai orchestrator", () => {
           ok: true,
           json: async () => ({
             message: {
-              content: JSON.stringify({
-                assistantMessage:
-                  "Danke, Herr Test. Ich habe Haßloch und das Thema Rollladen schon notiert. Schickt mir bitte noch kurz eure Rueckrufnummer, dann kann ich die Anfrage komplett weitergeben."
-              })
+              content:
+                "Danke, ich habe Hassloch und den klemmenden Rollladen schon notiert. Gib mir bitte noch kurz deine Telefonnummer oder E-Mail, damit ich die Anfrage sauber weitergeben kann."
             }
           })
         })) as unknown as typeof fetch
@@ -200,7 +213,7 @@ describe("ai orchestrator", () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(response.json().response.assistantMessage).toContain("Rueckrufnummer");
+    expect(response.json().response.assistantMessage).toContain("Telefonnummer");
     await app.close();
   });
 });
