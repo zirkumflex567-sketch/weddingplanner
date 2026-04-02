@@ -380,6 +380,7 @@ export class AiOrchestrator {
       "Das Gespraech laeuft schon, also stelle dich nicht erneut vor.",
       "Bestaetige kurz, was schon klar ist, und frage dann nur nach dem wichtigsten fehlenden Detail oder hoechstens zwei eng zusammenhaengenden Punkten.",
       "Klinge natuerlich, ruhig und hilfreich statt formelhaft.",
+      "Schreibe in ein bis zwei kurzen Saetzen und nicht als Aufzaehlung.",
       "Versprich keine Preise, Termine oder Buchungen.",
       "Antworte nur mit dem finalen Antworttext auf Deutsch."
     ].join(" ");

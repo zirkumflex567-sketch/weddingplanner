@@ -56,6 +56,23 @@ interface WeddingConsultantResponder {
   respond(payload: WeddingConsultantReplyPayload): Promise<WeddingConsultantResponse>;
 }
 
+export function shouldUseAiConsultantRewrite(
+  userMessage: string,
+  baselineTurn: WeddingConsultantTurn
+) {
+  const normalizedUserMessage = userMessage.toLowerCase();
+  const asksForLongList =
+    /liste|alle venues|alle locations|alle anbieter|zeige mir alle|gib mir alle|uebersicht/i.test(
+      normalizedUserMessage
+    );
+  const baselineLooksListHeavy =
+    baselineTurn.assistantMessage.length > 320 ||
+    /(?:^|\n)\s*\d+\./.test(baselineTurn.assistantMessage) ||
+    baselineTurn.assistantMessage.split(",").length >= 5;
+
+  return !(asksForLongList && baselineLooksListHeavy);
+}
+
 class DeterministicWeddingConsultantResponder implements WeddingConsultantResponder {
   async respond(payload: WeddingConsultantReplyPayload): Promise<WeddingConsultantResponse> {
     return {
@@ -87,6 +104,15 @@ class AiWeddingConsultantResponder implements WeddingConsultantResponder {
         text: payload.userMessage
       }
     );
+
+    if (!shouldUseAiConsultantRewrite(payload.userMessage, baselineTurn)) {
+      return {
+        turn: baselineTurn,
+        provider: "deterministic",
+        model: "rules"
+      };
+    }
+
     const rewritten = await this.client.rewriteWeddingConsultantReply({
       workspace: payload.workspace,
       baselineTurn,

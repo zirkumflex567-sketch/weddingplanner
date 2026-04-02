@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { buildApp } from "./app";
+import { buildApp, shouldUseAiConsultantRewrite } from "./app";
 
 const onboardingPayload = {
   coupleName: "Mira & Leon",
@@ -475,6 +475,21 @@ describe("POST /planning/bootstrap", () => {
 });
 
 describe("POST /prototype/consultant/reply", () => {
+  it("skips AI rewrite for long list-heavy venue replies", () => {
+    expect(
+      shouldUseAiConsultantRewrite(
+        "Liste mir bitte alle venues in der naehe auf.",
+        {
+          stepId: "venue-and-date",
+          focusArea: "vendors",
+          assistantMessage:
+            "Hier ist eine Liste der moeglichen Locations in der Naehe von Hassloch: THE SPACE, Rebe Deidesheim, Hambacher Schloss, Gut Rehbach, Hotel Schloss Edesheim und weitere Optionen fuer 70 Gaeste.",
+          suggestedReplies: []
+        }
+      )
+    ).toBe(false);
+  });
+
   it("uses the injected consultant responder when available", async () => {
     const app = buildApp({
       consultantResponder: {
