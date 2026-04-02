@@ -14,6 +14,7 @@ export interface ConsultationMessage {
 interface ConsultationPanelProps {
   mode?: "standalone" | "embedded";
   isOpen: boolean;
+  isSending?: boolean;
   guidedSession: GuidedPlanningSession;
   currentTurn: WeddingConsultantTurn | null;
   messages: ConsultationMessage[];
@@ -29,6 +30,7 @@ interface ConsultationPanelProps {
 export function ConsultationPanel({
   mode = "standalone",
   isOpen,
+  isSending = false,
   guidedSession,
   currentTurn,
   messages,
@@ -130,6 +132,7 @@ export function ConsultationPanel({
                   key={reply.id}
                   type="button"
                   className="consultant-reply"
+                  disabled={isSending}
                   onClick={() => onReplySelect(reply.id, reply.label)}
                 >
                   {reply.label}
@@ -147,11 +150,12 @@ export function ConsultationPanel({
               <textarea
                 className="consultant-input"
                 value={draft}
+                disabled={isSending}
                 onChange={(event) => onDraftChange(event.target.value)}
                 placeholder="Schreibt frei, was euch gerade beschaeftigt: Budget, Location, Gaeste, Unsicherheit, Bauchgefuehl ..."
               />
-              <button type="submit" className="primary-button consultant-send">
-                Nachricht senden
+              <button type="submit" className="primary-button consultant-send" disabled={isSending}>
+                {isSending ? "Consultant antwortet ..." : "Nachricht senden"}
               </button>
             </form>
           </div>

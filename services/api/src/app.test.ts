@@ -474,6 +474,65 @@ describe("POST /planning/bootstrap", () => {
   });
 });
 
+describe("POST /prototype/consultant/reply", () => {
+  it("uses the injected consultant responder when available", async () => {
+    const app = buildApp({
+      consultantResponder: {
+        async respond(payload) {
+          return {
+            turn: {
+              ...payload.currentTurn,
+              assistantMessage:
+                "Dann gehen wir die Venue-Auswahl jetzt einmal ruhig und konkret durch."
+            },
+            provider: "ollama",
+            model: "qwen3.5:4b"
+          };
+        }
+      }
+    });
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: created.workspace,
+        currentTurn: {
+          stepId: "venue-and-date",
+          focusArea: "vendors",
+          assistantMessage: "Ich wuerde mit euch die Location-Schicht sauber ziehen.",
+          suggestedReplies: []
+        },
+        messages: [
+          {
+            role: "assistant",
+            content: "Ich wuerde mit euch die Location-Schicht sauber ziehen."
+          }
+        ],
+        userMessage: "Liste mir bitte alle venues in der naehe auf."
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      provider: "ollama",
+      model: "qwen3.5:4b",
+      turn: {
+        stepId: "venue-and-date",
+        assistantMessage: expect.stringContaining("Venue-Auswahl")
+      }
+    });
+  });
+});
+
 describe("prototype workspace flow", () => {
   it("lists saved workspace profiles with progress and current planning focus", async () => {
     const app = buildApp();

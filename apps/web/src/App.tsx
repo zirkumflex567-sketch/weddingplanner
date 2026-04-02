@@ -14,7 +14,6 @@ import type {
   WeddingBootstrapInput
 } from "@wedding/shared";
 import {
-  continueWeddingConsultantConversation,
   createGuidedPlanningSession,
   createWeddingConsultantOpening
 } from "@wedding/shared";
@@ -25,6 +24,7 @@ import {
   deleteWorkspace,
   getWorkspace,
   listWorkspaceProfiles,
+  replyWithWeddingConsultant,
   setTaskCompleted,
   updateGuestRsvp,
   updateVendorLead,
@@ -469,6 +469,7 @@ function DashboardApp() {
   const [consultationTurn, setConsultationTurn] = useState<WeddingConsultantTurn | null>(null);
   const [consultationMessages, setConsultationMessages] = useState<ConsultationMessage[]>([]);
   const [consultationDraft, setConsultationDraft] = useState("");
+  const [consultationStatus, setConsultationStatus] = useState<"idle" | "sending">("idle");
   const [status, setStatus] = useState<"loading" | "ready" | "saving">("loading");
   const [error, setError] = useState<string | null>(null);
   const [activeCoreVendorCategory, setActiveCoreVendorCategory] =
@@ -1096,43 +1097,72 @@ function DashboardApp() {
     setConsultationDraft("");
   }
 
-  function handleConsultationReply(optionId: string, label: string) {
+  async function handleConsultationReply(optionId: string, label: string) {
     if (!workspace || !consultationTurn) {
       return;
     }
 
-    const nextTurn = continueWeddingConsultantConversation(workspace, consultationTurn.stepId, {
-      actionId: optionId,
-      text: label
-    });
+    const nextUserMessage = createConsultationMessage("user", label);
+    const nextMessages = [...consultationMessages, nextUserMessage];
 
-    setConsultationMessages((current) => [
-      ...current,
-      createConsultationMessage("user", label),
-      createConsultationMessage("assistant", nextTurn.assistantMessage)
-    ]);
-    setConsultationTurn(nextTurn);
-    setConsultationDraft("");
+    setConsultationStatus("sending");
+
+    try {
+      const response = await replyWithWeddingConsultant({
+        workspace,
+        currentTurn: consultationTurn,
+        messages: nextMessages,
+        userMessage: label
+      });
+
+      setConsultationMessages([
+        ...nextMessages,
+        createConsultationMessage("assistant", response.turn.assistantMessage)
+      ]);
+      setConsultationTurn(response.turn);
+      setConsultationDraft("");
+    } catch {
+      setError(
+        "Der KI-Consultant war gerade nicht erreichbar. Bitte versucht es in ein paar Sekunden noch einmal."
+      );
+    } finally {
+      setConsultationStatus("idle");
+    }
   }
 
-  function handleConsultationSend() {
+  async function handleConsultationSend() {
     const message = consultationDraft.trim();
 
     if (!workspace || !consultationTurn || message.length === 0) {
       return;
     }
 
-    const nextTurn = continueWeddingConsultantConversation(workspace, consultationTurn.stepId, {
-      text: message
-    });
+    const nextUserMessage = createConsultationMessage("user", message);
+    const nextMessages = [...consultationMessages, nextUserMessage];
 
-    setConsultationMessages((current) => [
-      ...current,
-      createConsultationMessage("user", message),
-      createConsultationMessage("assistant", nextTurn.assistantMessage)
-    ]);
-    setConsultationTurn(nextTurn);
-    setConsultationDraft("");
+    setConsultationStatus("sending");
+
+    try {
+      const response = await replyWithWeddingConsultant({
+        workspace,
+        currentTurn: consultationTurn,
+        messages: nextMessages,
+        userMessage: message
+      });
+
+      setConsultationMessages([
+        ...nextMessages,
+        createConsultationMessage("assistant", response.turn.assistantMessage)
+      ]);
+      setConsultationTurn(response.turn);
+      setConsultationDraft("");
+    } catch {
+      setError(
+        "Der KI-Consultant war gerade nicht erreichbar. Bitte versucht es in ein paar Sekunden noch einmal."
+      );
+    } finally {
+      setConsultationStatus("idle");
+    }
   }
 
   function renderWorkspaceLibrary() {
@@ -1872,6 +1902,7 @@ function DashboardApp() {
           <ConsultationPanel
             mode="embedded"
             isOpen
+            isSending={consultationStatus === "sending"}
             guidedSession={guidedSession}
             currentTurn={consultationTurn}
             messages={consultationMessages}

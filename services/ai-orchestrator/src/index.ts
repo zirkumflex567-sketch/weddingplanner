@@ -1,3 +1,8 @@
+import Fastify from "fastify";
+import type {
+  PrototypeWorkspace,
+  WeddingConsultantTurn
+} from "@wedding/shared";
 import type { VendorRefreshJob } from "@wedding/ingestion";
 
 export interface VendorResearchBrief {
@@ -22,4 +27,468 @@ export function createVendorResearchBrief(
       "Mark missing required fields before publish."
     ]
   };
+}
+
+export interface AssistantChatMessage {
+  role: "assistant" | "user";
+  content: string;
+}
+
+export interface WeddingConsultantRewriteRequest {
+  workspace: PrototypeWorkspace;
+  baselineTurn: WeddingConsultantTurn;
+  messages: AssistantChatMessage[];
+  userMessage: string;
+}
+
+export interface WeddingConsultantRewriteResponse {
+  assistantMessage: string;
+  provider: "ollama" | "fallback";
+  model: string;
+}
+
+export interface SiggiConversationState {
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  street?: string | null;
+  houseNumber?: string | null;
+  zip?: string | null;
+  city?: string | null;
+  productArea?: string | null;
+  details?: string | null;
+  notes?: string | null;
+  count?: number | null;
+  roomPosition?: string | null;
+  callbackPreference?: string | null;
+}
+
+export interface SiggiMissingFieldSummary {
+  missingFields: string[];
+  readyToSubmit: boolean;
+}
+
+export interface SiggiConversationRequest {
+  state: SiggiConversationState;
+  userMessage: string;
+  transcript: AssistantChatMessage[];
+  summary: SiggiMissingFieldSummary;
+}
+
+export interface SiggiConversationResponse {
+  assistantMessage: string;
+  provider: "ollama" | "fallback";
+  model: string;
+}
+
+export interface OllamaChatClientOptions {
+  baseUrl?: string;
+  model?: string;
+  temperature?: number;
+  fetchImpl?: typeof fetch;
+}
+
+export interface AiOrchestratorOptions {
+  ollama?: OllamaChatClient;
+}
+
+export interface AiOrchestratorHttpClientOptions {
+  baseUrl: string;
+  fetchImpl?: typeof fetch;
+}
+
+type JsonRecord = Record<string, unknown>;
+
+function stringifyMessages(messages: AssistantChatMessage[]) {
+  return messages
+    .slice(-8)
+    .map((message) => `${message.role === "assistant" ? "Assistant" : "User"}: ${message.content}`)
+    .join("\n");
+}
+
+function summarizeWeddingWorkspace(workspace: PrototypeWorkspace) {
+  const activeVendors = workspace.plan.vendorMatches
+    .slice(0, 8)
+    .map((match) => `${match.name} (${match.category})`)
+    .join(", ");
+  const completedTasks = workspace.tasks.filter((task) => task.completed).length;
+
+  return [
+    `Couple: ${workspace.coupleName}`,
+    `Region: ${workspace.onboarding.region}`,
+    `Date: ${workspace.onboarding.targetDate}`,
+    `Guests target: ${workspace.onboarding.guestCountTarget}`,
+    `Budget: ${workspace.onboarding.budgetTotal} EUR`,
+    `Completed tasks: ${completedTasks}/${workspace.tasks.length}`,
+    `Current vendor anchors: ${activeVendors || "none"}`
+  ].join("\n");
+}
+
+function summarizeSiggiState(state: SiggiConversationState) {
+  return [
+    `Name: ${state.name ?? "unknown"}`,
+    `Phone: ${state.phone ?? "unknown"}`,
+    `Email: ${state.email ?? "unknown"}`,
+    `Address: ${[state.street, state.houseNumber, state.zip, state.city].filter(Boolean).join(" ") || "unknown"}`,
+    `Product area: ${state.productArea ?? "unknown"}`,
+    `Count: ${typeof state.count === "number" ? state.count : "unknown"}`,
+    `Room position: ${state.roomPosition ?? "unknown"}`,
+    `Callback preference: ${state.callbackPreference ?? "unknown"}`,
+    `Details: ${state.details ?? "unknown"}`,
+    `Notes: ${state.notes ?? "unknown"}`
+  ].join("\n");
+}
+
+function coerceAssistantMessage(payload: unknown) {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const assistantMessage = (payload as JsonRecord).assistantMessage;
+  return typeof assistantMessage === "string" && assistantMessage.trim().length > 0
+    ? assistantMessage.trim()
+    : null;
+}
+
+function extractJsonPayload(raw: string) {
+  const direct = safeJsonParse(raw);
+
+  if (direct) {
+    return direct;
+  }
+
+  const fencedMatch = raw.match(/```(?:json)?\s*([\s\S]+?)```/i);
+
+  if (fencedMatch?.[1]) {
+    return safeJsonParse(fencedMatch[1]);
+  }
+
+  const objectMatch = raw.match(/\{[\s\S]+\}/);
+  return objectMatch?.[0] ? safeJsonParse(objectMatch[0]) : null;
+}
+
+function safeJsonParse(raw: string) {
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+export class OllamaChatClient {
+  private readonly baseUrl: string;
+  private readonly model: string;
+  private readonly temperature: number;
+  private readonly fetchImpl: typeof fetch;
+
+  constructor(options: OllamaChatClientOptions = {}) {
+    this.baseUrl = options.baseUrl ?? process.env.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434";
+    this.model = options.model ?? process.env.OLLAMA_MODEL ?? "qwen3.5:4b";
+    this.temperature = options.temperature ?? 0.5;
+    this.fetchImpl = options.fetchImpl ?? fetch;
+  }
+
+  get modelName() {
+    return this.model;
+  }
+
+  async generateJson<T extends JsonRecord>(systemPrompt: string, userPrompt: string) {
+    const response = await this.fetchImpl(`${this.baseUrl}/api/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: this.model,
+        stream: false,
+        format: "json",
+        options: {
+          temperature: this.temperature
+        },
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: userPrompt
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama request failed with ${response.status}`);
+    }
+
+    const payload = (await response.json()) as {
+      message?: {
+        content?: string;
+      };
+    };
+
+    const raw = payload.message?.content;
+
+    if (!raw) {
+      throw new Error("Ollama returned no content");
+    }
+
+    const parsed = extractJsonPayload(raw);
+
+    if (!parsed || typeof parsed !== "object") {
+      throw new Error("Ollama returned non-JSON content");
+    }
+
+    return parsed as T;
+  }
+}
+
+export class AiOrchestrator {
+  private readonly ollama: OllamaChatClient;
+
+  constructor(options: AiOrchestratorOptions = {}) {
+    this.ollama = options.ollama ?? new OllamaChatClient();
+  }
+
+  get modelName() {
+    return this.ollama.modelName;
+  }
+
+  async rewriteWeddingConsultantReply(
+    request: WeddingConsultantRewriteRequest
+  ): Promise<WeddingConsultantRewriteResponse> {
+    const systemPrompt = [
+      "You are a premium German wedding consultant.",
+      "You must keep the planning logic from the provided baseline reply, but make the wording feel human, warm, natural, and specific.",
+      "Do not invent vendors or legal facts beyond the provided context.",
+      "Stay in the same planning step unless the baseline already moved to another step.",
+      "Keep the answer compact, conversational, and proactive.",
+      "Ask at most one focused follow-up question.",
+      'Return JSON only with {"assistantMessage":"..."} .'
+    ].join(" ");
+
+    const userPrompt = [
+      "WORKSPACE",
+      summarizeWeddingWorkspace(request.workspace),
+      "",
+      `CURRENT STEP: ${request.baselineTurn.stepId}`,
+      `CURRENT FOCUS: ${request.baselineTurn.focusArea}`,
+      "",
+      "RECENT TRANSCRIPT",
+      stringifyMessages(request.messages),
+      "",
+      `LATEST USER MESSAGE: ${request.userMessage}`,
+      "",
+      "BASELINE REPLY",
+      request.baselineTurn.assistantMessage,
+      "",
+      "Rewrite the baseline so it sounds like a thoughtful human consultant."
+    ].join("\n");
+
+    try {
+      const payload = await this.ollama.generateJson<{ assistantMessage?: string }>(
+        systemPrompt,
+        userPrompt
+      );
+      const assistantMessage = coerceAssistantMessage(payload);
+
+      if (!assistantMessage) {
+        throw new Error("Missing assistantMessage");
+      }
+
+      return {
+        assistantMessage,
+        provider: "ollama",
+        model: this.ollama.modelName
+      };
+    } catch {
+      return {
+        assistantMessage: request.baselineTurn.assistantMessage,
+        provider: "fallback",
+        model: this.ollama.modelName
+      };
+    }
+  }
+
+  async createSiggiReply(
+    request: SiggiConversationRequest,
+    fallbackMessage: string
+  ): Promise<SiggiConversationResponse> {
+    const systemPrompt = [
+      "You are Siggi, a natural German-speaking assistant for Fenster- & Rollladen-Sieg in Hassloch.",
+      "Your job is to collect enough information for a lead without sounding robotic.",
+      "Acknowledge what is already known, then ask only for the most important next missing detail or two.",
+      "Be friendly, practical, and concise.",
+      "Do not claim that a technician is booked or promise pricing.",
+      'Return JSON only with {"assistantMessage":"..."} .'
+    ].join(" ");
+
+    const userPrompt = [
+      "CURRENT LEAD STATE",
+      summarizeSiggiState(request.state),
+      "",
+      `READY TO SUBMIT: ${request.summary.readyToSubmit ? "yes" : "no"}`,
+      `MISSING FIELDS: ${request.summary.missingFields.join(", ") || "none"}`,
+      "",
+      "RECENT TRANSCRIPT",
+      stringifyMessages(request.transcript),
+      "",
+      `LATEST USER MESSAGE: ${request.userMessage}`,
+      "",
+      "Write the next assistant reply in natural German."
+    ].join("\n");
+
+    try {
+      const payload = await this.ollama.generateJson<{ assistantMessage?: string }>(
+        systemPrompt,
+        userPrompt
+      );
+      const assistantMessage = coerceAssistantMessage(payload);
+
+      if (!assistantMessage) {
+        throw new Error("Missing assistantMessage");
+      }
+
+      return {
+        assistantMessage,
+        provider: "ollama",
+        model: this.ollama.modelName
+      };
+    } catch {
+      return {
+        assistantMessage: fallbackMessage,
+        provider: "fallback",
+        model: this.ollama.modelName
+      };
+    }
+  }
+}
+
+export class AiOrchestratorHttpClient {
+  private readonly baseUrl: string;
+  private readonly fetchImpl: typeof fetch;
+
+  constructor(options: AiOrchestratorHttpClientOptions) {
+    this.baseUrl = options.baseUrl.replace(/\/$/, "");
+    this.fetchImpl = options.fetchImpl ?? fetch;
+  }
+
+  async rewriteWeddingConsultantReply(request: WeddingConsultantRewriteRequest) {
+    const response = await this.fetchImpl(`${this.baseUrl}/chat/wedding-consultant`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI orchestrator request failed with ${response.status}`);
+    }
+
+    const payload = (await response.json()) as {
+      response?: WeddingConsultantRewriteResponse;
+    };
+
+    if (!payload.response) {
+      throw new Error("AI orchestrator returned no wedding consultant response");
+    }
+
+    return payload.response;
+  }
+
+  async createSiggiReply(request: SiggiConversationRequest) {
+    const response = await this.fetchImpl(`${this.baseUrl}/chat/siggi-intake`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI orchestrator request failed with ${response.status}`);
+    }
+
+    const payload = (await response.json()) as {
+      response?: SiggiConversationResponse;
+    };
+
+    if (!payload.response) {
+      throw new Error("AI orchestrator returned no Siggi response");
+    }
+
+    return payload.response;
+  }
+}
+
+function isAssistantChatMessage(value: unknown): value is AssistantChatMessage {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      ((value as JsonRecord).role === "assistant" || (value as JsonRecord).role === "user") &&
+      typeof (value as JsonRecord).content === "string"
+  );
+}
+
+function isWeddingConsultantRewriteRequest(
+  value: unknown
+): value is WeddingConsultantRewriteRequest {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      (value as JsonRecord).workspace &&
+      (value as JsonRecord).baselineTurn &&
+      Array.isArray((value as JsonRecord).messages) &&
+      ((value as JsonRecord).messages as unknown[]).every(isAssistantChatMessage) &&
+      typeof (value as JsonRecord).userMessage === "string"
+  );
+}
+
+function isSiggiConversationRequest(value: unknown): value is SiggiConversationRequest {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      (value as JsonRecord).state &&
+      Array.isArray((value as JsonRecord).transcript) &&
+      ((value as JsonRecord).transcript as unknown[]).every(isAssistantChatMessage) &&
+      typeof (value as JsonRecord).userMessage === "string" &&
+      (value as JsonRecord).summary &&
+      Array.isArray(((value as JsonRecord).summary as JsonRecord).missingFields) &&
+      typeof ((value as JsonRecord).summary as JsonRecord).readyToSubmit === "boolean"
+  );
+}
+
+export function buildAiOrchestratorApp(options: AiOrchestratorOptions = {}) {
+  const app = Fastify({ logger: false });
+  const orchestrator = new AiOrchestrator(options);
+
+  app.get("/health", async () => ({
+    status: "ok",
+    model: orchestrator.modelName
+  }));
+
+  app.post("/chat/wedding-consultant", async (request, reply) => {
+    if (!isWeddingConsultantRewriteRequest(request.body)) {
+      return reply.code(400).send({ error: "Invalid wedding consultant payload" });
+    }
+
+    const response = await orchestrator.rewriteWeddingConsultantReply(request.body);
+    return { response };
+  });
+
+  app.post("/chat/siggi-intake", async (request, reply) => {
+    const fallbackMessage =
+      "Danke, ich habe das aufgenommen. Ich frage gleich gezielt nach dem naechsten wichtigen Punkt, falls noch etwas fehlt.";
+
+    if (!isSiggiConversationRequest(request.body)) {
+      return reply.code(400).send({ error: "Invalid Siggi payload" });
+    }
+
+    const response = await orchestrator.createSiggiReply(request.body, fallbackMessage);
+    return { response };
+  });
+
+  return app;
 }

@@ -1,10 +1,17 @@
 import cors from "@fastify/cors";
 import Fastify from "fastify";
 import {
+  continueWeddingConsultantConversation,
   createBootstrapPlan,
   isWeddingBootstrapInput,
+  type PrototypeWorkspace,
+  type WeddingConsultantTurn,
   type VendorSearchCategory
 } from "@wedding/shared";
+import {
+  AiOrchestratorHttpClient,
+  type AssistantChatMessage
+} from "@wedding/ai-orchestrator";
 import {
   createVendorConnectorPreview,
   type DirectoryDiscoveryResultInput,
@@ -29,6 +36,100 @@ import {
 interface BuildAppOptions {
   workspaceStore?: PrototypeWorkspaceStore;
   vendorRefreshStore?: VendorRefreshStore;
+  consultantResponder?: WeddingConsultantResponder;
+}
+
+interface WeddingConsultantReplyPayload {
+  workspace: PrototypeWorkspace;
+  currentTurn: WeddingConsultantTurn;
+  messages: AssistantChatMessage[];
+  userMessage: string;
+}
+
+interface WeddingConsultantResponse {
+  turn: WeddingConsultantTurn;
+  provider: "deterministic" | "ollama" | "fallback";
+  model: string;
+}
+
+interface WeddingConsultantResponder {
+  respond(payload: WeddingConsultantReplyPayload): Promise<WeddingConsultantResponse>;
+}
+
+class DeterministicWeddingConsultantResponder implements WeddingConsultantResponder {
+  async respond(payload: WeddingConsultantReplyPayload): Promise<WeddingConsultantResponse> {
+    return {
+      turn: continueWeddingConsultantConversation(
+        payload.workspace,
+        payload.currentTurn.stepId,
+        {
+          text: payload.userMessage
+        }
+      ),
+      provider: "deterministic",
+      model: "rules"
+    };
+  }
+}
+
+class AiWeddingConsultantResponder implements WeddingConsultantResponder {
+  private readonly client: AiOrchestratorHttpClient;
+
+  constructor(baseUrl: string) {
+    this.client = new AiOrchestratorHttpClient({ baseUrl });
+  }
+
+  async respond(payload: WeddingConsultantReplyPayload): Promise<WeddingConsultantResponse> {
+    const baselineTurn = continueWeddingConsultantConversation(
+      payload.workspace,
+      payload.currentTurn.stepId,
+      {
+        text: payload.userMessage
+      }
+    );
+    const rewritten = await this.client.rewriteWeddingConsultantReply({
+      workspace: payload.workspace,
+      baselineTurn,
+      messages: payload.messages,
+      userMessage: payload.userMessage
+    });
+
+    return {
+      turn: {
+        ...baselineTurn,
+        assistantMessage: rewritten.assistantMessage
+      },
+      provider:
+        rewritten.provider === "ollama" ? "ollama" : "fallback",
+      model: rewritten.model
+    };
+  }
+}
+
+function isAssistantChatMessage(value: unknown): value is AssistantChatMessage {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      ((value as Record<string, unknown>).role === "assistant" ||
+        (value as Record<string, unknown>).role === "user") &&
+      typeof (value as Record<string, unknown>).content === "string"
+  );
+}
+
+function isWeddingConsultantReplyPayload(
+  value: unknown
+): value is WeddingConsultantReplyPayload {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      (value as Record<string, unknown>).workspace &&
+      (value as Record<string, unknown>).currentTurn &&
+      Array.isArray((value as Record<string, unknown>).messages) &&
+      ((value as Record<string, unknown>).messages as unknown[]).every(
+        isAssistantChatMessage
+      ) &&
+      typeof (value as Record<string, unknown>).userMessage === "string"
+  );
 }
 
 export function buildApp(options: BuildAppOptions = {}) {
@@ -37,6 +138,11 @@ export function buildApp(options: BuildAppOptions = {}) {
     options.workspaceStore ?? new InMemoryPrototypeWorkspaceStore();
   const vendorRefreshStore =
     options.vendorRefreshStore ?? new InMemoryVendorRefreshStore();
+  const consultantResponder =
+    options.consultantResponder ??
+    (process.env.AI_ORCHESTRATOR_URL
+      ? new AiWeddingConsultantResponder(process.env.AI_ORCHESTRATOR_URL)
+      : new DeterministicWeddingConsultantResponder());
 
   app.register(cors, {
     origin: true
@@ -56,6 +162,17 @@ export function buildApp(options: BuildAppOptions = {}) {
     return {
       plan: createBootstrapPlan(request.body)
     };
+  });
+
+  app.post("/prototype/consultant/reply", async (request, reply) => {
+    if (!isWeddingConsultantReplyPayload(request.body)) {
+      return reply.code(400).send({
+        error: "Invalid consultant payload"
+      });
+    }
+
+    const response = await consultantResponder.respond(request.body);
+    return response;
   });
 
   app.post("/prototype/vendor-refresh-jobs", async (request, reply) => {
