@@ -24,11 +24,23 @@ import {
   createWorkspace,
   deleteWorkspace,
   getWorkspace,
+  listPublishedVendorCatalog,
+  listVendorRefreshJobs,
+  listVendorRefreshRuns,
+  listVendorReviewCandidates,
   listWorkspaceProfiles,
+  publishVendorRefreshJob,
+  runVendorRefreshJob,
   setTaskCompleted,
+  updateVendorReviewCandidate,
   updateGuestRsvp,
   updateVendorLead,
-  updateWorkspace
+  updateWorkspace,
+  createVendorRefreshJob,
+  type PublishedVendorCatalogRecord,
+  type VendorRefreshJob,
+  type VendorRefreshRun,
+  type VendorReviewCandidate
 } from "./lib/api";
 import {
   ConsultationPanel,
@@ -77,6 +89,9 @@ type StoredConsultationSession = {
 type AppView = "library" | "guided";
 type CoreVendorCategory = Exclude<VendorMatch["category"], "venue">;
 type CoreVendorFilterMode = "all" | "portfolio" | "active";
+type VendorRefreshRunState = "idle" | "loading" | "running" | "publishing";
+type VendorReviewDecision = "approved" | "rejected";
+type VendorReviewDraftMap = Record<string, { reviewStatus: VendorReviewDecision; reviewNote: string }>;
 
 const storageKey = "wedding.prototype.workspaceId";
 const consultationStorageKeyPrefix = "wedding.prototype.consultation.";
@@ -262,6 +277,29 @@ function createConsultationMessage(
 
 function createConsultationStorageKey(workspaceId: string) {
   return `${consultationStorageKeyPrefix}${workspaceId}`;
+}
+
+function normalizeRegion(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function createRefreshOrderId(workspaceId: string, category: CoreVendorCategory) {
+  return `refresh-${workspaceId}-${category}-${Date.now()}`;
+}
+
+function createVendorReviewDraftMap(candidates: VendorReviewCandidate[]) {
+  return Object.fromEntries(
+    candidates.map((candidate) => [
+      candidate.id,
+      {
+        reviewStatus:
+          candidate.reviewStatus === "approved" || candidate.reviewStatus === "rejected"
+            ? candidate.reviewStatus
+            : "approved",
+        reviewNote: candidate.reviewNote ?? ""
+      }
+    ])
+  ) as VendorReviewDraftMap;
 }
 
 function parseStoredConsultationSession(
@@ -476,6 +514,12 @@ function DashboardApp() {
   const [coreVendorFilterMode, setCoreVendorFilterMode] =
     useState<CoreVendorFilterMode>("all");
   const [coreVendorSearch, setCoreVendorSearch] = useState("");
+  const [vendorRefreshJobs, setVendorRefreshJobs] = useState<VendorRefreshJob[]>([]);
+  const [vendorRefreshRuns, setVendorRefreshRuns] = useState<VendorRefreshRun[]>([]);
+  const [vendorReviewCandidates, setVendorReviewCandidates] = useState<VendorReviewCandidate[]>([]);
+  const [publishedVendorCatalog, setPublishedVendorCatalog] = useState<PublishedVendorCatalogRecord[]>([]);
+  const [vendorReviewDrafts, setVendorReviewDrafts] = useState<VendorReviewDraftMap>({});
+  const [vendorRefreshState, setVendorRefreshState] = useState<VendorRefreshRunState>("idle");
 
   const guidedSession = workspace ? createGuidedPlanningSession(workspace) : null;
   const activeStepId = consultationTurn?.stepId ?? guidedSession?.currentStepId ?? "foundation";
@@ -557,6 +601,101 @@ function DashboardApp() {
     setCoreVendorFilterMode("all");
     setCoreVendorSearch("");
   }, [workspace?.id]);
+
+  useEffect(() => {
+    if (!workspace?.id) {
+      setVendorRefreshJobs([]);
+      setVendorRefreshRuns([]);
+      setVendorReviewCandidates([]);
+      setPublishedVendorCatalog([]);
+      setVendorReviewDrafts({});
+      setVendorRefreshState("idle");
+      return;
+    }
+
+    let active = true;
+
+    async function loadVendorRefreshData() {
+      setVendorRefreshState("loading");
+
+      try {
+        const [jobsResponse, catalogResponse] = await Promise.all([
+          listVendorRefreshJobs(),
+          listPublishedVendorCatalog()
+        ]);
+
+        if (!active) {
+          return;
+        }
+
+        setVendorRefreshJobs(jobsResponse.jobs);
+        setPublishedVendorCatalog(catalogResponse.records);
+        setVendorRefreshState("idle");
+      } catch {
+        if (active) {
+          setVendorRefreshState("idle");
+        }
+      }
+    }
+
+    void loadVendorRefreshData();
+
+    return () => {
+      active = false;
+    };
+  }, [workspace?.id]);
+
+  useEffect(() => {
+    if (!workspace?.id) {
+      return;
+    }
+
+    const currentJob = vendorRefreshJobs.find(
+      (job) =>
+        normalizeRegion(job.request.region) === normalizeRegion(workspace.onboarding.region) &&
+        job.request.categories.includes(activeCoreVendorCategory)
+    );
+
+    if (!currentJob) {
+      setVendorRefreshRuns([]);
+      setVendorReviewCandidates([]);
+      setVendorReviewDrafts({});
+      return;
+    }
+
+    const currentJobId = currentJob.id;
+
+    let active = true;
+
+    async function loadCurrentRefreshArtifacts() {
+      try {
+        const [runsResponse, candidatesResponse] = await Promise.all([
+          listVendorRefreshRuns(currentJobId),
+          listVendorReviewCandidates(currentJobId)
+        ]);
+
+        if (!active) {
+          return;
+        }
+
+        setVendorRefreshRuns(runsResponse.runs);
+        setVendorReviewCandidates(candidatesResponse.candidates);
+        setVendorReviewDrafts(createVendorReviewDraftMap(candidatesResponse.candidates));
+      } catch {
+        if (active) {
+          setVendorRefreshRuns([]);
+          setVendorReviewCandidates([]);
+          setVendorReviewDrafts({});
+        }
+      }
+    }
+
+    void loadCurrentRefreshArtifacts();
+
+    return () => {
+      active = false;
+    };
+  }, [workspace?.id, workspace?.onboarding.region, activeCoreVendorCategory, vendorRefreshJobs]);
 
   useEffect(() => {
     if (!workspace?.id) {
@@ -676,6 +815,52 @@ function DashboardApp() {
     const response = await listWorkspaceProfiles();
     setProfiles(response.profiles);
     return response.profiles;
+  }
+
+  async function refreshVendorRefreshIndex() {
+    const [jobsResponse, catalogResponse] = await Promise.all([
+      listVendorRefreshJobs(),
+      listPublishedVendorCatalog()
+    ]);
+    setVendorRefreshJobs(jobsResponse.jobs);
+    setPublishedVendorCatalog(catalogResponse.records);
+    return jobsResponse.jobs;
+  }
+
+  async function refreshVendorReviewState(jobId: string) {
+    const [runsResponse, candidatesResponse] = await Promise.all([
+      listVendorRefreshRuns(jobId),
+      listVendorReviewCandidates(jobId)
+    ]);
+    setVendorRefreshRuns(runsResponse.runs);
+    setVendorReviewCandidates(candidatesResponse.candidates);
+    setVendorReviewDrafts(createVendorReviewDraftMap(candidatesResponse.candidates));
+  }
+
+  async function ensureVendorRefreshJob(category: CoreVendorCategory) {
+    if (!workspace) {
+      throw new Error("Missing workspace");
+    }
+
+    const existingJob = vendorRefreshJobs.find(
+      (job) =>
+        normalizeRegion(job.request.region) === normalizeRegion(workspace.onboarding.region) &&
+        job.request.categories.includes(category)
+    );
+
+    if (existingJob) {
+      return existingJob;
+    }
+
+    const created = await createVendorRefreshJob({
+      paidOrderId: createRefreshOrderId(workspace.id, category),
+      region: workspace.onboarding.region,
+      categories: [category],
+      requestedBy: "customer-payment"
+    });
+
+    setVendorRefreshJobs((current) => [created.job, ...current]);
+    return created.job;
   }
 
   async function openWorkspace(workspaceId: string) {
@@ -891,6 +1076,87 @@ function DashboardApp() {
     } catch {
       setError("Der Vendor-Status konnte gerade nicht gespeichert werden.");
       setStatus("ready");
+    }
+  }
+
+  async function handleVendorRefreshRun(category: CoreVendorCategory) {
+    if (!workspace) {
+      return;
+    }
+
+    setStatus("saving");
+    setVendorRefreshState("running");
+    setError(null);
+
+    try {
+      const job = await ensureVendorRefreshJob(category);
+      await runVendorRefreshJob(job.id, { category });
+      await refreshVendorRefreshIndex();
+      await refreshVendorReviewState(job.id);
+      setStatus("ready");
+      setVendorRefreshState("idle");
+    } catch {
+      setError("Der Vendor-Refresh konnte gerade nicht gestartet werden.");
+      setStatus("ready");
+      setVendorRefreshState("idle");
+    }
+  }
+
+  function updateVendorReviewDraft(
+    candidateId: string,
+    nextDraft: Partial<{ reviewStatus: VendorReviewDecision; reviewNote: string }>
+  ) {
+    setVendorReviewDrafts((current) => ({
+      ...current,
+      [candidateId]: {
+        reviewStatus: current[candidateId]?.reviewStatus ?? "approved",
+        reviewNote: current[candidateId]?.reviewNote ?? "",
+        ...nextDraft
+      }
+    }));
+  }
+
+  async function handleVendorCandidateReview(
+    jobId: string,
+    candidateId: string
+  ) {
+    const draft = vendorReviewDrafts[candidateId];
+
+    if (!draft) {
+      return;
+    }
+
+    setStatus("saving");
+    setError(null);
+
+    try {
+      await updateVendorReviewCandidate(jobId, candidateId, {
+        reviewStatus: draft.reviewStatus,
+        ...(draft.reviewNote.trim() ? { reviewNote: draft.reviewNote.trim() } : {})
+      });
+      await refreshVendorReviewState(jobId);
+      setStatus("ready");
+    } catch {
+      setError("Die Review-Entscheidung konnte gerade nicht gespeichert werden.");
+      setStatus("ready");
+    }
+  }
+
+  async function handlePublishVendorCandidates(jobId: string) {
+    setStatus("saving");
+    setVendorRefreshState("publishing");
+    setError(null);
+
+    try {
+      await publishVendorRefreshJob(jobId);
+      await refreshVendorReviewState(jobId);
+      await refreshVendorRefreshIndex();
+      setStatus("ready");
+      setVendorRefreshState("idle");
+    } catch {
+      setError("Die freigegebenen Vendoren konnten gerade nicht publiziert werden.");
+      setStatus("ready");
+      setVendorRefreshState("idle");
     }
   }
 
@@ -1316,6 +1582,39 @@ function DashboardApp() {
       selectedGroup?.vendors.filter(
         (vendor) => (getVendorTrackerEntry(vendor.id)?.stage ?? "suggested") !== "suggested"
       ).length ?? 0;
+    const currentVendorRefreshJob =
+      workspace && selectedCategory
+        ? vendorRefreshJobs.find(
+            (job) =>
+              normalizeRegion(job.request.region) === normalizeRegion(workspace.onboarding.region) &&
+              job.request.categories.includes(selectedCategory)
+          ) ?? null
+        : null;
+    const currentVendorRefreshRun =
+      currentVendorRefreshJob != null
+        ? vendorRefreshRuns.find((run) => run.category === selectedCategory) ?? null
+        : null;
+    const currentVendorReviewCandidates =
+      currentVendorRefreshJob != null
+        ? vendorReviewCandidates.filter((candidate) => candidate.category === selectedCategory)
+        : [];
+    const approvedCandidateCount = currentVendorReviewCandidates.filter(
+      (candidate) => candidate.reviewStatus === "approved"
+    ).length;
+    const pendingCandidateCount = currentVendorReviewCandidates.filter(
+      (candidate) => candidate.reviewStatus === "pending"
+    ).length;
+    const rejectedCandidateCount = currentVendorReviewCandidates.filter(
+      (candidate) => candidate.reviewStatus === "rejected"
+    ).length;
+    const publishedCategoryRecords =
+      workspace != null
+        ? publishedVendorCatalog.filter(
+            (record) =>
+              record.category === selectedCategory &&
+              normalizeRegion(record.region) === normalizeRegion(workspace.onboarding.region)
+          )
+        : [];
 
     return (
       <div className="guided-step-body">
@@ -1529,6 +1828,261 @@ function DashboardApp() {
               )}
             </section>
           ) : null}
+
+          <section className="guided-vendor-group guided-vendor-group--refresh">
+            <div className="guided-vendor-group-head">
+              <div>
+                <p className="eyebrow">Review + Publish</p>
+                <h4>Refresh-Pipeline fuer {vendorCategoryLabels[selectedCategory]}</h4>
+              </div>
+              <div className="guided-refresh-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  disabled={status === "saving" || vendorRefreshState !== "idle"}
+                  onClick={() => void handleVendorRefreshRun(selectedCategory)}
+                >
+                  {currentVendorRefreshJob
+                    ? `${vendorCategoryLabels[selectedCategory]} neu refreshen`
+                    : `${vendorCategoryLabels[selectedCategory]} jetzt refreshen`}
+                </button>
+                {currentVendorRefreshJob ? (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    disabled={
+                      status === "saving" ||
+                      vendorRefreshState !== "idle" ||
+                      approvedCandidateCount === 0
+                    }
+                    onClick={() => void handlePublishVendorCandidates(currentVendorRefreshJob.id)}
+                  >
+                    Freigegebene Kandidaten publizieren
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            <p className="guided-step-copy">
+              Hier werden neue Anbieter aus Discovery, Places und Vendor-Websites erst gesammelt,
+              dann bewusst reviewed und erst danach in euren internen Katalog uebernommen.
+            </p>
+
+            <div className="guided-refresh-summary">
+              <article className="guided-inline-card">
+                <strong>{currentVendorRefreshRun?.quality.publishableRecordCount ?? 0}</strong>
+                <p>reviewbare Records aus dem letzten Run</p>
+              </article>
+              <article className="guided-inline-card">
+                <strong>{approvedCandidateCount}</strong>
+                <p>
+                  freigegeben / {pendingCandidateCount} offen / {rejectedCandidateCount} verworfen
+                </p>
+              </article>
+              <article className="guided-inline-card">
+                <strong>{publishedCategoryRecords.length}</strong>
+                <p>bereits im internen Katalog fuer diese Kategorie</p>
+              </article>
+            </div>
+
+            {currentVendorRefreshRun ? (
+              <div className="guided-refresh-run-meta">
+                <p className="guided-muted">
+                  Letzter Run: {new Date(currentVendorRefreshRun.completedAt).toLocaleString("de-DE")} /{" "}
+                  {currentVendorRefreshRun.status} / {currentVendorRefreshRun.quality.status}
+                </p>
+                <div className="guided-chip-row">
+                  {currentVendorRefreshRun.connectorResults.map((result) => (
+                    <span
+                      key={`${currentVendorRefreshRun.id}-${result.connectorId}`}
+                      className={`stage-pill stage-pill--${
+                        result.status === "success"
+                          ? "booked"
+                          : result.status === "skipped"
+                            ? "quoted"
+                            : "rejected"
+                      }`}
+                    >
+                      {result.connectorId}: {result.status} ({result.itemCount})
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="empty-state">
+                Fuer diese Kategorie gibt es noch keinen Run. Startet den bezahlten Refresh direkt
+                von hier aus.
+              </p>
+            )}
+
+            {currentVendorReviewCandidates.length > 0 ? (
+              <div className="guided-card-stack guided-card-stack--vendors">
+                {currentVendorReviewCandidates.map((candidate) => {
+                  const draft = vendorReviewDrafts[candidate.id] ?? {
+                    reviewStatus: "approved",
+                    reviewNote: candidate.reviewNote ?? ""
+                  };
+
+                  return (
+                    <article
+                      key={candidate.id}
+                      className="guided-vendor-card guided-vendor-card--review"
+                    >
+                      <div className="guided-vendor-head">
+                        <div>
+                          <strong>{candidate.name}</strong>
+                          <p className="guided-vendor-meta">
+                            {vendorCategoryLabels[selectedCategory]} / {candidate.region}
+                          </p>
+                        </div>
+                        <span
+                          className={`stage-pill stage-pill--${
+                            candidate.reviewStatus === "approved"
+                              ? "booked"
+                              : candidate.reviewStatus === "rejected"
+                                ? "rejected"
+                                : "quoted"
+                          }`}
+                        >
+                          {candidate.reviewStatus === "approved"
+                            ? "Freigegeben"
+                            : candidate.reviewStatus === "rejected"
+                              ? "Verworfen"
+                              : "Offen"}
+                        </span>
+                      </div>
+
+                      <p className="guided-vendor-review">
+                        {candidate.record.sourceProvenance.join(" / ")}
+                      </p>
+
+                      <div className="guided-links">
+                        {candidate.record.websiteUrl ? (
+                          <a
+                            className="text-link guided-vendor-link--primary"
+                            href={candidate.record.websiteUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Website
+                          </a>
+                        ) : null}
+                        {candidate.record.mapsUrl ? (
+                          <a
+                            className="text-link"
+                            href={candidate.record.mapsUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Maps
+                          </a>
+                        ) : null}
+                      </div>
+
+                      <div className="guided-chip-row guided-chip-row--dense">
+                        {candidate.record.priceAnchors.map((anchor) => (
+                          <span key={`${candidate.id}-${anchor}`} className="guided-data-chip">
+                            {anchor}
+                          </span>
+                        ))}
+                        {candidate.record.serviceHints.map((hint) => (
+                          <span key={`${candidate.id}-${hint}`} className="guided-data-chip">
+                            {hint}
+                          </span>
+                        ))}
+                      </div>
+
+                      {candidate.qualityIssues.length > 0 ? (
+                        <div className="guided-quality-list">
+                          {candidate.qualityIssues.map((issue) => (
+                            <p key={`${candidate.id}-${issue.code}-${issue.message}`} className="guided-muted">
+                              {issue.severity === "error" ? "Fehler" : "Hinweis"}: {issue.message}
+                            </p>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      <div className="guided-vendor-editor">
+                        <label>
+                          Review-Entscheidung
+                          <select
+                            aria-label={`Review-Entscheidung fuer ${candidate.name}`}
+                            value={draft.reviewStatus}
+                            onChange={(event) =>
+                              updateVendorReviewDraft(candidate.id, {
+                                reviewStatus: event.target.value as VendorReviewDecision
+                              })
+                            }
+                          >
+                            <option value="approved">Freigeben</option>
+                            <option value="rejected">Verwerfen</option>
+                          </select>
+                        </label>
+                        <label>
+                          Review-Notiz
+                          <input
+                            aria-label={`Review-Notiz fuer ${candidate.name}`}
+                            value={draft.reviewNote}
+                            onChange={(event) =>
+                              updateVendorReviewDraft(candidate.id, {
+                                reviewNote: event.target.value
+                              })
+                            }
+                          />
+                        </label>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        disabled={status === "saving" || currentVendorRefreshJob == null}
+                        onClick={() =>
+                          currentVendorRefreshJob
+                            ? void handleVendorCandidateReview(
+                                currentVendorRefreshJob.id,
+                                candidate.id
+                              )
+                            : undefined
+                        }
+                      >
+                        Review speichern
+                      </button>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : currentVendorRefreshJob ? (
+              <p className="empty-state">
+                Der Run ist gespeichert, aber fuer diese Kategorie gibt es gerade noch keine
+                reviewbaren Kandidaten.
+              </p>
+            ) : null}
+
+            {publishedCategoryRecords.length > 0 ? (
+              <div className="guided-published-catalog">
+                <div className="guided-vendor-group-head">
+                  <div>
+                    <p className="eyebrow">Interner Katalog</p>
+                    <h4>Bereits publiziert</h4>
+                  </div>
+                </div>
+                <div className="guided-card-stack guided-card-stack--vendors">
+                  {publishedCategoryRecords.map((record) => (
+                    <article
+                      key={record.id}
+                      className="guided-inline-card guided-inline-card--catalog"
+                    >
+                      <strong>{record.name}</strong>
+                      <p>{record.region}</p>
+                      <p className="guided-muted">
+                        Publiziert am {new Date(record.publishedAt).toLocaleString("de-DE")}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </section>
         </section>
       </div>
     );

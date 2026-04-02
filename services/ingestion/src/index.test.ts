@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   buildGooglePlacesTextSearchRequest,
   createVendorConnectorPreview,
+  createVendorRefreshExecutor,
   createVendorRefreshJob,
   createVendorRefreshPlan,
   extractVendorWebsiteFacts
@@ -172,5 +173,196 @@ describe("vendor refresh planning", () => {
         blockedFieldAudit: expect.arrayContaining(["thirdPartyReviewScore", "thirdPartyReviewCount"])
       })
     ]);
+  });
+
+  it("executes a live-capable vendor refresh run with discovery, places, crawling and quality output", async () => {
+    const job = createVendorRefreshJob({
+      paidOrderId: "order_live_001",
+      region: "67454 Hassloch",
+      categories: ["photography"],
+      requestedBy: "customer-payment"
+    });
+
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+
+      if (url.startsWith("https://api.search.brave.com/res/v1/web/search")) {
+        return new Response(
+          JSON.stringify({
+            web: {
+              results: [
+                {
+                  title: "Studio Beispiel Hochzeitsfotografie",
+                  url: "https://example-vendor.de/hochzeit",
+                  description: "Reportagen und Paarshootings in der Pfalz"
+                }
+              ]
+            }
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" }
+          }
+        );
+      }
+
+      if (url === "https://places.googleapis.com/v1/places:searchText") {
+        return new Response(
+          JSON.stringify({
+            places: [
+              {
+                id: "places/abc123",
+                displayName: { text: "Studio Beispiel" },
+                formattedAddress: "Musterstrasse 12, 67454 Hassloch",
+                websiteUri: "https://example-vendor.de/hochzeit",
+                nationalPhoneNumber: "+49 6321 123456",
+                googleMapsUri: "https://maps.google.com/?cid=abc123",
+                rating: 4.9,
+                userRatingCount: 54
+              }
+            ]
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" }
+          }
+        );
+      }
+
+      if (url === "https://example-vendor.de/hochzeit") {
+        return new Response(
+          `
+            <html>
+              <head><title>Studio Beispiel | Hochzeitsfotografie</title></head>
+              <body>
+                <h1>Studio Beispiel</h1>
+                <a href="/preise">Preise</a>
+                <a href="mailto:hallo@example-vendor.de">Mail</a>
+                <p>Hochzeitsreportagen und Paarshootings.</p>
+              </body>
+            </html>
+          `,
+          {
+            status: 200,
+            headers: { "content-type": "text/html; charset=utf-8" }
+          }
+        );
+      }
+
+      if (url === "https://example-vendor.de/preise") {
+        return new Response(
+          `
+            <html>
+              <body>
+                <h1>Preise</h1>
+                <p>Pakete ab 2.400 EUR fuer Ganztagsreportagen.</p>
+              </body>
+            </html>
+          `,
+          {
+            status: 200,
+            headers: { "content-type": "text/html; charset=utf-8" }
+          }
+        );
+      }
+
+      throw new Error(`Unexpected fetch url: ${url}`);
+    });
+
+    const executor = createVendorRefreshExecutor({
+      env: {
+        BRAVE_SEARCH_API_KEY: "brave-test-key",
+        GOOGLE_MAPS_API_KEY: "google-test-key"
+      },
+      fetch: fetchMock
+    });
+
+    const run = await executor.executeJobRun({
+      job,
+      category: "photography"
+    });
+
+    expect(run.status).toBe("completed");
+    expect(run.connectorResults).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          connectorId: "directory-discovery",
+          status: "success"
+        }),
+        expect.objectContaining({
+          connectorId: "google-places",
+          status: "success"
+        }),
+        expect.objectContaining({
+          connectorId: "vendor-websites",
+          status: "success"
+        })
+      ])
+    );
+    expect(run.preview.publishableRecords).toEqual([
+      expect.objectContaining({
+        name: "Studio Beispiel",
+        websiteUrl: "https://example-vendor.de/hochzeit",
+        contactEmail: "hallo@example-vendor.de",
+        priceAnchors: expect.arrayContaining(["ab 2.400 EUR"])
+      })
+    ]);
+    expect(run.quality).toMatchObject({
+      status: "ready-for-review",
+      publishableRecordCount: 1
+    });
+    expect(run.quality.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "blocked-fields-audited",
+          severity: "warning"
+        })
+      ])
+    );
+  });
+
+  it("marks a run as needing attention when live connector credentials are missing", async () => {
+    const job = createVendorRefreshJob({
+      paidOrderId: "order_live_002",
+      region: "50667 Koeln",
+      categories: ["venue"],
+      requestedBy: "customer-payment"
+    });
+
+    const executor = createVendorRefreshExecutor({
+      env: {},
+      fetch: vi.fn()
+    });
+
+    const run = await executor.executeJobRun({
+      job,
+      category: "venue"
+    });
+
+    expect(run.status).toBe("completed-with-gaps");
+    expect(run.connectorResults).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          connectorId: "directory-discovery",
+          status: "skipped"
+        }),
+        expect.objectContaining({
+          connectorId: "google-places",
+          status: "skipped"
+        })
+      ])
+    );
+    expect(run.quality).toMatchObject({
+      status: "needs-attention",
+      publishableRecordCount: 0
+    });
+    expect(run.quality.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "no-publishable-records",
+          severity: "error"
+        })
+      ])
+    );
   });
 });

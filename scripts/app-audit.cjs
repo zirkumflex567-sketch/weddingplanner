@@ -140,6 +140,7 @@ async function runDesktopAudit(browser) {
   await expectText(page.locator(".guided-vendor-filter-tabs"), /Musik/i);
   await expectText(page.locator(".guided-vendor-filter-tabs"), /Floristik/i);
   await expectText(page.locator(".guided-vendor-filter-tabs"), /Styling & Outfit/i);
+  await expectText(page.locator(".guided-vendor-group--refresh").first(), /Review \+ Publish/i);
   await page.getByRole("tab", { name: /Musik/i }).click();
   await expectText(page.locator(".guided-vendor-group h4").first(), /Musik/i);
   await page.getByRole("button", { name: "Nur mit Portfolio" }).click();
@@ -152,6 +153,15 @@ async function runDesktopAudit(browser) {
     "Vendor cards should expose at least one portfolio-style link"
   );
   await page.getByRole("button", { name: "Alle" }).click();
+  const refreshButton = page.getByRole("button", {
+    name: /Musik jetzt refreshen|Musik neu refreshen/i
+  });
+  await refreshButton.click();
+  await page.waitForTimeout(1500);
+  await expectText(
+    page.locator(".guided-vendor-group--refresh").first(),
+    /Review \+ Publish|Letzter Run|reviewbaren Kandidaten|internen Katalog/i
+  );
   await page.getByLabel("Budgeteintrag").fill("Foto Anzahlung");
   await page.getByLabel("Budgetkategorie").selectOption("photography");
   await page.getByLabel("Betrag").fill("1500");

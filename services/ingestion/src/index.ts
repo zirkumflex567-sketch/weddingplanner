@@ -6,6 +6,7 @@ import {
   type VendorSearchStrategy
 } from "@wedding/shared";
 export * from "./connectors";
+export * from "./runtime";
 
 export type VendorRefreshStageId =
   | "discovery"
