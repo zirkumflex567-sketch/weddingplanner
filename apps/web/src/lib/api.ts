@@ -170,6 +170,7 @@ export interface IngestionCoverageSnapshot {
     categoriesCoveragePercent: number;
     recordsTotal: number;
     quarantinedTotal?: number;
+    observedTotal?: number;
   };
   regions: Array<{
     name: string;
@@ -191,6 +192,7 @@ export interface IngestionCoverageSnapshot {
     contactEmail?: string;
     contactPhone?: string;
     address?: string;
+    quarantineReason?: string;
     ratingValue?: number;
     ratingCount?: number;
     sourceQualityScore?: number;

@@ -580,6 +580,7 @@ interface IngestionCoverageRecord {
   ratingValue?: number;
   ratingCount?: number;
   sourceQualityScore?: number;
+  quarantineReason?: string;
   freshnessTimestamp?: string;
 }
 
@@ -602,8 +603,10 @@ async function buildIngestionCoverageSnapshot() {
     {}
   );
 
+  const observedRecords = [...records, ...quarantined];
+
   const regions = germanSweepRegions.map((region) => {
-    const matching = records.filter((record) => record.region === region);
+    const matching = observedRecords.filter((record) => record.region === region);
     const freshest = matching
       .map((record) => record.freshnessTimestamp ?? "")
       .sort()
@@ -618,7 +621,7 @@ async function buildIngestionCoverageSnapshot() {
   });
 
   const categories = germanSweepCategories.map((category) => {
-    const matching = records.filter((record) => record.category === category);
+    const matching = observedRecords.filter((record) => record.category === category);
     return {
       name: category,
       covered: matching.length > 0,
@@ -626,7 +629,7 @@ async function buildIngestionCoverageSnapshot() {
     };
   });
 
-  const recentSamples = records
+  const recentSamples = (records.length > 0 ? records : quarantined)
     .slice()
     .sort((a, b) =>
       (b.freshnessTimestamp ?? "").localeCompare(a.freshnessTimestamp ?? "")
@@ -641,6 +644,7 @@ async function buildIngestionCoverageSnapshot() {
       ...(record.contactPhone ? { contactPhone: record.contactPhone } : {}),
       ...(record.address ? { address: record.address } : {}),
       ...(record.websiteUrl ? { websiteUrl: record.websiteUrl } : {}),
+      ...(record.quarantineReason ? { quarantineReason: record.quarantineReason } : {}),
       ...(typeof record.ratingValue === "number" ? { ratingValue: record.ratingValue } : {}),
       ...(typeof record.ratingCount === "number" ? { ratingCount: record.ratingCount } : {}),
       ...(typeof record.sourceQualityScore === "number"
@@ -685,7 +689,8 @@ async function buildIngestionCoverageSnapshot() {
           ? Math.round((coveredCategories / categories.length) * 100)
           : 0,
       recordsTotal: records.length,
-      quarantinedTotal: quarantined.length
+      quarantinedTotal: quarantined.length,
+      observedTotal: observedRecords.length
     },
     regions,
     categories,
