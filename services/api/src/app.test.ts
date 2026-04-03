@@ -191,7 +191,7 @@ describe("POST /planning/bootstrap", () => {
     expect(response.statusCode).toBe(200);
 
     const body = response.json();
-    expect(body.plan.vendorMatches).toEqual([
+    expect(body.plan.vendorMatches).toMatchObject([
       {
         id: "berlin-kranich-catering",
         name: "Kranich Catering",

@@ -148,6 +148,7 @@ function createPublicRsvpSession(
       coupleName: workspace.coupleName,
       targetDate: workspace.onboarding.targetDate,
       region: workspace.onboarding.region,
+      invitationCopy: workspace.onboarding.invitationCopy,
       invitedEvents: workspace.plan.eventBlueprints.filter((event) =>
         guest.eventIds.includes(event.id)
       )
@@ -170,6 +171,7 @@ function normalizeWorkspace(workspace: PrototypeWorkspace): PrototypeWorkspace {
     guestSummary: summarizeGuests(guests),
     progress: calculateProgress(tasks),
     expenses,
+    seatingPlan: workspace.seatingPlan ?? { tables: [] },
     vendorTracker: mergePrototypeVendorTracker(
       workspace.vendorTracker ?? [],
       plan.vendorMatches,
@@ -198,6 +200,9 @@ function createWorkspaceRecord(input: WeddingBootstrapInput): PrototypeWorkspace
     guestSummary: summarizeGuests([]),
     progress: calculateProgress(tasks),
     expenses: [],
+    seatingPlan: {
+      tables: []
+    },
     vendorTracker: createPrototypeVendorTracker(plan.vendorMatches, now),
     budgetOverview: calculateBudgetOverview(plan.budgetCategories, [])
   };

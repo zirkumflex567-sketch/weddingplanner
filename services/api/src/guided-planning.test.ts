@@ -18,7 +18,12 @@ const input: WeddingBootstrapInput = {
   budgetTotal: 24000,
   stylePreferences: ["natural", "romantic"],
   noGoPreferences: ["ballroom"],
-  plannedEvents: ["civil-ceremony", "celebration"]
+  plannedEvents: ["civil-ceremony", "celebration"],
+  invitationCopy: {
+    headline: "Alina & Jonas feiern",
+    body: "Wir freuen uns auf eure Rückmeldung.",
+    footer: "Liebe Grüße"
+  }
 };
 
 function createWorkspace(): PrototypeWorkspace {
@@ -40,6 +45,9 @@ function createWorkspace(): PrototypeWorkspace {
       totalTasks: tasks.length
     },
     expenses: [],
+    seatingPlan: {
+      tables: []
+    },
     vendorTracker: createPrototypeVendorTracker(plan.vendorMatches, "2026-04-02T00:00:00.000Z"),
     budgetOverview: calculateBudgetOverview(plan.budgetCategories, [])
   };
