@@ -157,7 +157,13 @@ function createPublicRsvpSession(
 }
 
 function normalizeWorkspace(workspace: PrototypeWorkspace): PrototypeWorkspace {
-  const plan = createBootstrapPlan(workspace.onboarding);
+  const plan = (() => {
+    try {
+      return createBootstrapPlan(workspace.onboarding);
+    } catch {
+      return workspace.plan;
+    }
+  })();
   const tasks = mergeTasks(workspace.tasks ?? [], createPrototypeTasks(plan));
   const guests = (workspace.guests ?? []).map((guest) => normalizeGuest(guest));
   const expenses = workspace.expenses ?? [];
@@ -230,17 +236,81 @@ function isMealPreference(value: unknown): value is PrototypeMealPreference {
   );
 }
 
-function sortProfilesByUpdatedAt(
+const PROFILE_ACTIVE_CAP = 12;
+
+function normalizeProfileField(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+function buildDedupeKey(profile: PrototypeWorkspaceProfile): string | null {
+  const normalizedCouple = normalizeProfileField(profile.coupleName);
+  const normalizedTargetDate = normalizeProfileField(profile.targetDate);
+  const normalizedRegion = normalizeProfileField(profile.region);
+
+  if (!normalizedCouple || !normalizedTargetDate || !normalizedRegion) {
+    return null;
+  }
+
+  return `${normalizedCouple}|${normalizedTargetDate}|${normalizedRegion}`;
+}
+
+function sortProfilesDeterministically(
   profiles: PrototypeWorkspaceProfile[]
 ): PrototypeWorkspaceProfile[] {
-  return [...profiles].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+  return [...profiles].sort((left, right) => {
+    const updatedDelta = right.updatedAt.localeCompare(left.updatedAt);
+
+    if (updatedDelta !== 0) {
+      return updatedDelta;
+    }
+
+    return left.id.localeCompare(right.id);
+  });
+}
+
+function projectWorkspaceProfiles(
+  profiles: PrototypeWorkspaceProfile[]
+): PrototypeWorkspaceProfile[] {
+  const sorted = sortProfilesDeterministically(profiles);
+  const dedupeKeyCounts = new Map<string, number>();
+
+  for (const profile of sorted) {
+    const dedupeKey = buildDedupeKey(profile);
+
+    if (!dedupeKey) {
+      continue;
+    }
+
+    dedupeKeyCounts.set(dedupeKey, (dedupeKeyCounts.get(dedupeKey) ?? 0) + 1);
+  }
+
+  return sorted.map((profile, index) => {
+    const dedupeKey = buildDedupeKey(profile);
+    const dedupeCount = dedupeKey ? (dedupeKeyCounts.get(dedupeKey) ?? 0) : 0;
+    const highConfidence = Boolean(dedupeKey);
+    const isArchived = index >= PROFILE_ACTIVE_CAP;
+
+    return {
+      ...profile,
+      hygiene: {
+        lifecycleStatus: isArchived ? "archived" : "active",
+        capReason: isArchived ? "archived-by-cap" : "within-cap",
+        dedupeSafety: highConfidence && dedupeCount > 1 ? "merge-safe" : "non-merge-safe",
+        dedupeConfidence: highConfidence ? "high" : "low",
+        dedupeKey
+      }
+    };
+  });
 }
 
 export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore {
   private readonly workspaces = new Map<string, PrototypeWorkspace>();
 
   async listWorkspaces() {
-    return sortProfilesByUpdatedAt(
+    return projectWorkspaceProfiles(
       [...this.workspaces.values()].map((workspace) =>
         createPrototypeWorkspaceProfile(workspace)
       )
@@ -453,7 +523,7 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
   async listWorkspaces() {
     const state = await this.readState();
 
-    return sortProfilesByUpdatedAt(
+    return projectWorkspaceProfiles(
       state.workspaces.map((workspace) => createPrototypeWorkspaceProfile(workspace))
     );
   }

@@ -1520,6 +1520,12 @@ img {
     border-top: 1px solid rgba(255, 255, 255, 0.48);
     z-index: 25;
     pointer-events: auto;
+    transition: opacity 140ms ease;
+  }
+
+  .workspace-shell--mobile-nav-open .mobile-dock {
+    pointer-events: none;
+    opacity: 0.25;
   }
 
   .mobile-dock__item {

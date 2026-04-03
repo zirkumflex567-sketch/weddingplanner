@@ -3616,7 +3616,11 @@ function DashboardApp() {
       workspace.onboarding.targetDate
     )}`;
     return (
-      <div className={`workspace-shell workspace-shell--${currentPage}`}>
+      <div
+        className={`workspace-shell workspace-shell--${currentPage} ${
+          mobileNavOpen ? "workspace-shell--mobile-nav-open" : ""
+        }`}
+      >
         <header className="workspace-topbar">
           <button
             type="button"

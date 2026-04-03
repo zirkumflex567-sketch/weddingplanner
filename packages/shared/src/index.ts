@@ -249,6 +249,22 @@ export interface PrototypeWorkspace {
   budgetOverview: PrototypeBudgetOverview;
 }
 
+export type PrototypeProfileLifecycleStatus = "active" | "archived";
+
+export type PrototypeProfileCapReason = "within-cap" | "archived-by-cap";
+
+export type PrototypeProfileDedupeSafety = "merge-safe" | "non-merge-safe";
+
+export type PrototypeProfileDedupeConfidence = "high" | "low";
+
+export interface PrototypeWorkspaceProfileHygiene {
+  lifecycleStatus: PrototypeProfileLifecycleStatus;
+  capReason: PrototypeProfileCapReason;
+  dedupeSafety: PrototypeProfileDedupeSafety;
+  dedupeConfidence: PrototypeProfileDedupeConfidence;
+  dedupeKey: string | null;
+}
+
 export interface PrototypeWorkspaceProfile {
   id: string;
   coupleName: string;
@@ -261,6 +277,7 @@ export interface PrototypeWorkspaceProfile {
   guestSummary: PrototypeGuestSummary;
   currentStepId: GuidedPlanningStepId;
   currentStepTitle: string;
+  hygiene?: PrototypeWorkspaceProfileHygiene;
 }
 
 export interface PrototypePublicRsvpContext {

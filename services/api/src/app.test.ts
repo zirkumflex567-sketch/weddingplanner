@@ -1,3 +1,6 @@
+import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import type {
   PublishableVendorRecord,
   VendorRefreshExecutionInput,
@@ -6,6 +9,7 @@ import type {
 } from "@wedding/ingestion";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildApp } from "./app";
+import { FilePrototypeWorkspaceStore } from "./prototype-store";
 
 const onboardingPayload = {
   coupleName: "Mira & Leon",
@@ -830,6 +834,159 @@ describe("prototype workspace flow", () => {
         })
       ]
     });
+  });
+
+  it("emits deterministic hygiene metadata and marks only exact normalized duplicates as merge-safe", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: {
+        ...onboardingPayload,
+        coupleName: "Mira & Leon",
+        region: "Berlin",
+        targetDate: "2027-09-15"
+      }
+    });
+
+    await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: {
+        ...onboardingPayload,
+        coupleName: "  Mira   & Leon ",
+        region: " BERLIN ",
+        targetDate: "2027-09-15"
+      }
+    });
+
+    await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: {
+        ...onboardingPayload,
+        coupleName: "Mira and Leon",
+        region: "Berlin",
+        targetDate: "2027-09-15"
+      }
+    });
+
+    const listResponse = await app.inject({
+      method: "GET",
+      url: "/prototype/workspaces"
+    });
+
+    expect(listResponse.statusCode).toBe(200);
+
+    const profiles = listResponse.json().profiles;
+    const mergeSafe = profiles.filter(
+      (profile: { hygiene: { dedupeSafety: string } }) =>
+        profile.hygiene.dedupeSafety === "merge-safe"
+    );
+    const nonMergeSafe = profiles.filter(
+      (profile: { coupleName: string; hygiene: { dedupeSafety: string } }) =>
+        profile.hygiene.dedupeSafety === "non-merge-safe" &&
+        profile.coupleName === "Mira and Leon"
+    );
+
+    expect(mergeSafe).toHaveLength(2);
+    expect(nonMergeSafe).toHaveLength(1);
+    expect(profiles[0].hygiene).toEqual(
+      expect.objectContaining({
+        lifecycleStatus: expect.stringMatching(/active|archived/),
+        capReason: expect.any(String),
+        dedupeSafety: expect.stringMatching(/merge-safe|non-merge-safe/),
+        dedupeConfidence: expect.stringMatching(/high|low/)
+      })
+    );
+  });
+
+  it("marks malformed profile inputs as non-merge-safe while keeping records listed", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "wedding-store-"));
+    const filePath = join(tempDir, "workspaces.json");
+
+    await writeFile(
+      filePath,
+      JSON.stringify(
+        {
+          workspaces: [
+            {
+              id: "workspace-malformed",
+              createdAt: "2026-04-03T18:00:00.000Z",
+              updatedAt: "2026-04-03T18:05:00.000Z",
+              coupleName: "   ",
+              onboarding: {
+                ...onboardingPayload,
+                coupleName: "   ",
+                region: "",
+                targetDate: ""
+              },
+              plan: {
+                profile: {
+                  ...onboardingPayload,
+                  planningWindowMonths: 12,
+                  disabledVendorCategories: []
+                },
+                milestones: [],
+                budgetCategories: [],
+                vendorStarterCategories: [],
+                adminReminders: [],
+                eventBlueprints: [],
+                vendorMatches: [],
+                vendorSearchStrategy: {
+                  mode: "curated-plus-refresh",
+                  requiresPaidRefresh: true,
+                  curatedCoverageAreaIds: []
+                },
+                runtimeTopology: {
+                  aiExecution: "shadow-workstation",
+                  hosting: "vps-web-api-only",
+                  note: ""
+                },
+                nextSteps: []
+              },
+              tasks: [],
+              guests: [],
+              guestSummary: { total: 0, pending: 0, attending: 0, declined: 0 },
+              progress: { completedTasks: 0, totalTasks: 0 },
+              expenses: [],
+              seatingPlan: { tables: [] },
+              vendorTracker: [],
+              budgetOverview: {
+                overall: { planned: 0, committed: 0, paid: 0, remaining: 0 },
+                categories: []
+              }
+            }
+          ]
+        },
+        null,
+        2
+      ),
+      "utf8"
+    );
+
+    const app = buildApp({ workspaceStore: new FilePrototypeWorkspaceStore(filePath) });
+    openApps.push(app);
+
+    const listResponse = await app.inject({
+      method: "GET",
+      url: "/prototype/workspaces"
+    });
+
+    expect(listResponse.statusCode).toBe(200);
+    expect(listResponse.json().profiles).toEqual([
+      expect.objectContaining({
+        coupleName: "   ",
+        hygiene: expect.objectContaining({
+          dedupeSafety: "non-merge-safe",
+          dedupeConfidence: "low"
+        })
+      })
+    ]);
+
+    await rm(tempDir, { recursive: true, force: true });
   });
 
   it("deletes a workspace profile so it no longer appears in the library", async () => {

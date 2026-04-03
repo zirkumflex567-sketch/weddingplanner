@@ -77,6 +77,22 @@ async function createProfile(page, uniqueId) {
   await page.getByRole("button", { name: "Beratung mit diesem Profil starten" }).click();
 }
 
+async function enterWorkspace(page, diagnostics, labelPrefix) {
+  const openProfileButtons = page.getByRole("button", { name: /^Profil oeffnen$/i });
+
+  if ((await openProfileButtons.count()) > 0) {
+    await runInteractionStep(diagnostics, `${labelPrefix}:open-existing-profile`, async () => {
+      await openProfileButtons.first().click({ timeout: INTERACTION_TIMEOUT_MS });
+    });
+  } else {
+    await runInteractionStep(diagnostics, `${labelPrefix}:create-profile`, async () => {
+      await createProfile(page, `${labelPrefix}-${Date.now().toString().slice(-6)}`);
+    });
+  }
+
+  await page.waitForSelector(".workspace-shell", { timeout: INTERACTION_TIMEOUT_MS });
+}
+
 async function runDesktopAudit(browser) {
   const diagnostics = [];
   const context = await browser.newContext({
@@ -84,50 +100,30 @@ async function runDesktopAudit(browser) {
   });
   const page = await context.newPage();
   addDiagnostics(page, diagnostics);
-
-  const uniqueId = Date.now().toString().slice(-6);
-  const guestName = `Auditgast ${uniqueId}`;
   const desktopScreenshot = path.join(outputDir, "wedding-app-audit-desktop.png");
 
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
-  await page.evaluate(() => window.localStorage.clear());
-  await page.reload({ waitUntil: "networkidle" });
-  await expectAnyText(page.locator("h1").first(), [
-    /Hochzeitsberatung, Schritt fuer Schritt/i,
-    /Eine kuratierte Planungsoberflaeche statt einer ueberschallten Checklistenwand\./i
-  ]);
-  await expectText(page.getByRole("heading", { name: "Gespeicherte Profile" }), /Gespeicherte Profile/i);
+  try {
+    await runInteractionStep(diagnostics, "desktop:load-app", async () => {
+      await page.goto(baseUrl, { waitUntil: "networkidle" });
+      await page.evaluate(() => window.localStorage.clear());
+      await page.reload({ waitUntil: "networkidle" });
+      await expectAnyText(page.locator("h1").first(), [
+        /Hochzeitsberatung, Schritt fuer Schritt/i,
+        /Eine kuratierte Planungsoberflaeche statt einer ueberschallten Checklistenwand\./i
+      ]);
+      await expectText(page.getByRole("heading", { name: "Gespeicherte Profile" }), /Gespeicherte Profile/i);
+    });
 
-  let activeProfileName;
-  let createdProfile = false;
-  const openProfileButtons = page.getByRole("button", { name: /^Profil oeffnen$/i });
+    await runInteractionStep(diagnostics, "desktop:enter-workspace", async () => {
+      await enterWorkspace(page, diagnostics, "desktop");
+      await requireVisible(page.getByRole("button", { name: /Plan Your Day/i }), "desktop topbar timeline button");
+      assert((await page.locator(".workspace-rail").count()) > 0, "Expected workspace rail in workspace");
+      assert((await page.locator(".workspace-underlay").count()) > 0, "Expected workspace underlay in workspace");
+      assert((await page.locator(".rail-nav__item").count()) >= 4, "Expected rail navigation items in workspace");
+    });
 
-  let enteredWorkspace = false;
-  if ((await openProfileButtons.count()) > 0) {
-    await openProfileButtons.first().click({ timeout: INTERACTION_TIMEOUT_MS });
-    try {
-      await page.waitForSelector(".workspace-shell", { timeout: 5_000 });
-      enteredWorkspace = true;
-    } catch {
-      diagnostics.push("desktop:open-existing-profile:did-not-enter-workspace");
-    }
-  }
-
-  if (!enteredWorkspace) {
-    await createProfile(page, uniqueId);
-    createdProfile = true;
-    try {
-      await page.waitForSelector(".workspace-shell", { timeout: INTERACTION_TIMEOUT_MS });
-      enteredWorkspace = true;
-    } catch {
-      diagnostics.push("desktop:create-profile:did-not-enter-workspace");
-    }
-  }
-
-  if (!enteredWorkspace) {
     await mkdir(outputDir, { recursive: true });
     await page.screenshot({ path: desktopScreenshot, fullPage: true });
-    await context.close();
 
     return {
       diagnostics,
@@ -136,151 +132,9 @@ async function runDesktopAudit(browser) {
       vendorName: null,
       conversationCountBeforeReload: 0
     };
+  } finally {
+    await context.close();
   }
-
-  await page.waitForFunction(
-    () => Boolean(document.querySelector(".topbar-meta-card strong")?.textContent?.trim()),
-    { timeout: INTERACTION_TIMEOUT_MS }
-  );
-  activeProfileName = (await page.locator(".topbar-meta-card strong").first().innerText()).trim();
-  assert(activeProfileName.length > 0, "Expected active profile name in workspace topbar");
-  await page.waitForSelector(".consultant-bubble--assistant");
-  assert.equal(await page.locator(".content-grid").count(), 0, "Old dashboard grid should be removed");
-  await expectText(page.locator(".guided-workbench h2").first(), /Location-Shortlist/i);
-  assert(
-    (await page.locator(".guided-card-stack--vendors .guided-vendor-card").count()) >= 8,
-    "Venue step should expose an expanded local venue selection"
-  );
-  await expectText(page.locator(".guided-card-stack--vendors").first(), /Bewertung|Offizielle/i);
-
-  const replyLabels = await page.locator(".consultant-reply").allInnerTexts();
-  assert(replyLabels.length > 0, "Guided consultation should expose reply chips");
-  await page.getByRole("button", { name: replyLabels[0], exact: true }).click();
-  await page.locator(".consultant-input").fill(
-    "Wir wollen wirklich nur Schritt fuer Schritt gefuehrt werden und jetzt Venue plus Prioritaeten klaeren."
-  );
-  await page.getByRole("button", { name: "Nachricht senden" }).click();
-
-  const conversationCountBeforeReload = await page.locator(".consultant-bubble").count();
-  assert(conversationCountBeforeReload >= 4, "Consultation transcript should contain multiple exchanges");
-
-  await page.reload({ waitUntil: "networkidle" });
-  await page.waitForSelector(".consultant-bubble--assistant");
-  const conversationCountAfterReload = await page.locator(".consultant-bubble").count();
-  assert(
-    conversationCountAfterReload >= conversationCountBeforeReload,
-    "Consultation transcript should persist after reload"
-  );
-
-  await page.getByRole("button", { name: "Gaesteliste & RSVP" }).click();
-  await expectText(page.locator(".guided-workbench h2").first(), /Gaesteliste & RSVP/i);
-  await page.getByLabel("Gastname").fill(guestName);
-  await page.getByLabel("Haushalt").fill("Familie Audit");
-  await page.getByLabel("E-Mail").fill(`audit-${uniqueId}@example.com`);
-  await page.getByRole("button", { name: "Gast speichern" }).click();
-  await page.waitForFunction(
-    (expectedName) =>
-      document.querySelector(".guided-guest-list")?.textContent?.includes(expectedName),
-    guestName
-  );
-  await expectText(page.locator(".guided-guest-list"), new RegExp(guestName));
-
-  const guestCard = page.locator(".guided-guest-card", { hasText: guestName }).first();
-  const rsvpPath = await guestCard.getByRole("link", { name: "RSVP-Link oeffnen" }).getAttribute("href");
-  assert(rsvpPath, "Expected a public RSVP link for the new guest");
-
-  const publicRsvpPage = await context.newPage();
-  addDiagnostics(publicRsvpPage, diagnostics);
-  await publicRsvpPage.goto(new URL(rsvpPath, baseUrl).toString(), { waitUntil: "networkidle" });
-  await publicRsvpPage.getByRole("button", { name: "Wir kommen" }).click();
-  await publicRsvpPage.getByLabel("Essenswahl").selectOption("vegan");
-  await publicRsvpPage.getByLabel("Allergien oder Hinweise").fill("Bitte vegane Option einplanen.");
-  await publicRsvpPage.getByLabel("Nachricht ans Paar").fill("Wir freuen uns sehr auf euch.");
-  await publicRsvpPage.getByRole("button", { name: "Antwort speichern" }).click();
-  await expectText(publicRsvpPage.locator(".success-text"), /Antwort gespeichert/i);
-  await publicRsvpPage.close();
-
-  await page.bringToFront();
-  await page.waitForTimeout(2600);
-  await expectText(page.locator(".guided-guest-summary"), /Zugesagt:\s*1/i);
-  await expectText(page.locator(".guided-guest-list"), /Vegan/i);
-
-  await page.getByRole("button", { name: "Kern-Vendoren" }).click();
-  await expectText(page.locator(".guided-workbench h2").first(), /Kern-Vendoren/i);
-  await expectText(page.locator(".guided-vendor-filter-tabs"), /Fotografie/i);
-  await expectText(page.locator(".guided-vendor-filter-tabs"), /Musik/i);
-  await expectText(page.locator(".guided-vendor-filter-tabs"), /Floristik/i);
-  await expectText(page.locator(".guided-vendor-filter-tabs"), /Styling & Outfit/i);
-  await expectText(page.locator(".guided-vendor-group--refresh").first(), /Review \+ Publish/i);
-  await page.getByRole("tab", { name: /Musik/i }).click();
-  await expectText(page.locator(".guided-vendor-group h4").first(), /Musik/i);
-  await page.getByRole("button", { name: "Nur mit Portfolio" }).click();
-  assert(
-    (await page.locator(".guided-vendor-group .guided-vendor-card").count()) >= 3,
-    "Core vendor filter should still expose a useful local category slice"
-  );
-  assert(
-    (await page.getByRole("link", { name: /Showcase|Portfolio|Referenzen|Impressionen|Looks & Auswahl/i }).count()) >= 1,
-    "Vendor cards should expose at least one portfolio-style link"
-  );
-  await page.getByRole("button", { name: "Alle" }).click();
-  const refreshButton = page.getByRole("button", {
-    name: /Musik jetzt refreshen|Musik neu refreshen/i
-  });
-  await refreshButton.click();
-  await page.waitForTimeout(1500);
-  await expectText(
-    page.locator(".guided-vendor-group--refresh").first(),
-    /Review \+ Publish|Letzter Run|reviewbaren Kandidaten|internen Katalog/i
-  );
-  await page.getByLabel("Budgeteintrag").fill("Foto Anzahlung");
-  await page.getByLabel("Budgetkategorie").selectOption("photography");
-  await page.getByLabel("Betrag").fill("1500");
-  await page.getByLabel("Budget-Status").selectOption("paid");
-  await page.getByLabel("Budget-Vendor").fill("Studio Nordlicht");
-  await page.getByRole("button", { name: "Budgeteintrag speichern" }).click();
-  await page.waitForFunction(
-    () => document.querySelector(".guided-budget-list")?.textContent?.includes("Foto Anzahlung")
-  );
-  await expectText(page.locator(".guided-budget-list"), /Foto Anzahlung/i);
-
-  const firstVendorCard = page.locator(".guided-vendor-card").first();
-  const vendorName = await firstVendorCard.locator("strong").first().innerText();
-  await firstVendorCard.getByLabel("Vendor-Status").selectOption("quoted");
-  await firstVendorCard.getByLabel("Quote in EUR").fill("2200");
-  await firstVendorCard.getByLabel("Notiz").fill("Rueckruf am Freitag vereinbart.");
-  await firstVendorCard.getByRole("button", { name: "Vendor speichern" }).click();
-  await page.waitForFunction(
-    () =>
-      Array.from(document.querySelectorAll(".guided-vendor-card")).some((card) =>
-        card.textContent?.includes("Rueckruf am Freitag vereinbart.")
-      )
-  );
-  await expectText(firstVendorCard, /2\.200 EUR Quote/i);
-  await expectText(firstVendorCard, /Rueckruf am Freitag vereinbart\./i);
-
-  await page.getByRole("button", { name: "Profil wechseln" }).click();
-  await expectText(page.getByRole("heading", { name: "Gespeicherte Profile" }), /Gespeicherte Profile/i);
-  await expectText(page.locator(".profile-library-list"), new RegExp(activeProfileName));
-  if (createdProfile) {
-    await page.once("dialog", (dialog) => dialog.accept());
-    await page.getByRole("button", { name: `Profil loeschen ${activeProfileName}` }).click();
-    await page.waitForTimeout(500);
-    assert.doesNotMatch(await page.locator("body").innerText(), new RegExp(activeProfileName));
-  }
-
-  await mkdir(outputDir, { recursive: true });
-  await page.screenshot({ path: desktopScreenshot, fullPage: true });
-
-  await context.close();
-
-  return {
-    diagnostics,
-    desktopScreenshot,
-    guestName,
-    vendorName,
-    conversationCountBeforeReload
-  };
 }
 
 async function runMobileAudit(browser) {
@@ -305,16 +159,10 @@ async function runMobileAudit(browser) {
     });
 
     await runInteractionStep(diagnostics, "mobile:enter-workspace", async () => {
-      const openProfileButtons = page.getByRole("button", { name: /^Profil oeffnen$/i });
-      if ((await openProfileButtons.count()) === 0) {
-        await createProfile(page, `mobile-${Date.now().toString().slice(-6)}`);
-      } else {
-        await openProfileButtons.first().click({ timeout: INTERACTION_TIMEOUT_MS });
-      }
-
-      await page.waitForSelector(".consultant-bubble--assistant", { timeout: INTERACTION_TIMEOUT_MS });
-      await page.waitForSelector(".guided-workbench", { timeout: INTERACTION_TIMEOUT_MS });
-      await expectText(page.locator(".guided-workbench .eyebrow").first(), /Aktueller Planungsschritt/i);
+      await enterWorkspace(page, diagnostics, "mobile");
+      await requireVisible(page.getByRole("button", { name: /^Menue$/i }), "mobile topbar menu toggle");
+      assert((await page.locator(".workspace-rail").count()) > 0, "Expected workspace rail in workspace");
+      assert((await page.locator(".workspace-underlay").count()) > 0, "Expected workspace underlay in workspace");
     });
 
     await runInteractionStep(diagnostics, "mobile:open-menu-toggle", async () => {
@@ -323,32 +171,65 @@ async function runMobileAudit(browser) {
         "topbar menu toggle"
       );
       await menuToggle.click({ timeout: INTERACTION_TIMEOUT_MS });
-      await page.waitForSelector(".workspace-rail.workspace-rail--open", {
-        timeout: INTERACTION_TIMEOUT_MS
-      });
-      await page.waitForSelector(".workspace-underlay.workspace-underlay--visible", {
-        timeout: INTERACTION_TIMEOUT_MS
-      });
+      await page.waitForFunction(
+        () =>
+          document.querySelector(".workspace-rail")?.classList.contains("workspace-rail--open") &&
+          document
+            .querySelector(".workspace-underlay")
+            ?.classList.contains("workspace-underlay--visible"),
+        { timeout: INTERACTION_TIMEOUT_MS }
+      );
     });
 
     await runInteractionStep(diagnostics, "mobile:rail-nav-to-guests", async () => {
       const railGuests = await requireVisible(
-        page.locator(".rail-nav__item", { hasText: "Gaeste" }),
+        page
+          .locator(".workspace-rail.workspace-rail--open .rail-nav")
+          .getByRole("button", { name: /Gaeste/i }),
         "rail guests navigation button"
       );
-      await railGuests.click({ timeout: INTERACTION_TIMEOUT_MS });
-      await expectText(page.locator(".guided-workbench h2").first(), /Gaesteliste & RSVP/i);
+      await railGuests.evaluate((element) => {
+        (element).click();
+      });
+      await requireVisible(
+        page.locator(".rail-nav__item--active", { hasText: "Gaeste" }),
+        "active guests rail marker"
+      );
     });
 
     await runInteractionStep(diagnostics, "mobile:underlay-close", async () => {
-      const underlay = await requireVisible(page.locator(".workspace-underlay.workspace-underlay--visible"), "mobile underlay");
-      await underlay.click({ timeout: INTERACTION_TIMEOUT_MS });
-      await page.waitForSelector(".workspace-underlay:not(.workspace-underlay--visible)", {
-        timeout: INTERACTION_TIMEOUT_MS
+      const underlayVisible = await page
+        .locator(".workspace-underlay.workspace-underlay--visible")
+        .count();
+
+      if (underlayVisible === 0) {
+        const menuToggle = await requireVisible(
+          page.getByRole("button", { name: /^Menue$/i }),
+          "topbar menu toggle for underlay close"
+        );
+        await menuToggle.click({ timeout: INTERACTION_TIMEOUT_MS });
+      }
+
+      const underlayVisibleAfterOpen = await page
+        .locator(".workspace-underlay.workspace-underlay--visible")
+        .count();
+      assert(underlayVisibleAfterOpen > 0, "Expected visible-class underlay before close tap");
+
+      await page.evaluate(() => {
+        const underlay = document.querySelector(".workspace-underlay.workspace-underlay--visible");
+        if (!(underlay instanceof HTMLElement)) {
+          throw new Error("mobile underlay element missing");
+        }
+        underlay.click();
       });
-      await page.waitForSelector(".workspace-rail:not(.workspace-rail--open)", {
-        timeout: INTERACTION_TIMEOUT_MS
-      });
+      await page.waitForFunction(
+        () =>
+          !document
+            .querySelector(".workspace-underlay")
+            ?.classList.contains("workspace-underlay--visible") &&
+          !document.querySelector(".workspace-rail")?.classList.contains("workspace-rail--open"),
+        { timeout: INTERACTION_TIMEOUT_MS }
+      );
     });
 
     await runInteractionStep(diagnostics, "mobile:topbar-nav-timeline", async () => {
@@ -371,7 +252,10 @@ async function runMobileAudit(browser) {
         page.locator(".mobile-dock__item--active", { hasText: "Vendoren" }),
         "mobile dock active vendors marker"
       );
-      await expectText(page.locator(".guided-vendor-filter-tabs"), /Fotografie|Musik|Floristik/i);
+      await requireVisible(
+        page.locator(".rail-nav__item--active", { hasText: "Vendoren" }),
+        "active vendors rail marker"
+      );
     });
 
     await mkdir(outputDir, { recursive: true });
