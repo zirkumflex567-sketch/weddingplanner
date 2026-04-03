@@ -3596,6 +3596,8 @@ function DashboardApp() {
   }
 
   function renderGuidedWorkspace() {
+    const activeStep = guidedSession?.steps.find((step) => step.id === activeStepId);
+
     if (!workspace || !guidedSession || !activeStep) {
       return null;
     }
@@ -3612,9 +3614,8 @@ function DashboardApp() {
     const activeProfileSummary = `${workspace.onboarding.region} / ${formatLongDate(
       workspace.onboarding.targetDate
     )}`;
-
     return (
-      <div className="workspace-shell">
+      <div className={`workspace-shell workspace-shell--${currentPage}`}>
         <header className="workspace-topbar">
           <button
             type="button"
@@ -3660,6 +3661,12 @@ function DashboardApp() {
             </button>
           </nav>
 
+          <div className="topbar-meta-card" aria-label="Profilzusammenfassung">
+            <span>{activeProfileSummary}</span>
+            <strong>{workspace.coupleName}</strong>
+            <small>{workspace.guestSummary.attending} Zusagen live im Blick</small>
+          </div>
+
           <div className="topbar-actions">
             <button
               type="button"
@@ -3702,6 +3709,22 @@ function DashboardApp() {
             <span>{activeProfileSummary}</span>
             <span>{formatCurrency(totalBudget)}</span>
           </div>
+
+          <article className="rail-briefing-card">
+            <p className="meta-label">Heute wichtig</p>
+            <strong>{displayStepTitleById[activeStepId]}</strong>
+            <p>
+              {activeStep.summary ??
+                "Die naechste Aufgabe bleibt direkt griffbereit im Workspace."}
+            </p>
+            <button
+              type="button"
+              className="secondary-button secondary-button--compact"
+              onClick={() => goToPage(pageForStepById[activeStepId], { stepId: activeStepId })}
+            >
+              Zum aktiven Schritt
+            </button>
+          </article>
 
           <nav className="rail-nav" aria-label="Hauptnavigation">
             {navigationItems.map((pageId) => (
