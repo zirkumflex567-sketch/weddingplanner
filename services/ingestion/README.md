@@ -114,6 +114,18 @@ Produktions-Scheduler-Helfer:
   - faehrt kleine Batch-Pakete dauerhaft nacheinander im Hintergrund
   - schreibt Runtime-Status nach `output/ingestion/continuous-runner-state.json`
 
+Beispiel Start im Hintergrund (htown):
+
+```bash
+cd /home/kevin/workspace/weddingplanner
+nohup env BROWSER_USE_CLI_COMMAND=/home/kevin/workspace/weddingplanner/services/ingestion/scripts/browser-use-adapter.mjs VENDOR_BATCH_REGION_SIZE=1 VENDOR_BATCH_CATEGORY_SIZE=1 VENDOR_BATCH_REGION_LIMIT=1 VENDOR_BATCH_CATEGORY_LIMIT=1 VENDOR_BATCH_INTERVAL_SECONDS=45 node services/ingestion/scripts/continuous-runner.mjs >> services/ingestion/output/ingestion/continuous-runner.log 2>&1 &
+```
+
+Live-Monitor:
+
+- UI: `/wedding/coverage`
+- API: `/wedding/api/prototype/ingestion/coverage`
+
 ## Datenregel
 
 Directory-Sources wie Portale oder Rankings sind nur fuer Discovery erlaubt.
