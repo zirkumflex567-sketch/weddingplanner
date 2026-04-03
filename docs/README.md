@@ -14,7 +14,8 @@ Diese Doku ist der gemeinsame Startpunkt fuer Produkt-, Architektur- und Recherc
 8. [architecture/vendor-refresh-pipeline.md](architecture/vendor-refresh-pipeline.md)
 9. [research/vendor-data-strategy.md](research/vendor-data-strategy.md)
 10. [roadmap/initial-roadmap.md](roadmap/initial-roadmap.md)
-11. [questions/open-questions.md](questions/open-questions.md)
+11. [roadmap/2026-04-03-openclaw-consultant-recovery-plan.md](roadmap/2026-04-03-openclaw-consultant-recovery-plan.md)
+12. [questions/open-questions.md](questions/open-questions.md)
 
 ## Bereiche
 
