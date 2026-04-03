@@ -460,7 +460,10 @@ function classifyDiscoveryRecord(record: DiscoveryDbRecord): {
     "facebook.com",
     "instagram.com",
     "youtube.com",
-    "pinterest.com"
+    "pinterest.com",
+    "exali.de",
+    "orangefluid.com",
+    "location-award.de"
   ];
 
   const host = extractHost(record.websiteUrl ?? record.sourceUrl);
