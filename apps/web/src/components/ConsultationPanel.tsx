@@ -69,19 +69,19 @@ export function ConsultationPanel({
   const isEmbedded = mode === "embedded";
   const tierCopy =
     assistantTier === "premium"
-      ? "Premium laeuft ueber die starke Agent-Schiene. Wenn Shadow online ist, kann der Agent spaeter die volle Premium-Pipeline nutzen."
-      : "Free bleibt bewusst beratend. Der Chat hilft konkret, aendert aber nichts direkt im Workspace.";
+      ? "Premium nutzt die stärkere Agenten-Schiene. Wenn Shadow online ist, kann der Assistent die volle Premium-Pipeline nutzen."
+      : "Free bleibt bewusst beratend. Der Chat hilft konkret, ändert aber nichts direkt im Workspace.";
   const modeCopy =
     assistantMode === "operator"
       ? {
           label: "Operator",
           description:
-            "Arbeitet direkt im Workspace: Gaeste importieren, Kategorien umschalten, Kontakte ziehen, Preise ueberschlagen, Texte anpassen."
+            "Arbeitet direkt im Workspace: Gäste importieren, Kategorien umschalten, Kontakte ergänzen, Preise überschlagen, Texte anpassen."
         }
       : {
           label: "Consultant",
           description:
-            "Bleibt im beratenden Modus: Priorisieren, einordnen, Unsicherheit aufloesen und den naechsten sauberen Schritt formulieren."
+            "Bleibt im beratenden Modus: priorisieren, einordnen, Unsicherheit auflösen und den nächsten sauberen Schritt formulieren."
         };
   const laneLabel =
     assistantLane === "agent"
@@ -116,9 +116,9 @@ export function ConsultationPanel({
       <div className="assistant-head">
         <div>
           <p className="eyebrow">AI Wedding Consultant</p>
-          <h2>{isEmbedded ? "Wedding Consultant" : "Gefuehrte Hochzeitsberatung"}</h2>
+          <h2>{isEmbedded ? "Wedding Consultant" : "Geführte Hochzeitsberatung"}</h2>
           <p className="assistant-headline">{guidedSession.headline}</p>
-          <div className="assistant-mode-strip" role="tablist" aria-label="Assistant Modus">
+          <div className="assistant-mode-strip" role="tablist" aria-label="Assistant Tarif">
             {(
               [
                 ["free", "Free"],
@@ -139,7 +139,7 @@ export function ConsultationPanel({
             ))}
           </div>
           <p className="assistant-copy">{tierCopy}</p>
-          <div className="assistant-mode-strip" role="tablist" aria-label="Assistant Modus">
+          <div className="assistant-mode-strip" role="tablist" aria-label="Assistant Rolle">
             {(
               [
                 ["consultant", "Consultant"],
@@ -175,7 +175,7 @@ export function ConsultationPanel({
                 className="secondary-button secondary-button--compact"
                 onClick={onClose}
               >
-                Chat schliessen
+                Chat schließen
               </button>
             )}
           </div>
@@ -195,7 +195,7 @@ export function ConsultationPanel({
             >
               <span>{step.title}</span>
               <small>
-                {step.status === "done" ? "Erledigt" : step.status === "active" ? "Jetzt dran" : "Spaeter"}
+                {step.status === "done" ? "Erledigt" : step.status === "active" ? "Jetzt dran" : "Später"}
               </small>
             </button>
           ))}
@@ -247,8 +247,8 @@ export function ConsultationPanel({
                 onChange={(event) => onDraftChange(event.target.value)}
                 placeholder={
                   assistantMode === "operator"
-                    ? "Zum Beispiel: 'Deaktiviere Catering', 'Importiere diese Gaeste ...', 'Erstelle eine Anfrage fuer Hambacher Schloss' ..."
-                    : "Schreibt frei, was euch gerade beschaeftigt: Budget, Location, Gaeste, Unsicherheit, Bauchgefuehl ..."
+                    ? "Zum Beispiel: 'Deaktiviere Catering', 'Importiere diese Gäste ...', 'Erstelle eine Anfrage für Hambacher Schloss' ..."
+                    : "Schreibt frei, was euch gerade beschäftigt: Budget, Location, Gäste, Unsicherheit, Bauchgefühl ..."
                 }
               />
               <div className="consultant-composer-actions">
@@ -264,7 +264,7 @@ export function ConsultationPanel({
                     ? "Wird transkribiert ..."
                     : isRecording
                       ? "Aufnahme stoppen"
-                      : "Push-to-Talk"}
+                      : "Zum Sprechen gedrückt halten"}
                 </button>
                 <button
                   type="button"

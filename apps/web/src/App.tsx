@@ -101,7 +101,7 @@ const pageLabelById: Record<AppPageId, string> = {
   timeline: "Timeline",
   vendors: "Vendors",
   budget: "Budget",
-  guests: "Gaeste",
+  guests: "Gäste",
   admin: "Admin"
 };
 
@@ -110,7 +110,7 @@ const pageShortLabelById: Record<AppPageId, string> = {
   timeline: "Plan",
   vendors: "Vendoren",
   budget: "Budget",
-  guests: "Gaeste",
+  guests: "Gäste",
   admin: "Admin"
 };
 
@@ -158,9 +158,9 @@ const initialInput: WeddingBootstrapInput = {
   plannedEvents: ["civil-ceremony", "celebration"],
   disabledVendorCategories: [],
   invitationCopy: {
-    headline: "{paar} freut sich auf eure Rueckmeldung",
+    headline: "{paar} freut sich auf eure Rückmeldung",
     body:
-      "{gast}, ihr seid eingeladen fuer {datum} in {ort}. Bitte gebt kurz Bescheid, ob ihr dabei seid und ob es Essenshinweise gibt.",
+      "{gast}, ihr seid eingeladen für {datum} in {ort}. Bitte gebt kurz Bescheid, ob ihr dabei seid und ob es Essenshinweise gibt.",
     footer: "Wir freuen uns sehr auf euch."
   }
 };
@@ -185,7 +185,7 @@ const optionalVendorCategoryOptions: Array<{
   {
     id: "catering",
     label: "Catering",
-    copy: "Deaktivieren, wenn Venue oder Familie das Essen uebernimmt."
+    copy: "Deaktivieren, wenn Venue oder Familie das Essen übernimmt."
   },
   {
     id: "music",
@@ -195,7 +195,7 @@ const optionalVendorCategoryOptions: Array<{
   {
     id: "florals",
     label: "Floristik",
-    copy: "Deaktivieren, wenn Deko/Blumen extern oder intern geklaert sind."
+    copy: "Deaktivieren, wenn Deko/Blumen extern oder intern geklärt sind."
   },
   {
     id: "attire",
@@ -236,7 +236,7 @@ const displayStepTitleById: Record<GuidedPlanningStepId, string> = {
   foundation: "Profilfundament",
   "venue-and-date": "Location-Shortlist",
   "core-vendors": "Kern-Vendoren",
-  "guest-experience": "Gaesteliste & RSVP",
+  "guest-experience": "Gästeliste & Rückmeldungen",
   "legal-admin": "Standesamt & Admin",
   "final-control-room": "Control Room"
 };
@@ -416,7 +416,7 @@ function resolveConsultationLane(
 }
 
 function formatProfileMeta(profile: PrototypeWorkspaceProfile) {
-  return `${profile.region} / ${profile.targetDate} / ${profile.guestCountTarget} Gaeste / ${profile.budgetTotal.toLocaleString("de-DE")} EUR`;
+  return `${profile.region} / ${profile.targetDate} / ${profile.guestCountTarget} Gäste / ${profile.budgetTotal.toLocaleString("de-DE")} EUR`;
 }
 
 function formatLongDate(value: string) {

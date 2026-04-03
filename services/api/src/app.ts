@@ -1,8 +1,11 @@
 import cors from "@fastify/cors";
 import Fastify from "fastify";
 import {
+  continueWeddingConsultantConversation,
+  createWeddingConsultantOpening,
   createBootstrapPlan,
   isWeddingBootstrapInput,
+  type GuidedPlanningStepId,
   type VendorSearchCategory
 } from "@wedding/shared";
 import {
@@ -23,6 +26,14 @@ import {
   type PrototypeWorkspaceStore
 } from "./prototype-store";
 import {
+  appendConsultantTurn,
+  createInitialSession,
+  InMemoryConsultantSessionStore,
+  isGuidedPlanningStepId,
+  type ConsultationAssistantMode,
+  type ConsultantSessionStore
+} from "./consultant-session-store";
+import {
   InMemoryVendorRefreshStore,
   isVendorRefreshRequest,
   type VendorRefreshStore
@@ -32,6 +43,7 @@ interface BuildAppOptions {
   workspaceStore?: PrototypeWorkspaceStore;
   vendorRefreshStore?: VendorRefreshStore;
   vendorRefreshExecutor?: VendorRefreshExecutor;
+  consultantSessionStore?: ConsultantSessionStore;
 }
 
 export function buildApp(options: BuildAppOptions = {}) {
@@ -42,6 +54,8 @@ export function buildApp(options: BuildAppOptions = {}) {
     options.vendorRefreshStore ?? new InMemoryVendorRefreshStore();
   const vendorRefreshExecutor =
     options.vendorRefreshExecutor ?? createVendorRefreshExecutor();
+  const consultantSessionStore =
+    options.consultantSessionStore ?? new InMemoryConsultantSessionStore();
 
   app.register(cors, {
     origin: true
@@ -405,7 +419,228 @@ export function buildApp(options: BuildAppOptions = {}) {
     return { workspace };
   });
 
+  app.get("/prototype/consultant/sessions/:workspaceId", async (request, reply) => {
+    const params = request.params as { workspaceId: string };
+    const workspace = await workspaceStore.getWorkspace(params.workspaceId);
+
+    if (!workspace) {
+      return reply.code(404).send({ error: "Workspace not found" });
+    }
+
+    const existingSession = await consultantSessionStore.getSession(params.workspaceId);
+
+    if (existingSession) {
+      return { session: existingSession };
+    }
+
+    const opening = createWeddingConsultantOpening(workspace);
+    const session = createInitialSession(workspace, opening);
+    const savedSession = await consultantSessionStore.saveSession(session);
+
+    return { session: savedSession };
+  });
+
+  app.get("/prototype/consultant/jobs", async (request) => {
+    const query = request.query as { status?: "pending" | "processing" | "completed" | "failed" };
+    const jobs = await consultantSessionStore.listJobs(query.status);
+    return { jobs };
+  });
+
+  app.post("/prototype/consultant/reply", async (request, reply) => {
+    if (!isConsultantReplyPayload(request.body)) {
+      return reply.code(400).send({ error: "Invalid consultant reply payload" });
+    }
+
+    const workspace = await workspaceStore.getWorkspace(request.body.workspace.id);
+
+    if (!workspace) {
+      return reply.code(404).send({ error: "Workspace not found" });
+    }
+
+    const assistantMode: ConsultationAssistantMode =
+      request.body.assistantMode === "operator" ? "operator" : "consultant";
+    const userMessage = request.body.userMessage.trim();
+    const deterministicTurn = continueWeddingConsultantConversation(
+      workspace,
+      request.body.currentTurn.stepId,
+      { text: userMessage }
+    );
+    const { assistantMessage, provider, model } = await generateAssistantMessage({
+      workspace,
+      assistantMode,
+      assistantTier: request.body.assistantTier,
+      deterministicTurn,
+      userMessage
+    });
+    const turn = {
+      ...deterministicTurn,
+      assistantMessage
+    };
+    const currentSession =
+      (await consultantSessionStore.getSession(workspace.id)) ??
+      createInitialSession(workspace, createWeddingConsultantOpening(workspace));
+    const { session } = appendConsultantTurn({
+      session: currentSession,
+      workspace,
+      userMessage,
+      assistantMode,
+      turn
+    });
+    const savedSession = await consultantSessionStore.saveSession(session);
+
+    return {
+      turn,
+      provider,
+      model,
+      workspace,
+      session: savedSession
+    };
+  });
+
+  app.post("/prototype/consultant/transcribe", async (request, reply) => {
+    if (!isConsultantTranscribePayload(request.body)) {
+      return reply.code(400).send({ error: "Invalid consultant voice payload" });
+    }
+
+    return {
+      text: "",
+      language:
+        typeof request.body.languageHint === "string" &&
+        request.body.languageHint.length > 0
+          ? request.body.languageHint
+          : "de",
+      durationSeconds: null
+    };
+  });
+
+  app.post("/prototype/consultant/speak", async (request, reply) => {
+    if (!isConsultantSpeakPayload(request.body)) {
+      return reply.code(400).send({ error: "Invalid consultant speak payload" });
+    }
+
+    return reply.code(501).send({
+      error: "Voice synthesis is not configured on this runtime"
+    });
+  });
+
   return app;
+}
+
+async function generateAssistantMessage(input: {
+  workspace: {
+    id: string;
+    coupleName: string;
+    onboarding: {
+      region: string;
+    };
+  };
+  assistantMode: ConsultationAssistantMode;
+  assistantTier: "free" | "premium" | undefined;
+  deterministicTurn: ReturnType<typeof continueWeddingConsultantConversation>;
+  userMessage: string;
+}) {
+  const shouldPreferOpenClaw =
+    input.assistantMode === "operator" || input.assistantTier === "premium";
+  const openClawCandidate = shouldPreferOpenClaw
+    ? await requestOpenClawReply({
+        workspaceId: input.workspace.id,
+        coupleName: input.workspace.coupleName,
+        region: input.workspace.onboarding.region,
+        stepId: input.deterministicTurn.stepId,
+        userMessage: input.userMessage
+      })
+    : null;
+
+  if (openClawCandidate) {
+    return {
+      assistantMessage: openClawCandidate,
+      provider: "openclaw" as const,
+      model: process.env.OPENCLAW_MODEL ?? "openclaw"
+    };
+  }
+
+  return {
+    assistantMessage: input.deterministicTurn.assistantMessage,
+    provider: shouldPreferOpenClaw ? ("fallback" as const) : ("deterministic" as const),
+    model: "wedding-shared-deterministic"
+  };
+}
+
+async function requestOpenClawReply(input: {
+  workspaceId: string;
+  coupleName: string;
+  region: string;
+  stepId: string;
+  userMessage: string;
+}) {
+  const endpoint = process.env.OPENCLAW_CHAT_URL;
+
+  if (!endpoint) {
+    return null;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        workspaceId: input.workspaceId,
+        systemRole:
+          "Du bist ein herzlicher, klarer Hochzeitsplaner mit echter Praxis. Antworte immer konkret, menschlich und ohne Fachjargon.",
+        profile: {
+          coupleName: input.coupleName,
+          region: input.region,
+          stepId: input.stepId
+        },
+        userMessage: input.userMessage
+      }),
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as unknown;
+
+    return getOpenClawMessage(payload);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function getOpenClawMessage(payload: unknown) {
+  if (!isPlainObject(payload)) {
+    return null;
+  }
+
+  const directMessage = payload.message;
+  const nestedMessage =
+    isPlainObject(payload.reply) && typeof payload.reply.text === "string"
+      ? payload.reply.text
+      : null;
+  const assistantMessage =
+    typeof payload.assistantMessage === "string" ? payload.assistantMessage : null;
+
+  const candidate =
+    typeof directMessage === "string"
+      ? directMessage
+      : assistantMessage ?? nestedMessage;
+
+  if (typeof candidate !== "string") {
+    return null;
+  }
+
+  const text = candidate.trim();
+
+  return text.length > 0 ? text : null;
 }
 
 const vendorSearchCategories: VendorSearchCategory[] = [
@@ -435,6 +670,54 @@ function isVendorSearchCategory(value: unknown): value is VendorSearchCategory {
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isConsultantReplyPayload(
+  value: unknown
+): value is {
+  workspace: { id: string };
+  currentTurn: { stepId: GuidedPlanningStepId };
+  userMessage: string;
+  assistantMode?: ConsultationAssistantMode;
+  assistantTier?: "free" | "premium";
+} {
+  return (
+    isPlainObject(value) &&
+    isPlainObject(value.workspace) &&
+    typeof value.workspace.id === "string" &&
+    isPlainObject(value.currentTurn) &&
+    isGuidedPlanningStepId(value.currentTurn.stepId) &&
+    typeof value.userMessage === "string" &&
+    (value.assistantMode === undefined ||
+      value.assistantMode === "consultant" ||
+      value.assistantMode === "operator") &&
+    (value.assistantTier === undefined ||
+      value.assistantTier === "free" ||
+      value.assistantTier === "premium")
+  );
+}
+
+function isConsultantTranscribePayload(
+  value: unknown
+): value is {
+  audioBase64: string;
+  mimeType?: string;
+  languageHint?: string;
+} {
+  return (
+    isPlainObject(value) &&
+    typeof value.audioBase64 === "string" &&
+    (value.mimeType === undefined || typeof value.mimeType === "string") &&
+    (value.languageHint === undefined || typeof value.languageHint === "string")
+  );
+}
+
+function isConsultantSpeakPayload(
+  value: unknown
+): value is {
+  text: string;
+} {
+  return isPlainObject(value) && typeof value.text === "string";
 }
 
 function isVendorConnectorPreviewPayload(

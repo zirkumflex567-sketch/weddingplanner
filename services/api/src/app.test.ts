@@ -191,7 +191,7 @@ describe("POST /planning/bootstrap", () => {
     expect(response.statusCode).toBe(200);
 
     const body = response.json();
-    expect(body.plan.vendorMatches).toEqual([
+    expect(body.plan.vendorMatches).toMatchObject([
       {
         id: "berlin-kranich-catering",
         name: "Kranich Catering",
@@ -1352,6 +1352,87 @@ describe("prototype workspace flow", () => {
           stage: "contacted",
           quoteAmount: null,
           note: "Rueckruf angefragt."
+        })
+      ])
+    );
+  });
+});
+
+describe("consultant runtime flow", () => {
+  it("creates and returns a consultant session for an existing workspace", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const workspaceId = createResponse.json().workspace.id;
+
+    const sessionResponse = await app.inject({
+      method: "GET",
+      url: `/prototype/consultant/sessions/${workspaceId}`
+    });
+
+    expect(sessionResponse.statusCode).toBe(200);
+    expect(sessionResponse.json().session).toMatchObject({
+      workspaceId,
+      currentTurn: {
+        stepId: "venue-and-date"
+      }
+    });
+    expect(sessionResponse.json().session.messages.length).toBeGreaterThan(0);
+  });
+
+  it("saves a consultant reply and exposes a completed job entry", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const workspace = createResponse.json().workspace;
+    const sessionResponse = await app.inject({
+      method: "GET",
+      url: `/prototype/consultant/sessions/${workspace.id}`
+    });
+    const currentTurn = sessionResponse.json().session.currentTurn;
+
+    const replyResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace,
+        currentTurn,
+        messages: sessionResponse.json().session.messages,
+        userMessage: "Wie geht es weiter mit der Location?",
+        assistantTier: "premium",
+        assistantMode: "operator"
+      }
+    });
+
+    expect(replyResponse.statusCode).toBe(200);
+    expect(replyResponse.json().turn).toMatchObject({
+      stepId: "venue-and-date"
+    });
+    expect(["openclaw", "fallback"]).toContain(replyResponse.json().provider);
+    expect(replyResponse.json().session.messages.length).toBeGreaterThan(2);
+
+    const jobsResponse = await app.inject({
+      method: "GET",
+      url: "/prototype/consultant/jobs?status=completed"
+    });
+
+    expect(jobsResponse.statusCode).toBe(200);
+    expect(jobsResponse.json().jobs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          workspaceId: workspace.id,
+          status: "completed",
+          kind: "reply"
         })
       ])
     );

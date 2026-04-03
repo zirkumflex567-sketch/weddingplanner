@@ -1148,7 +1148,7 @@ function createGuidedPlanningHeadline(stepId: GuidedPlanningStepId, workspace: P
     case "core-vendors":
       return "Venue-Fit steht, jetzt ziehen Foto, Catering, Musik, Floristik und Styling mit echten Preisankern nach.";
     case "guest-experience":
-      return "Jetzt wird aus Planung echte Kommunikation: Guestlist, Haushalte und RSVP.";
+      return "Jetzt wird aus Planung echte Kommunikation: Gästeliste, Haushalte und Rückmeldungen.";
     case "legal-admin":
       return "Parallel zur Orga sichern wir jetzt die Standesamt- und Admin-Spur ab.";
     case "final-control-room":
@@ -1257,8 +1257,8 @@ export function createGuidedPlanningSession(
       title: "Gaeste und RSVP aufsetzen",
       status: statusById["guest-experience"],
       focusArea: "guests",
-      primaryActionLabel: "Guestlist starten",
-      summary: "Jetzt wird aus Orga Kommunikation: Haushalte, Einladungen und Rueckmeldungen.",
+      primaryActionLabel: "Gästeliste starten",
+      summary: "Jetzt wird aus Orga Kommunikation: Haushalte, Einladungen und Rückmeldungen.",
       coachBrief:
         "Legt zuerst die Kern-Gaeste an und nutzt dann die oeffentlichen RSVP-Links. So bekommt ihr frueh ein echtes Bild fuer Catering und Ablauf.",
       checklist: [
@@ -1439,9 +1439,9 @@ function getActionOptions(stepId: GuidedPlanningStepId): WeddingConsultantReplyO
       ];
     case "guest-experience":
       return [
-        { id: "guests-start-list", label: "Wie starten wir die Guestlist am besten?" },
-        { id: "guests-rsvp-test", label: "Ich will den RSVP-Flow testen" },
-        { id: "guests-count-check", label: "Bitte Ziel-Gaestezahl einordnen" },
+        { id: "guests-start-list", label: "Wie starten wir die Gästeliste am besten?" },
+        { id: "guests-rsvp-test", label: "Ich will den Rückmeldelink für Gäste testen" },
+        { id: "guests-count-check", label: "Bitte Ziel-Gästezahl einordnen" },
         { id: "guests-next", label: "Weiter zu Standesamt und Admin" }
       ];
     case "legal-admin":
@@ -1602,11 +1602,11 @@ function createOpeningMessage(workspace: PrototypeWorkspace, stepId: GuidedPlann
     case "foundation":
       return `Ich nehme euch jetzt wie in einer echten Beratung an die Hand. Fuer ${workspace.coupleName} halte ich erst das Fundament fest: ${workspace.onboarding.targetDate}, ${workspace.onboarding.region}, ${workspace.onboarding.guestCountTarget} Gaeste und ${workspace.onboarding.budgetTotal.toLocaleString("de-DE")} EUR. Was wollt ihr daran als Erstes gemeinsam scharfziehen?`;
     case "venue-and-date":
-      return `Ich wuerde mit euch jetzt ganz bewusst die Location-Schicht sauber ziehen. Fuer ${workspace.onboarding.region} sehe ich aktuell ${venueNames} als erste relevante Gespraeche. ${guidedSession.headline} Was ist euch bei der Location gerade am wichtigsten?`;
+      return `Lasst uns die Location jetzt sauber festziehen. Für ${workspace.onboarding.region} sehe ich aktuell ${venueNames} als erste sinnvolle Gespräche. ${guidedSession.headline} Was ist euch bei der Location im Moment am wichtigsten?`;
     case "core-vendors":
-      return `Gut, dann gehen wir wie in einer Beratung in die naechsten echten Vendor-Bloecke: Foto, Catering, Musik, Floristik und Styling. Sobald ihr dort Preisanker habt, wird der Plan belastbar. Womit soll ich euch zuerst durchfuehren?`;
+      return `Super, dann gehen wir in die nächsten Kernbereiche: Foto, Catering, Musik, Floristik und Styling. Sobald dort erste Preisanker stehen, wird der Plan belastbar. Womit wollt ihr starten?`;
     case "guest-experience":
-      return `Jetzt kippt die Planung in Kommunikation. Ich wuerde mit euch jetzt Guestlist, Haushalte und RSVP so aufsetzen, dass Catering und Ablauf spaeter nicht raten muessen. Wo wollt ihr anfangen?`;
+      return `Jetzt wechseln wir in die Kommunikation mit euren Gästen. Ich möchte mit euch Gästeliste, Haushalte und Rückmeldungen so aufsetzen, dass Catering und Ablauf später nicht raten müssen. Wo wollt ihr anfangen?`;
     case "legal-admin":
       return `Jetzt sichern wir parallel die Standesamt- und Admin-Spur. Das ist genau der Teil, den Paare gerne zu spaet anfassen. Wobei soll ich euch zuerst beraten?`;
     case "final-control-room":
@@ -1769,7 +1769,7 @@ export function continueWeddingConsultantConversation(
       return {
         stepId: "guest-experience",
         focusArea: "guests",
-        assistantMessage: `Sehr gute Beratungsentscheidung. Ich wuerde genau jetzt ein bis zwei Testgaeste anlegen, den oeffentlichen RSVP-Link pruegeln und schauen, ob Antwort, Essenswahl und Nachricht fuer euch natuerlich wirken. Erst dann skaliert man den Flow guten Gewissens aus.`,
+        assistantMessage: `Sehr gute Entscheidung. Ich würde jetzt ein bis zwei Testgäste anlegen, den öffentlichen Rückmeldelink prüfen und schauen, ob Antwort, Essenswahl und Nachricht natürlich wirken. Erst dann rollt man das breit aus.`,
         suggestedReplies: getActionOptions("guest-experience")
       };
     case "guests-count-check":
@@ -1783,7 +1783,7 @@ export function continueWeddingConsultantConversation(
       return {
         stepId: "guest-experience",
         focusArea: "guests",
-        assistantMessage: `Ich bleibe hier noch bei Guestlist und RSVP, bevor wir in den Admin-Teil springen. Wenn ihr wollt, schauen wir auf Listenaufbau, Test-RSVPs oder die realistische Ziel-Gaestezahl.`,
+        assistantMessage: `Ich bleibe hier noch bei Gästeliste und Rückmeldungen, bevor wir in den Admin-Teil springen. Wenn ihr wollt, schauen wir auf Listenaufbau, Testeinladungen oder die realistische Ziel-Gästezahl.`,
         suggestedReplies: getActionOptions("guest-experience")
       };
     case "guests-next":
