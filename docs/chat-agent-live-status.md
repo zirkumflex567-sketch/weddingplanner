@@ -48,3 +48,17 @@ Stand: 2026-04-03
 - Bei unvollständigen Angaben reagiert der Bot mit klarer Rückfrage (fehlender Name/Kategorie), statt still zu scheitern.
 - Operator-Antworten priorisieren jetzt die konkrete Bestätigung der Aktion statt generischer Berater-Floskeln.
 - Beratungs-Ton wurde weichgezeichnet (u. a. weniger „Hebel“-Sprache).
+
+## Update 2026-04-03 (dynamischer Operator, workspace-sicher)
+
+- Operator verarbeitet jetzt mehrere freie Chat-Intents innerhalb eines Workspace, ohne starre Einzelbefehle:
+  - Onboarding-Updates (Budget, Gästezahl, Datum, Region)
+  - Aufgabenstatus (erledigt/offen)
+  - Vendor-Status (kontaktiert/angebot/gebucht/abgelehnt)
+  - Budgeteinträge (geplant/gebucht/bezahlt)
+  - Gast hinzufügen (Name + E-Mail + optional Haushalt/Events)
+  - Manueller Anbieter mit Kontaktdaten
+- Sicherheitsrahmen:
+  - Änderungen ausschließlich auf dem aktuell übergebenen `workspaceId`
+  - Keine systemfremden Aktionen, keine Datei-/Shell-Aktionen aus Chat
+  - Whitelist-basierte Felder und Statuswerte

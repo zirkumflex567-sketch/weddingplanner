@@ -969,6 +969,82 @@ async function applyOperatorMessageToWorkspace(
     );
   }
 
+  const onboardingChanges = parseOnboardingUpdates(userMessage, workspace.onboarding);
+  if (onboardingChanges) {
+    const updatedWorkspace = await workspaceStore.updateWorkspace(workspace.id, {
+      ...workspace.onboarding,
+      ...onboardingChanges.patch
+    });
+    if (updatedWorkspace) {
+      workspace = updatedWorkspace;
+      changed.push(...onboardingChanges.notes);
+    }
+  }
+
+  const taskUpdate = findTaskIntent(userMessage, workspace.tasks);
+  if (taskUpdate) {
+    const updatedWorkspace = await workspaceStore.setTaskCompletion(
+      workspace.id,
+      taskUpdate.taskId,
+      taskUpdate.completed
+    );
+    if (updatedWorkspace) {
+      workspace = updatedWorkspace;
+      changed.push(taskUpdate.note);
+    }
+  }
+
+  const vendorStageUpdate = findVendorStageIntent(userMessage, workspace);
+  if (vendorStageUpdate) {
+    const updatedWorkspace = await workspaceStore.updateVendor(
+      workspace.id,
+      vendorStageUpdate.vendorId,
+      {
+        stage: vendorStageUpdate.stage,
+        quoteAmount: vendorStageUpdate.quoteAmount,
+        note: vendorStageUpdate.note
+      }
+    );
+    if (updatedWorkspace) {
+      workspace = updatedWorkspace;
+      changed.push(vendorStageUpdate.summary);
+    }
+  }
+
+  const expenseIntent = parseExpenseIntent(userMessage);
+  if (expenseIntent) {
+    const updatedWorkspace = await workspaceStore.addExpense(workspace.id, expenseIntent);
+    if (updatedWorkspace) {
+      workspace = updatedWorkspace;
+      changed.push(
+        `Budgeteintrag ergänzt: ${expenseIntent.label} (${expenseIntent.amount.toLocaleString("de-DE")} EUR, ${mapCategoryToLabel(expenseIntent.category)})`
+      );
+    }
+  }
+
+  const guestIntent = parseGuestCreateIntent(userMessage);
+  if (guestIntent.intentDetected) {
+    if (!guestIntent.name || !guestIntent.email) {
+      return {
+        workspace,
+        note:
+          "Operator-Hinweis: Für einen neuen Gast brauche ich mindestens Name und E-Mail. " +
+          "Optional: Haushalt und Event-Wünsche."
+      };
+    }
+
+    const updatedWorkspace = await workspaceStore.addGuest(workspace.id, {
+      name: guestIntent.name,
+      email: guestIntent.email,
+      household: guestIntent.household ?? "Haushalt",
+      eventIds: guestIntent.eventIds
+    });
+    if (updatedWorkspace) {
+      workspace = updatedWorkspace;
+      changed.push(`Gast ergänzt: ${guestIntent.name}`);
+    }
+  }
+
   if (changed.length === 0) {
     return {
       workspace,
@@ -993,6 +1069,224 @@ async function applyOperatorMessageToWorkspace(
   return {
     workspace: updated,
     note: `Operator-Update: ${changed.join(", ")}.`
+  };
+}
+
+function parseOnboardingUpdates(
+  message: string,
+  onboarding: {
+    coupleName: string;
+    targetDate: string;
+    region: string;
+    guestCountTarget: number;
+    budgetTotal: number;
+    stylePreferences: string[];
+    noGoPreferences: string[];
+    plannedEvents: string[];
+    disabledVendorCategories?: string[];
+  }
+): {
+  patch: Partial<typeof onboarding>;
+  notes: string[];
+} | null {
+  const lower = message.toLowerCase();
+  const patch: Partial<typeof onboarding> = {};
+  const notes: string[] = [];
+
+  const budgetMatch = message.match(/(?:budget|gesamtbudget)\D{0,20}(\d{3,7})/i);
+  if (budgetMatch) {
+    const nextBudget = Number(budgetMatch[1]);
+    if (Number.isFinite(nextBudget) && nextBudget > 0) {
+      patch.budgetTotal = nextBudget;
+      notes.push(`Budget auf ${nextBudget.toLocaleString("de-DE")} EUR gesetzt`);
+    }
+  }
+
+  const guestMatch = message.match(/(?:gaeste|gäste|personen)\D{0,20}(\d{1,4})/i);
+  if (guestMatch) {
+    const nextCount = Number(guestMatch[1]);
+    if (Number.isFinite(nextCount) && nextCount > 0) {
+      patch.guestCountTarget = nextCount;
+      notes.push(`Gästezahl auf ${nextCount} gesetzt`);
+    }
+  }
+
+  const dateMatch = message.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+  if (dateMatch) {
+    patch.targetDate = dateMatch[1];
+    notes.push(`Datum auf ${dateMatch[1]} gesetzt`);
+  }
+
+  const regionMatch = message.match(/\b(?:ort|region)\b\s*(?:ist|auf)?\s*[:\-]?\s*([^,.\n]{3,80})/i);
+  if (regionMatch) {
+    const region = cleanExtract(regionMatch[1]);
+    if (region) {
+      patch.region = region;
+      notes.push(`Region auf ${region} gesetzt`);
+    }
+  }
+
+  if (Object.keys(patch).length === 0) {
+    return null;
+  }
+
+  return { patch, notes };
+}
+
+function findTaskIntent(
+  message: string,
+  tasks: Array<{ id: string; title: string; completed: boolean }>
+): { taskId: string; completed: boolean; note: string } | null {
+  const lower = message.toLowerCase();
+  const wantsDone = /\b(erledigt|abgehakt|fertig|done)\b/.test(lower);
+  const wantsOpen = /\b(offen|zurueck|zurück|wieder offen|undo)\b/.test(lower);
+  if (!wantsDone && !wantsOpen) {
+    return null;
+  }
+
+  const match = tasks.find((task) =>
+    task.title
+      .toLowerCase()
+      .split(/\s+/)
+      .some((token) => token.length > 5 && lower.includes(token))
+  );
+  if (!match) {
+    return null;
+  }
+
+  const completed = wantsDone && !wantsOpen;
+  return {
+    taskId: match.id,
+    completed,
+    note: `Aufgabe ${completed ? "erledigt" : "wieder geöffnet"}: ${match.title}`
+  };
+}
+
+function findVendorStageIntent(
+  message: string,
+  workspace: PrototypeWorkspace
+): { vendorId: string; stage: "suggested" | "contacted" | "quoted" | "booked" | "rejected"; quoteAmount: number | null; note: string; summary: string } | null {
+  const lower = message.toLowerCase();
+  const vendor =
+    workspace.plan.vendorMatches.find((entry) => lower.includes(entry.name.toLowerCase())) ??
+    workspace.plan.vendorMatches.find((entry) => {
+      const tokens = entry.name
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((token) => token.length >= 4);
+      const tokenHits = tokens.filter((token) => lower.includes(token)).length;
+      return tokenHits >= Math.min(2, tokens.length);
+    });
+  const phraseVendorName = cleanExtract(
+    extractByLabel(message, /^([^,\n]{3,80})\s+(?:ist|wurde)\s+(?:kontaktiert|angefragt|gebucht|abgesagt|abgelehnt)/i)
+  );
+  const vendorFromPhrase =
+    !vendor && phraseVendorName
+      ? workspace.plan.vendorMatches.find((entry) =>
+          entry.name.toLowerCase().includes(phraseVendorName.toLowerCase())
+        )
+      : null;
+  const finalVendor = vendor ?? vendorFromPhrase;
+  if (!finalVendor) {
+    return null;
+  }
+
+  let stage: "suggested" | "contacted" | "quoted" | "booked" | "rejected" | null = null;
+  if (/\b(kontaktiert|angefragt|anfrage)\b/.test(lower)) {
+    stage = "contacted";
+  } else if (/\b(angebot|quote)\b/.test(lower)) {
+    stage = "quoted";
+  } else if (/\b(gebucht|fix|beauftragt)\b/.test(lower)) {
+    stage = "booked";
+  } else if (/\b(absagen|ablehnen|raus|streichen)\b/.test(lower)) {
+    stage = "rejected";
+  }
+  if (!stage) {
+    return null;
+  }
+
+  const quoteMatch = message.match(/(\d{3,7})\s*(?:eur|euro)?/i);
+  const quoteAmount = quoteMatch ? Number(quoteMatch[1]) : null;
+
+  return {
+    vendorId: finalVendor.id,
+    stage,
+    quoteAmount: Number.isFinite(quoteAmount as number) ? quoteAmount : null,
+    note: `Per Operator gesetzt (${stage})`,
+    summary: `${finalVendor.name} auf Status ${stage} gesetzt`
+  };
+}
+
+function parseExpenseIntent(message: string): {
+  label: string;
+  category: "venue" | "catering" | "photography" | "music" | "attire" | "florals" | "stationery-admin";
+  amount: number;
+  status: "planned" | "booked" | "paid";
+  vendorName: string;
+} | null {
+  const lower = message.toLowerCase();
+  if (!/\b(kosten|ausgabe|budgeteintrag|betrag)\b/.test(lower)) {
+    return null;
+  }
+
+  const amountMatch = message.match(/(\d{2,7})\s*(?:eur|euro)?/i);
+  if (!amountMatch) {
+    return null;
+  }
+  const amount = Number(amountMatch[1]);
+  if (!Number.isFinite(amount) || amount < 0) {
+    return null;
+  }
+
+  const category = detectVendorCategory(lower) ?? "stationery-admin";
+  const vendorName =
+    extractByLabel(message, /(?:bei|an|fuer|für)\s+([^,.\n]{3,80})/i) ?? "Manueller Eintrag";
+  const status = /\bbezahlt|paid\b/.test(lower) ? "paid" : /\bgebucht|fix\b/.test(lower) ? "booked" : "planned";
+
+  return {
+    label: `Manueller Budgeteintrag: ${vendorName}`,
+    category,
+    amount,
+    status,
+    vendorName
+  };
+}
+
+function parseGuestCreateIntent(message: string): {
+  intentDetected: boolean;
+  name?: string;
+  email?: string;
+  household?: string;
+  eventIds: Array<"civil-ceremony" | "wedding-ceremony" | "reception">;
+} {
+  const lower = message.toLowerCase();
+  const intentDetected =
+    /\b(gast|gäst|einladen|gaesteliste|gästeliste)\b/.test(lower) &&
+    /\b(hinzuf|hinzu|eintragen|neu)\b/.test(lower);
+  const name = cleanExtract(
+    extractByLabel(message, /\bname\s*[:\-]?\s*([^,.\n]{3,80})/i) ??
+      extractByLabel(message, /\bgast\s*[:\-]?\s*([^,.\n]{3,80})/i)
+  );
+  const email = cleanExtract(extractByLabel(message, /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i));
+  const household = cleanExtract(extractByLabel(message, /(?:haushalt|familie)\s*[:\-]?\s*([^,.\n]{2,80})/i));
+
+  const eventIds: Array<"civil-ceremony" | "wedding-ceremony" | "reception"> = [];
+  if (/\bstandesamt\b/.test(lower)) {
+    eventIds.push("civil-ceremony");
+  }
+  if (/\btrauung\b/.test(lower)) {
+    eventIds.push("wedding-ceremony");
+  }
+  if (/\bfeier|party|empfang\b/.test(lower)) {
+    eventIds.push("reception");
+  }
+
+  return {
+    intentDetected,
+    name: name?.replace(/\s+email\s+\S+$/i, "").trim(),
+    email,
+    household,
+    eventIds: eventIds.length > 0 ? eventIds : ["wedding-ceremony", "reception"]
   };
 }
 
