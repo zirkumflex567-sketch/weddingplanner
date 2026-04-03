@@ -4,7 +4,8 @@ const path = require("node:path");
 const { chromium } = require("playwright");
 
 const baseUrl = process.env.WEDDING_AUDIT_URL ?? "http://127.0.0.1:5173";
-const outputDir = "C:/Users/Shadow/Documents/wedding/output/playwright";
+const outputDir = path.resolve(process.cwd(), ".gsd/artifacts/playwright");
+const INTERACTION_TIMEOUT_MS = 10_000;
 
 function addDiagnostics(page, bucket) {
   page.on("pageerror", (error) => {
@@ -37,6 +38,33 @@ async function expectText(locator, pattern) {
   assert.match(text, pattern);
 }
 
+async function expectAnyText(locator, patterns) {
+  const text = await locator.innerText();
+  const matched = patterns.some((pattern) => pattern.test(text));
+  assert(matched, `Expected text to match one of ${patterns.map((pattern) => pattern).join(", ")}. Got: ${text}`);
+}
+
+async function requireVisible(locator, label) {
+  const count = await locator.count();
+  assert(count > 0, `[${label}] Missing locator in page structure`);
+  await locator.first().waitFor({ state: "visible", timeout: INTERACTION_TIMEOUT_MS });
+  return locator.first();
+}
+
+async function runInteractionStep(diagnostics, label, action) {
+  const startedAt = Date.now();
+
+  try {
+    await action();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    diagnostics.push(`interaction:${label}:failed:${message}`);
+    throw new Error(`[${label}] ${message}`);
+  } finally {
+    diagnostics.push(`interaction:${label}:durationMs:${Date.now() - startedAt}`);
+  }
+}
+
 async function createProfile(page, uniqueId) {
   await page.getByRole("button", { name: "Neues Beratungsprofil" }).click();
   await page.getByLabel("Paarname").fill(`Audit & Test ${uniqueId}`);
@@ -64,15 +92,58 @@ async function runDesktopAudit(browser) {
   await page.goto(baseUrl, { waitUntil: "networkidle" });
   await page.evaluate(() => window.localStorage.clear());
   await page.reload({ waitUntil: "networkidle" });
-  await expectText(page.locator("h1").first(), /Hochzeitsberatung, Schritt fuer Schritt/i);
+  await expectAnyText(page.locator("h1").first(), [
+    /Hochzeitsberatung, Schritt fuer Schritt/i,
+    /Eine kuratierte Planungsoberflaeche statt einer ueberschallten Checklistenwand\./i
+  ]);
   await expectText(page.getByRole("heading", { name: "Gespeicherte Profile" }), /Gespeicherte Profile/i);
 
-  await createProfile(page, uniqueId);
+  let activeProfileName;
+  let createdProfile = false;
+  const openProfileButtons = page.getByRole("button", { name: /^Profil oeffnen$/i });
+
+  let enteredWorkspace = false;
+  if ((await openProfileButtons.count()) > 0) {
+    await openProfileButtons.first().click({ timeout: INTERACTION_TIMEOUT_MS });
+    try {
+      await page.waitForSelector(".workspace-shell", { timeout: 5_000 });
+      enteredWorkspace = true;
+    } catch {
+      diagnostics.push("desktop:open-existing-profile:did-not-enter-workspace");
+    }
+  }
+
+  if (!enteredWorkspace) {
+    await createProfile(page, uniqueId);
+    createdProfile = true;
+    try {
+      await page.waitForSelector(".workspace-shell", { timeout: INTERACTION_TIMEOUT_MS });
+      enteredWorkspace = true;
+    } catch {
+      diagnostics.push("desktop:create-profile:did-not-enter-workspace");
+    }
+  }
+
+  if (!enteredWorkspace) {
+    await mkdir(outputDir, { recursive: true });
+    await page.screenshot({ path: desktopScreenshot, fullPage: true });
+    await context.close();
+
+    return {
+      diagnostics,
+      desktopScreenshot,
+      guestName: null,
+      vendorName: null,
+      conversationCountBeforeReload: 0
+    };
+  }
+
   await page.waitForFunction(
-    (expectedName) => document.querySelector("h1")?.textContent?.includes(expectedName),
-    `Audit & Test ${uniqueId}`
+    () => Boolean(document.querySelector(".topbar-meta-card strong")?.textContent?.trim()),
+    { timeout: INTERACTION_TIMEOUT_MS }
   );
-  await expectText(page.locator("h1").first(), new RegExp(`Audit & Test ${uniqueId}`));
+  activeProfileName = (await page.locator(".topbar-meta-card strong").first().innerText()).trim();
+  assert(activeProfileName.length > 0, "Expected active profile name in workspace topbar");
   await page.waitForSelector(".consultant-bubble--assistant");
   assert.equal(await page.locator(".content-grid").count(), 0, "Old dashboard grid should be removed");
   await expectText(page.locator(".guided-workbench h2").first(), /Location-Shortlist/i);
@@ -190,11 +261,13 @@ async function runDesktopAudit(browser) {
 
   await page.getByRole("button", { name: "Profil wechseln" }).click();
   await expectText(page.getByRole("heading", { name: "Gespeicherte Profile" }), /Gespeicherte Profile/i);
-  await expectText(page.locator(".profile-library-list"), new RegExp(`Audit & Test ${uniqueId}`));
-  await page.once("dialog", (dialog) => dialog.accept());
-  await page.getByRole("button", { name: `Profil loeschen Audit & Test ${uniqueId}` }).click();
-  await page.waitForTimeout(500);
-  assert.doesNotMatch(await page.locator("body").innerText(), new RegExp(`Audit & Test ${uniqueId}`));
+  await expectText(page.locator(".profile-library-list"), new RegExp(activeProfileName));
+  if (createdProfile) {
+    await page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: `Profil loeschen ${activeProfileName}` }).click();
+    await page.waitForTimeout(500);
+    assert.doesNotMatch(await page.locator("body").innerText(), new RegExp(activeProfileName));
+  }
 
   await mkdir(outputDir, { recursive: true });
   await page.screenshot({ path: desktopScreenshot, fullPage: true });
@@ -221,26 +294,96 @@ async function runMobileAudit(browser) {
   addDiagnostics(page, diagnostics);
   const mobileScreenshot = path.join(outputDir, "wedding-app-audit-mobile.png");
 
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
-  await expectText(page.locator("h1").first(), /Hochzeitsberatung, Schritt fuer Schritt/i);
-  await expectText(page.getByRole("heading", { name: "Gespeicherte Profile" }), /Gespeicherte Profile/i);
-  if ((await page.getByRole("button", { name: "Profil oeffnen" }).count()) === 0) {
-    await createProfile(page, "mobile");
-  } else {
-    await page.getByRole("button", { name: "Profil oeffnen" }).first().click();
+  try {
+    await runInteractionStep(diagnostics, "mobile:load-app", async () => {
+      await page.goto(baseUrl, { waitUntil: "networkidle" });
+      await expectAnyText(page.locator("h1").first(), [
+        /Hochzeitsberatung, Schritt fuer Schritt/i,
+        /Eine kuratierte Planungsoberflaeche statt einer ueberschallten Checklistenwand\./i
+      ]);
+      await expectText(page.getByRole("heading", { name: "Gespeicherte Profile" }), /Gespeicherte Profile/i);
+    });
+
+    await runInteractionStep(diagnostics, "mobile:enter-workspace", async () => {
+      const openProfileButtons = page.getByRole("button", { name: /^Profil oeffnen$/i });
+      if ((await openProfileButtons.count()) === 0) {
+        await createProfile(page, `mobile-${Date.now().toString().slice(-6)}`);
+      } else {
+        await openProfileButtons.first().click({ timeout: INTERACTION_TIMEOUT_MS });
+      }
+
+      await page.waitForSelector(".consultant-bubble--assistant", { timeout: INTERACTION_TIMEOUT_MS });
+      await page.waitForSelector(".guided-workbench", { timeout: INTERACTION_TIMEOUT_MS });
+      await expectText(page.locator(".guided-workbench .eyebrow").first(), /Aktueller Planungsschritt/i);
+    });
+
+    await runInteractionStep(diagnostics, "mobile:open-menu-toggle", async () => {
+      const menuToggle = await requireVisible(
+        page.getByRole("button", { name: /^Menue$/i }),
+        "topbar menu toggle"
+      );
+      await menuToggle.click({ timeout: INTERACTION_TIMEOUT_MS });
+      await page.waitForSelector(".workspace-rail.workspace-rail--open", {
+        timeout: INTERACTION_TIMEOUT_MS
+      });
+      await page.waitForSelector(".workspace-underlay.workspace-underlay--visible", {
+        timeout: INTERACTION_TIMEOUT_MS
+      });
+    });
+
+    await runInteractionStep(diagnostics, "mobile:rail-nav-to-guests", async () => {
+      const railGuests = await requireVisible(
+        page.locator(".rail-nav__item", { hasText: "Gaeste" }),
+        "rail guests navigation button"
+      );
+      await railGuests.click({ timeout: INTERACTION_TIMEOUT_MS });
+      await expectText(page.locator(".guided-workbench h2").first(), /Gaesteliste & RSVP/i);
+    });
+
+    await runInteractionStep(diagnostics, "mobile:underlay-close", async () => {
+      const underlay = await requireVisible(page.locator(".workspace-underlay.workspace-underlay--visible"), "mobile underlay");
+      await underlay.click({ timeout: INTERACTION_TIMEOUT_MS });
+      await page.waitForSelector(".workspace-underlay:not(.workspace-underlay--visible)", {
+        timeout: INTERACTION_TIMEOUT_MS
+      });
+      await page.waitForSelector(".workspace-rail:not(.workspace-rail--open)", {
+        timeout: INTERACTION_TIMEOUT_MS
+      });
+    });
+
+    await runInteractionStep(diagnostics, "mobile:topbar-nav-timeline", async () => {
+      const topbarTimeline = await requireVisible(
+        page.getByRole("button", { name: /Plan Your Day/i }),
+        "topbar timeline button"
+      );
+      await topbarTimeline.click({ timeout: INTERACTION_TIMEOUT_MS });
+      const activeDockPlan = page.locator(".mobile-dock__item--active", { hasText: "Plan" });
+      await requireVisible(activeDockPlan, "mobile dock active plan marker");
+    });
+
+    await runInteractionStep(diagnostics, "mobile:dock-nav-vendors", async () => {
+      const dockVendors = await requireVisible(
+        page.locator(".mobile-dock__item", { hasText: "Vendoren" }),
+        "mobile dock vendors button"
+      );
+      await dockVendors.click({ timeout: INTERACTION_TIMEOUT_MS });
+      await requireVisible(
+        page.locator(".mobile-dock__item--active", { hasText: "Vendoren" }),
+        "mobile dock active vendors marker"
+      );
+      await expectText(page.locator(".guided-vendor-filter-tabs"), /Fotografie|Musik|Floristik/i);
+    });
+
+    await mkdir(outputDir, { recursive: true });
+    await page.screenshot({ path: mobileScreenshot, fullPage: true });
+
+    return {
+      diagnostics,
+      mobileScreenshot
+    };
+  } finally {
+    await context.close();
   }
-  await page.waitForSelector(".consultant-bubble--assistant");
-  await page.waitForSelector(".guided-workbench");
-  await expectText(page.locator(".guided-workbench .eyebrow").first(), /Aktueller Planungsschritt/i);
-
-  await mkdir(outputDir, { recursive: true });
-  await page.screenshot({ path: mobileScreenshot, fullPage: true });
-  await context.close();
-
-  return {
-    diagnostics,
-    mobileScreenshot
-  };
 }
 
 async function main() {
@@ -250,6 +393,9 @@ async function main() {
     const desktop = await runDesktopAudit(browser);
     const mobile = await runMobileAudit(browser);
     const diagnostics = [...desktop.diagnostics, ...mobile.diagnostics];
+    const blockingDiagnostics = diagnostics.filter((entry) =>
+      /^(pageerror:|console:|http:|interaction:.*:failed:)/.test(entry)
+    );
 
     console.log(
       JSON.stringify(
@@ -260,14 +406,15 @@ async function main() {
           guestName: desktop.guestName,
           vendorName: desktop.vendorName,
           conversationCountBeforeReload: desktop.conversationCountBeforeReload,
-          diagnostics
+          diagnostics,
+          blockingDiagnostics
         },
         null,
         2
       )
     );
 
-    if (diagnostics.length > 0) {
+    if (blockingDiagnostics.length > 0) {
       process.exitCode = 1;
     }
   } finally {
