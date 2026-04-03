@@ -56,6 +56,12 @@ const defaultRegion = "Deutschland";
 const outputRoot = path.resolve(process.cwd(), "output", "ingestion");
 const stateFile = path.resolve(outputRoot, "pipeline-state.json");
 const dbFile = path.resolve(outputRoot, "vendor-discovery-db.json");
+const quarantineFile = path.resolve(outputRoot, "vendor-discovery-quarantine.json");
+
+export interface DiscoveryQuarantineRecord extends DiscoveryDbRecord {
+  quarantineReason: string;
+  quarantinedAt: string;
+}
 
 const defaultCategories: VendorSearchCategory[] = [
   "venue",
@@ -205,10 +211,27 @@ export async function runVendorDiscoveryPipeline(
     }
   }
 
-  const nextDb = [...dedupe.values()]
-    .filter((record) => isDiscoveryRecordUseful(record))
-    .sort((a, b) => b.freshnessTimestamp.localeCompare(a.freshnessTimestamp));
+  const accepted: DiscoveryDbRecord[] = [];
+  const quarantined: DiscoveryQuarantineRecord[] = [];
+  for (const record of dedupe.values()) {
+    const decision = classifyDiscoveryRecord(record);
+    if (decision.accepted) {
+      accepted.push(record);
+      continue;
+    }
+    quarantined.push({
+      ...record,
+      quarantineReason: decision.reason ?? "quality-filter",
+      quarantinedAt: new Date().toISOString()
+    });
+  }
+
+  const nextDb = accepted.sort((a, b) => b.freshnessTimestamp.localeCompare(a.freshnessTimestamp));
+  const nextQuarantine = quarantined.sort((a, b) =>
+    b.quarantinedAt.localeCompare(a.quarantinedAt)
+  );
   await writeDiscoveryDb(nextDb);
+  await writeDiscoveryQuarantine(nextQuarantine);
   report.dbRecordCount = nextDb.length;
 
   if (input.mode === "weekly-baseline") {
@@ -367,7 +390,10 @@ function createRecordKey(record: Pick<DiscoveryDbRecord, "name" | "websiteUrl" |
   return `${record.category}|${record.region}|${record.name.toLowerCase()}`;
 }
 
-function isDiscoveryRecordUseful(record: DiscoveryDbRecord) {
+function classifyDiscoveryRecord(record: DiscoveryDbRecord): {
+  accepted: boolean;
+  reason?: string;
+} {
   const blockedHosts = [
     "onelink.to",
     "trustlocal.de",
@@ -384,12 +410,12 @@ function isDiscoveryRecordUseful(record: DiscoveryDbRecord) {
 
   const host = extractHost(record.websiteUrl ?? record.sourceUrl);
   if (host && blockedHosts.some((blocked) => host === blocked || host.endsWith(`.${blocked}`))) {
-    return false;
+    return { accepted: false, reason: `blocked-host:${host}` };
   }
 
   const lowerName = (record.name ?? "").trim().toLowerCase();
   if (!lowerName || lowerName.length < 3 || lowerName.length > 90) {
-    return false;
+    return { accepted: false, reason: "invalid-name-length" };
   }
 
   const lowValueNameTokens = [
@@ -407,12 +433,18 @@ function isDiscoveryRecordUseful(record: DiscoveryDbRecord) {
     "ihr web"
   ];
   if (lowValueNameTokens.some((token) => lowerName === token || lowerName.includes(token))) {
-    return false;
+    if (record.contactEmail && record.contactPhone) {
+      return { accepted: true };
+    }
+    return { accepted: false, reason: `low-value-name:${lowerName}` };
   }
 
   const hasContactSignal = Boolean(record.contactEmail || record.contactPhone || record.address);
   const qualityScore = record.sourceQualityScore ?? 0;
-  return hasContactSignal || qualityScore >= 60;
+  if (hasContactSignal || qualityScore >= 60) {
+    return { accepted: true };
+  }
+  return { accepted: false, reason: "insufficient-contact-and-score" };
 }
 
 function extractHost(url?: string) {
@@ -475,6 +507,10 @@ async function readDiscoveryDb(): Promise<DiscoveryDbRecord[]> {
 
 async function writeDiscoveryDb(rows: DiscoveryDbRecord[]) {
   await writeFile(dbFile, JSON.stringify(rows, null, 2), "utf-8");
+}
+
+async function writeDiscoveryQuarantine(rows: DiscoveryQuarantineRecord[]) {
+  await writeFile(quarantineFile, JSON.stringify(rows, null, 2), "utf-8");
 }
 
 async function persistReport(report: PipelineRunReport) {

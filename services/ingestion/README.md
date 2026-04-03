@@ -73,6 +73,14 @@ Adapter-Extraktion (live):
 - Felder: Name, Website, Quelle, Adresse, Telefon, E-Mail, Oeffnungszeiten, Preis-Hinweise
 - zusaetzliche Signale: `ratingValue`, `ratingCount`, `sourceQualityScore`
 - harte Qualitaetsfilter gegen Link-Shortener und Low-Value-Verzeichnistreffer
+- fragliche Treffer werden nicht verworfen, sondern in Quarantaene geschrieben:
+  - `output/ingestion/vendor-discovery-quarantine.json`
+  - inklusive Quarantaenegrund fuer spaetere manuelle Pruefung
+
+Crawler-Stack-Hinweis:
+
+- Skill-Suche via `npx skills find crawler` wurde eingebunden.
+- Installiert: `mindmorass/reflex@site-crawler` als stabilere Crawl-Basis fuer die naechste Adapter-Stufe.
 
 Empfohlener htown-Cron fuer den Free-Baseline-Lauf (woechentlich Sonntag 03:30):
 
