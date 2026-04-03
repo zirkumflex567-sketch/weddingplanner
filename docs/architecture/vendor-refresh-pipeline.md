@@ -76,3 +76,27 @@ Qualitaetsreports unterscheiden aktuell zwischen:
 - `needs-attention`
 
 und tragen konkrete Issues wie fehlende Pflichtfelder, fehlende Publish-Records oder nur auditierte geblockte Felder.
+
+## Browser-Use Discovery Pipeline (neu)
+
+Die Pipeline hat jetzt einen orchestrierten Lauf fuer zwei Tier-Modi:
+
+- `weekly-baseline` (Free): fuehrt den regulaeren Wochenlauf auf htown aus
+- `premium-deep-scan`: fuehrt einen schaerferen Suchlauf on-demand aus
+
+Technischer Ablauf:
+
+1. Pro Kategorie wird ein normaler `vendor-refresh-run` ausgefuehrt (Brave/Places/Website-Crawl).
+2. Danach werden alle relevanten Portale aus `vendorSourcePortals` mit Browser Use headless abgefragt.
+3. Ergebnisse werden in eine persistente Discovery-DB zusammengefuehrt:
+   - `output/ingestion/vendor-discovery-db.json`
+4. Weekly-Laufzeitfenster wird in State gespeichert:
+   - `output/ingestion/pipeline-state.json`
+5. Jeder Lauf erzeugt einen Report:
+   - `output/ingestion/run-<mode>-<timestamp>.json`
+
+Wichtig:
+
+- Kein manuelles Sammeln von Portaldaten im Codefluss.
+- Free und Premium nutzen denselben Datenpfad, Premium laeuft nur tiefer und on-demand.
+- Browser-Use ist bewusst als externes CLI angebunden, damit htown/shadow denselben Adapter nutzen koennen.

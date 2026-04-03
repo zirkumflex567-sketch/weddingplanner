@@ -25,8 +25,38 @@ Fuer echte Connector-Runs nutzt der Ingestion-Service aktuell:
 - `BRAVE_SEARCH_API_BASE_URL` optional fuer alternative Base-URLs
 - `GOOGLE_MAPS_API_KEY` fuer Google Places Text Search
 - `GOOGLE_PLACES_API_BASE_URL` optional fuer alternative Base-URLs
+- `BROWSER_USE_CLI_COMMAND` fuer den headless Browser-Use-Discovery-Lauf
+- `BROWSER_USE_TIMEOUT_MS` optionales Timeout pro Browser-Use-Aufruf
 
 Wenn Schluessel fehlen, werden Connectoren nicht hart crashen, sondern mit `skipped` und klarer Note im Run abgelegt.
+
+## Pipeline-Modi
+
+- `npm run pipeline:weekly --workspace @wedding/ingestion`
+  - fuehrt den Free-Baseline-Lauf aus
+  - nutzt Weekly-State in `output/ingestion/pipeline-state.json`
+  - schreibt aktualisierte Discovery-Daten nach `output/ingestion/vendor-discovery-db.json`
+- `npm run pipeline:premium --workspace @wedding/ingestion`
+  - fuehrt den Premium-Deep-Scan fuer denselben Datenpfad aus
+  - ist als on-demand Lauf fuer Premium-Anfragen gedacht
+
+Optionale Runtime-Parameter:
+
+- `VENDOR_PIPELINE_REGION` (default `Deutschland`)
+- `VENDOR_PIPELINE_CATEGORIES` (CSV, z. B. `venue,catering,music`)
+- `VENDOR_PIPELINE_FORCE=true` ignoriert den Weekly-Intervallschutz
+
+Lokaler headless Smoke-Test ohne echtes Browser-Use-CLI:
+
+```bash
+BROWSER_USE_CLI_COMMAND="node services/ingestion/scripts/browser-use-mock.cjs" npm run pipeline:weekly --workspace @wedding/ingestion
+```
+
+Empfohlener htown-Cron fuer den Free-Baseline-Lauf (woechentlich Sonntag 03:30):
+
+```bash
+30 3 * * 0 cd /home/kevin/workspace/weddingplanner && npm run pipeline:weekly --workspace @wedding/ingestion >> /home/kevin/workspace/weddingplanner/output/ingestion/cron-weekly.log 2>&1
+```
 
 ## Datenregel
 
