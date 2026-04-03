@@ -400,7 +400,10 @@ function isDiscoveryRecordUseful(record: DiscoveryDbRecord) {
     "terms",
     "cookies",
     "so koennen sie uns erreichen",
+    "so können sie uns erreichen",
     "te",
+    "app",
+    "business",
     "ihr web"
   ];
   if (lowValueNameTokens.some((token) => lowerName === token || lowerName.includes(token))) {
