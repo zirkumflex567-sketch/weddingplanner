@@ -164,6 +164,16 @@ export function IngestionCoveragePage() {
                 <p>{sample.contactEmail ?? "keine Email"}</p>
                 <p>{sample.contactPhone ?? "kein Telefon"}</p>
                 <p>{sample.address ?? "keine Adresse"}</p>
+                <p>
+                  {typeof sample.ratingValue === "number"
+                    ? `Bewertung: ${sample.ratingValue.toFixed(1)} (${sample.ratingCount ?? 0})`
+                    : "Bewertung: n/a"}
+                </p>
+                <p>
+                  {typeof sample.sourceQualityScore === "number"
+                    ? `Qualitaet: ${Math.round(sample.sourceQualityScore)}/100`
+                    : "Qualitaet: n/a"}
+                </p>
                 <p>{sample.websiteUrl ?? "keine Website"}</p>
                 <small>{formatDate(sample.freshnessTimestamp)}</small>
               </div>

@@ -21,6 +21,9 @@ export interface BrowserUseDiscoveryRecord {
   contactEmail?: string;
   openingHours?: string[];
   priceHints?: string[];
+  ratingValue?: number;
+  ratingCount?: number;
+  sourceQualityScore?: number;
   note?: string;
 }
 
@@ -121,6 +124,9 @@ function normalizeDiscoveryRecord(
 ): BrowserUseDiscoveryRecord {
   const openingHours = asStringArray(input.openingHours);
   const priceHints = asStringArray(input.priceHints);
+  const ratingValue = asFiniteNumber(input.ratingValue);
+  const ratingCount = asFiniteNumber(input.ratingCount);
+  const sourceQualityScore = asFiniteNumber(input.sourceQualityScore);
 
   return {
     ...(asString(input.name) ? { name: asString(input.name) } : {}),
@@ -131,6 +137,9 @@ function normalizeDiscoveryRecord(
     ...(asString(input.contactEmail) ? { contactEmail: asString(input.contactEmail) } : {}),
     ...(openingHours.length > 0 ? { openingHours } : {}),
     ...(priceHints.length > 0 ? { priceHints } : {}),
+    ...(ratingValue !== null ? { ratingValue } : {}),
+    ...(ratingCount !== null ? { ratingCount } : {}),
+    ...(sourceQualityScore !== null ? { sourceQualityScore } : {}),
     ...(asString(input.note) ? { note: asString(input.note) } : {})
   };
 }
@@ -148,6 +157,13 @@ function asStringArray(value: unknown) {
     .filter((item): item is string => typeof item === "string")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function asFiniteNumber(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+  return value;
 }
 
 async function runCommand(

@@ -190,6 +190,9 @@ export interface IngestionCoverageSnapshot {
     contactEmail?: string;
     contactPhone?: string;
     address?: string;
+    ratingValue?: number;
+    ratingCount?: number;
+    sourceQualityScore?: number;
     freshnessTimestamp?: string;
   }>;
 }

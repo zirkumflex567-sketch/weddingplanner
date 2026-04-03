@@ -25,6 +25,9 @@ export interface DiscoveryDbRecord {
   contactEmail?: string | undefined;
   openingHours?: string[] | undefined;
   priceHints?: string[] | undefined;
+  ratingValue?: number | undefined;
+  ratingCount?: number | undefined;
+  sourceQualityScore?: number | undefined;
   freshnessTimestamp: string;
   note?: string | undefined;
 }
@@ -202,7 +205,9 @@ export async function runVendorDiscoveryPipeline(
     }
   }
 
-  const nextDb = [...dedupe.values()].sort((a, b) => b.freshnessTimestamp.localeCompare(a.freshnessTimestamp));
+  const nextDb = [...dedupe.values()]
+    .filter((record) => isDiscoveryRecordUseful(record))
+    .sort((a, b) => b.freshnessTimestamp.localeCompare(a.freshnessTimestamp));
   await writeDiscoveryDb(nextDb);
   report.dbRecordCount = nextDb.length;
 
@@ -265,6 +270,11 @@ function upsertFromBrowserUseRun(
       ...(row.contactEmail ? { contactEmail: row.contactEmail } : {}),
       ...(row.openingHours && row.openingHours.length > 0 ? { openingHours: row.openingHours } : {}),
       ...(row.priceHints && row.priceHints.length > 0 ? { priceHints: row.priceHints } : {}),
+      ...(typeof row.ratingValue === "number" ? { ratingValue: row.ratingValue } : {}),
+      ...(typeof row.ratingCount === "number" ? { ratingCount: row.ratingCount } : {}),
+      ...(typeof row.sourceQualityScore === "number"
+        ? { sourceQualityScore: row.sourceQualityScore }
+        : {}),
       ...(row.note ? { note: row.note } : {}),
       sourcePortalId,
       freshnessTimestamp: now
@@ -295,6 +305,9 @@ function mergeRecords(
     contactEmail: preferredString(previous.contactEmail, incoming.contactEmail),
     openingHours: mergeStringArrays(previous.openingHours, incoming.openingHours),
     priceHints: mergeStringArrays(previous.priceHints, incoming.priceHints),
+    ratingValue: preferredNumber(previous.ratingValue, incoming.ratingValue),
+    ratingCount: preferredNumber(previous.ratingCount, incoming.ratingCount),
+    sourceQualityScore: preferredNumber(previous.sourceQualityScore, incoming.sourceQualityScore),
     note: preferredString(previous.note, incoming.note),
     sourcePortalId:
       incoming.sourcePortalId || previous.sourcePortalId || "first-party-refresh",
@@ -311,6 +324,16 @@ function preferredString(a?: string, b?: string) {
   }
   if (a && a.trim().length > 0) {
     return a.trim();
+  }
+  return undefined;
+}
+
+function preferredNumber(a?: number, b?: number) {
+  if (typeof b === "number" && Number.isFinite(b)) {
+    return b;
+  }
+  if (typeof a === "number" && Number.isFinite(a)) {
+    return a;
   }
   return undefined;
 }
@@ -342,6 +365,62 @@ function createRecordKey(record: Pick<DiscoveryDbRecord, "name" | "websiteUrl" |
     }
   }
   return `${record.category}|${record.region}|${record.name.toLowerCase()}`;
+}
+
+function isDiscoveryRecordUseful(record: DiscoveryDbRecord) {
+  const blockedHosts = [
+    "onelink.to",
+    "trustlocal.de",
+    "trustlocal.com",
+    "trustlocal.be",
+    "trustpilot.com",
+    "xing.com",
+    "linkedin.com",
+    "facebook.com",
+    "instagram.com",
+    "youtube.com",
+    "pinterest.com"
+  ];
+
+  const host = extractHost(record.websiteUrl ?? record.sourceUrl);
+  if (host && blockedHosts.some((blocked) => host === blocked || host.endsWith(`.${blocked}`))) {
+    return false;
+  }
+
+  const lowerName = (record.name ?? "").trim().toLowerCase();
+  if (!lowerName || lowerName.length < 3 || lowerName.length > 90) {
+    return false;
+  }
+
+  const lowValueNameTokens = [
+    "kontakt",
+    "impressum",
+    "datenschutz",
+    "privacy",
+    "terms",
+    "cookies",
+    "so koennen sie uns erreichen",
+    "te",
+    "ihr web"
+  ];
+  if (lowValueNameTokens.some((token) => lowerName === token || lowerName.includes(token))) {
+    return false;
+  }
+
+  const hasContactSignal = Boolean(record.contactEmail || record.contactPhone || record.address);
+  const qualityScore = record.sourceQualityScore ?? 0;
+  return hasContactSignal || qualityScore >= 60;
+}
+
+function extractHost(url?: string) {
+  if (!url) {
+    return "";
+  }
+  try {
+    return new URL(url).hostname.replace(/^www\./i, "").toLowerCase();
+  } catch {
+    return "";
+  }
 }
 
 function normalizeModeArg(value?: string | null): PipelineMode | null {
