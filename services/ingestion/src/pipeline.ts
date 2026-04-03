@@ -475,6 +475,9 @@ function classifyDiscoveryRecord(record: DiscoveryDbRecord): {
   if (!lowerName || lowerName.length < 3 || lowerName.length > 90) {
     return { accepted: false, reason: "invalid-name-length" };
   }
+  if (isGenericVendorName(lowerName)) {
+    return { accepted: false, reason: `generic-name:${lowerName}` };
+  }
 
   const lowValueNameTokens = [
     "kontakt",
@@ -498,7 +501,13 @@ function classifyDiscoveryRecord(record: DiscoveryDbRecord): {
     return { accepted: false, reason: `low-value-name:${lowerName}` };
   }
 
-  const hasContactSignal = Boolean(record.contactEmail || record.contactPhone || record.address);
+  const hasEmailSignal =
+    typeof record.contactEmail === "string" && isLikelyEmail(record.contactEmail);
+  const hasPhoneSignal =
+    typeof record.contactPhone === "string" && isLikelyPhone(record.contactPhone);
+  const hasAddressSignal =
+    typeof record.address === "string" && isLikelyAddress(record.address);
+  const hasDirectContactSignal = hasEmailSignal || hasPhoneSignal;
   const qualityScore = record.sourceQualityScore ?? 0;
   const relevanceScore = computeWeddingRelevanceScore(record);
   const disableCategoryFit = (process.env.DISCOVERY_DISABLE_CATEGORY_FIT ?? "").toLowerCase() === "true";
@@ -532,10 +541,76 @@ function classifyDiscoveryRecord(record: DiscoveryDbRecord): {
     };
   }
 
-  if (hasContactSignal || qualityScore >= (Number.isFinite(minQuality) ? minQuality : 60)) {
+  if (record.address && !hasAddressSignal) {
+    return {
+      accepted: false,
+      reason: "invalid-address-signal"
+    };
+  }
+
+  if (!hasDirectContactSignal) {
+    return {
+      accepted: false,
+      reason: "missing-direct-contact"
+    };
+  }
+
+  if (qualityScore >= (Number.isFinite(minQuality) ? minQuality : 60) || hasAddressSignal) {
     return { accepted: true };
   }
   return { accepted: false, reason: "insufficient-contact-and-score" };
+}
+
+function isGenericVendorName(lowerName: string) {
+  const compact = lowerName
+    .replace(/[^a-z0-9\s-]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!compact) return true;
+
+  const singleToken = compact.split(" ").filter(Boolean);
+  const firstToken = singleToken[0];
+  if (
+    typeof firstToken === "string" &&
+    singleToken.length === 1 &&
+    /^(hochzeit|hochzeits|wedding|vendor|anbieter|dienstleister|venue|location)$/.test(firstToken)
+  ) {
+    return true;
+  }
+
+  const genericFragments = [
+    "urheberrechte",
+    "impressum",
+    "datenschutz",
+    "cookie",
+    "kontaktformular",
+    "all rights reserved"
+  ];
+  return genericFragments.some((fragment) => compact.includes(fragment));
+}
+
+function isLikelyEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+function isLikelyPhone(value: string) {
+  const normalized = value.replace(/[^\d+]/g, "");
+  return normalized.length >= 7;
+}
+
+function isLikelyAddress(value: string) {
+  const normalized = value.toLowerCase().trim();
+  if (normalized.length < 10) return false;
+  if (
+    normalized.includes("urheberrecht") ||
+    normalized.includes("impressum") ||
+    normalized.includes("datenschutz")
+  ) {
+    return false;
+  }
+  const hasNumber = /\d/.test(normalized);
+  const hasStreetWord = /(str\.|straße|strasse|platz|allee|weg|gasse|ring|ufer|chaussee)/.test(normalized);
+  return hasNumber && hasStreetWord;
 }
 
 function extractHost(url?: string) {
