@@ -71,6 +71,8 @@ Adapter-Extraktion (live):
 - Follow-up auf externe Vendor-Links aus Portallisten
 - strukturierte Datennutzung aus `application/ld+json` (Schema.org)
 - Felder: Name, Website, Quelle, Adresse, Telefon, E-Mail, Oeffnungszeiten, Preis-Hinweise
+- zusaetzliche Signale: `ratingValue`, `ratingCount`, `sourceQualityScore`
+- harte Qualitaetsfilter gegen Link-Shortener und Low-Value-Verzeichnistreffer
 
 Empfohlener htown-Cron fuer den Free-Baseline-Lauf (woechentlich Sonntag 03:30):
 

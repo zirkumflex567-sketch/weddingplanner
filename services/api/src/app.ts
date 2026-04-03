@@ -577,6 +577,9 @@ interface IngestionCoverageRecord {
   contactPhone?: string;
   address?: string;
   sourcePortalId?: string;
+  ratingValue?: number;
+  ratingCount?: number;
+  sourceQualityScore?: number;
   freshnessTimestamp?: string;
 }
 
@@ -633,6 +636,11 @@ async function buildIngestionCoverageSnapshot() {
       ...(record.contactPhone ? { contactPhone: record.contactPhone } : {}),
       ...(record.address ? { address: record.address } : {}),
       ...(record.websiteUrl ? { websiteUrl: record.websiteUrl } : {}),
+      ...(typeof record.ratingValue === "number" ? { ratingValue: record.ratingValue } : {}),
+      ...(typeof record.ratingCount === "number" ? { ratingCount: record.ratingCount } : {}),
+      ...(typeof record.sourceQualityScore === "number"
+        ? { sourceQualityScore: record.sourceQualityScore }
+        : {}),
       ...(record.freshnessTimestamp ? { freshnessTimestamp: record.freshnessTimestamp } : {})
     }));
 

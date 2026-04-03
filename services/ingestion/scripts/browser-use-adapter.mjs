@@ -31,6 +31,7 @@ const maxResults =
     ? Number.parseInt(process.env.BROWSER_USE_ADAPTER_MAX_RESULTS_PREMIUM ?? "20", 10)
     : Number.parseInt(process.env.BROWSER_USE_ADAPTER_MAX_RESULTS_FREE ?? "10", 10);
 const timeoutMs = Number.parseInt(process.env.BROWSER_USE_ADAPTER_TIMEOUT_MS ?? "18000", 10);
+const minQualityScore = Number.parseInt(process.env.BROWSER_USE_ADAPTER_MIN_QUALITY_SCORE ?? "55", 10);
 
 if (!portalUrl) {
   process.stdout.write("[]");
@@ -77,12 +78,12 @@ async function discoverPortalRecords(input) {
       html: pageHtml,
       region: input.region
     });
-    if (isUsefulRecord(pageRecord)) {
+    if (isUsefulRecord(pageRecord, input.portalHost, input.category, minQualityScore)) {
       records.push(pageRecord);
     }
 
     for (const structured of extractSchemaOrgRecords(candidate.url, pageHtml)) {
-      if (isUsefulRecord(structured)) {
+      if (isUsefulRecord(structured, input.portalHost, input.category, minQualityScore)) {
         records.push(structured);
       }
     }
@@ -105,12 +106,12 @@ async function discoverPortalRecords(input) {
         html: vendorHtml,
         region: input.region
       });
-      if (isUsefulRecord(vendorRecord)) {
+      if (isUsefulRecord(vendorRecord, input.portalHost, input.category, minQualityScore)) {
         records.push(vendorRecord);
       }
 
       for (const structured of extractSchemaOrgRecords(link, vendorHtml)) {
-        if (isUsefulRecord(structured)) {
+        if (isUsefulRecord(structured, input.portalHost, input.category, minQualityScore)) {
           records.push(structured);
         }
       }
@@ -200,9 +201,22 @@ function extractRecordFromHtml(input) {
   const phone = normalizePhone(firstMatch(html, /tel:([^"'?\s>]+)/i));
   const openingHours = extractOpeningHours(html);
   const priceHints = findPriceHints(html);
+  const ratingSignal = findRatingSignal(html);
   const address = findAddressSnippet(html, input.region);
   const websiteUrl = safeOrigin(input.url);
   const name = cleanName(h1 || title || input.title || hostToName(input.url));
+  const quality = scoreRecordQuality({
+    name,
+    websiteUrl,
+    sourceUrl: input.url,
+    address,
+    contactPhone: phone,
+    contactEmail: email,
+    openingHours,
+    priceHints,
+    ratingValue: ratingSignal.value,
+    ratingCount: ratingSignal.count
+  });
 
   return {
     ...(name ? { name } : {}),
@@ -213,6 +227,10 @@ function extractRecordFromHtml(input) {
     ...(email ? { contactEmail: email } : {}),
     ...(openingHours.length > 0 ? { openingHours } : {}),
     ...(priceHints.length > 0 ? { priceHints } : {})
+    ,
+    ...(typeof ratingSignal.value === "number" ? { ratingValue: ratingSignal.value } : {}),
+    ...(typeof ratingSignal.count === "number" ? { ratingCount: ratingSignal.count } : {}),
+    sourceQualityScore: quality
   };
 }
 
@@ -265,6 +283,20 @@ function extractSchemaOrgRecords(sourceUrl, html) {
       const priceRange = asString(node.priceRange);
       const websiteUrl = asString(node.url) || safeOrigin(sourceUrl) || "";
       const name = cleanName(asString(node.name) || hostToName(websiteUrl || sourceUrl));
+      const ratingValue = asFiniteNumber(node.aggregateRating?.ratingValue);
+      const ratingCount = asFiniteNumber(node.aggregateRating?.ratingCount ?? node.aggregateRating?.reviewCount);
+      const quality = scoreRecordQuality({
+        name,
+        websiteUrl,
+        sourceUrl,
+        address: addressText,
+        contactPhone: phone,
+        contactEmail: email,
+        openingHours,
+        priceHints: priceRange ? [priceRange] : [],
+        ratingValue,
+        ratingCount
+      });
 
       rows.push({
         ...(name ? { name } : {}),
@@ -274,7 +306,10 @@ function extractSchemaOrgRecords(sourceUrl, html) {
         ...(email ? { contactEmail: email } : {}),
         ...(phone ? { contactPhone: phone } : {}),
         ...(openingHours.length > 0 ? { openingHours } : {}),
-        ...(priceRange ? { priceHints: [priceRange] } : {})
+        ...(priceRange ? { priceHints: [priceRange] } : {}),
+        ...(typeof ratingValue === "number" ? { ratingValue } : {}),
+        ...(typeof ratingCount === "number" ? { ratingCount } : {}),
+        sourceQualityScore: quality
       });
     }
   }
@@ -293,6 +328,9 @@ function extractLikelyVendorLinks(baseUrl, html, portalHost) {
       const absolute = new URL(href, baseUrl).toString();
       const host = safeHost(absolute);
       if (!host || host === portalHost) {
+        continue;
+      }
+      if (isBlockedHost(host)) {
         continue;
       }
       if (
@@ -380,12 +418,15 @@ function dedupeRecords(records) {
       map.set(key, row);
       continue;
     }
-    map.set(key, {
-      ...prev,
-      ...row,
-      openingHours: mergeArrays(prev.openingHours, row.openingHours),
-      priceHints: mergeArrays(prev.priceHints, row.priceHints)
-    });
+      map.set(key, {
+        ...prev,
+        ...row,
+        openingHours: mergeArrays(prev.openingHours, row.openingHours),
+        priceHints: mergeArrays(prev.priceHints, row.priceHints),
+        ratingValue: preferNumber(prev.ratingValue, row.ratingValue),
+        ratingCount: preferNumber(prev.ratingCount, row.ratingCount),
+        sourceQualityScore: Math.max(prev.sourceQualityScore ?? 0, row.sourceQualityScore ?? 0)
+      });
   }
   return [...map.values()];
 }
@@ -496,7 +537,7 @@ function hasMeaningfulData(row) {
   return Boolean(row.name || row.websiteUrl || row.contactEmail || row.contactPhone || row.address);
 }
 
-function isUsefulRecord(row) {
+function isUsefulRecord(row, portalHost, category, minScore) {
   if (!hasMeaningfulData(row)) {
     return false;
   }
@@ -536,6 +577,14 @@ function isUsefulRecord(row) {
     return false;
   }
 
+  const sourceHost = safeHost(row.sourceUrl || row.websiteUrl || "");
+  if (!sourceHost || isBlockedHost(sourceHost)) {
+    return false;
+  }
+  if (sourceHost === portalHost && !hasDirectContact(row)) {
+    return false;
+  }
+
   const usefulSignals = [
     row.contactEmail,
     row.contactPhone,
@@ -552,7 +601,135 @@ function isUsefulRecord(row) {
     return false;
   }
 
+  const qualityScore = scoreRecordQuality(row, category);
+  if (qualityScore < minScore) {
+    return false;
+  }
+  row.sourceQualityScore = qualityScore;
+
   return true;
+}
+
+function hasDirectContact(row) {
+  return Boolean(row.contactEmail || row.contactPhone || row.address);
+}
+
+function isBlockedHost(host) {
+  const blockedHosts = [
+    "onelink.to",
+    "bit.ly",
+    "tinyurl.com",
+    "t.co",
+    "trustlocal.de",
+    "trustlocal.com",
+    "trustlocal.be",
+    "pinterest.com",
+    "reddit.com",
+    "youtube.com",
+    "facebook.com",
+    "instagram.com",
+    "linkedin.com"
+  ];
+  return blockedHosts.some((blocked) => host === blocked || host.endsWith(`.${blocked}`));
+}
+
+function scoreRecordQuality(row, category = "") {
+  let score = 0;
+  if (row.name && row.name.length >= 3) score += 10;
+  if (row.websiteUrl) score += 8;
+  if (row.contactEmail) score += 22;
+  if (row.contactPhone) score += 22;
+  if (row.address) score += 18;
+  if (Array.isArray(row.priceHints) && row.priceHints.length > 0) score += 8;
+  if (Array.isArray(row.openingHours) && row.openingHours.length > 0) score += 5;
+  if (typeof row.ratingValue === "number") score += 4;
+  if (typeof row.ratingCount === "number" && row.ratingCount > 0) score += 3;
+
+  const lowerName = asString(row.name).toLowerCase();
+  if (/(impressum|kontakt|datenschutz|cookie|privacy|terms)/.test(lowerName)) score -= 35;
+  if (category && !categoryKeywordMatch(category, `${row.name ?? ""} ${row.sourceUrl ?? ""}`)) score -= 8;
+
+  return clamp(score, 0, 100);
+}
+
+function categoryKeywordMatch(category, value) {
+  const lower = value.toLowerCase();
+  const keywords = {
+    venue: ["hochzeit", "location", "event", "saal", "schloss", "hotel"],
+    photography: ["foto", "photography", "fotograf"],
+    catering: ["catering", "buffet", "food", "menue", "cater"],
+    music: ["dj", "musik", "band", "live"],
+    florals: ["flor", "blumen", "deko"],
+    attire: ["brautmode", "anzug", "kleid", "fashion"],
+    stationery: ["papeterie", "karten", "einladung"],
+    cake: ["torte", "konditor", "cake"],
+    transport: ["shuttle", "limo", "bus", "chauffeur"],
+    lodging: ["hotel", "uebernacht", "unterkunft"],
+    planner: ["planer", "wedding planner", "agentur"],
+    officiant: ["trauredner", "redner", "officiant"],
+    videography: ["video", "filmer", "videograf"],
+    photobooth: ["fotobox", "photo booth"],
+    magician: ["zauber", "magier"],
+    "live-artist": ["live painter", "live artist", "kuenstler"],
+    childcare: ["kinderbetreuung", "nanny", "kids"],
+    rentals: ["verleih", "rental", "mieten"]
+  };
+  const list = keywords[category] ?? [];
+  return list.some((keyword) => lower.includes(keyword));
+}
+
+function findRatingSignal(html) {
+  const plain = normalizeWhitespace(stripTags(html));
+  const value = firstNumberFromPatterns(plain, [
+    /\b([1-5](?:[.,]\d)?)\s*(?:\/\s*5|von\s*5|stars?)\b/i,
+    /\brating[:\s]+([1-5](?:[.,]\d)?)\b/i,
+    /\bbewertung[:\s]+([1-5](?:[.,]\d)?)\b/i
+  ]);
+  const count = firstNumberFromPatterns(plain, [
+    /\b(\d{1,6})\s*(?:bewertungen|reviews|rezensionen)\b/i
+  ]);
+  return {
+    ...(typeof value === "number" ? { value } : {}),
+    ...(typeof count === "number" ? { count } : {})
+  };
+}
+
+function firstNumberFromPatterns(value, patterns) {
+  for (const pattern of patterns) {
+    const match = value.match(pattern);
+    if (!match?.[1]) continue;
+    const normalized = match[1].replace(",", ".");
+    const parsed = Number.parseFloat(normalized);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return undefined;
+}
+
+function preferNumber(a, b) {
+  if (typeof b === "number" && Number.isFinite(b)) {
+    return b;
+  }
+  if (typeof a === "number" && Number.isFinite(a)) {
+    return a;
+  }
+  return undefined;
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function asFiniteNumber(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number.parseFloat(value.replace(",", "."));
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
 }
 
 function firstMatch(value, regex) {

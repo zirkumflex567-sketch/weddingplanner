@@ -122,3 +122,17 @@ Wichtiger Realitaetscheck:
 
 - "Alle Anbieter im Internet" ist ein laufendes Ziel, kein einmaliger Endzustand.
 - Die Architektur ist deshalb auf fortlaufende Discovery, Dedupe und Freshness-Updates ausgelegt.
+
+## Discovery-Qualitaet (2026-04-03 Update)
+
+- Link-Shortener und Social/Low-value Domains werden fuer Vendor-Truth aktiv geblockt.
+- Portal-interne Treffer ohne direkte Kontaktinfos werden runterpriorisiert.
+- Jeder Discovery-Record erhaelt einen `sourceQualityScore` (0-100).
+- Rating/Review-Werte werden als Signale mitgefuehrt, aber nicht als Product-Truth publiziert.
+- Coverage-Monitor zeigt Kontaktstatus plus Qualitaets-/Rating-Signale fuer schnelle Stichproben.
+
+## Produkt-Roadmap
+
+Strategische Features (Member Area, Review-Plattform, Marktplatz, Provision) stehen in:
+
+- `docs/product/platform-roadmap.md`
