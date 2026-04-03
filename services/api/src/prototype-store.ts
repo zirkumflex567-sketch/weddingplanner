@@ -14,6 +14,8 @@ import {
   type PlannedEventId,
   type PrototypeExpense,
   type PrototypeGuest,
+  type PrototypeSeatTable,
+  type PrototypeTableShape,
   type PrototypeMealPreference,
   type PrototypePublicRsvpSession,
   type PrototypeTask,
@@ -47,6 +49,18 @@ export interface CreateExpenseInput {
   amount: number;
   status: PrototypeExpense["status"];
   vendorName: string;
+}
+
+export interface CreateSeatTableInput {
+  name: string;
+  shape: PrototypeTableShape;
+  capacity: number;
+}
+
+export interface UpdateSeatTableInput {
+  name?: string;
+  shape?: PrototypeTableShape;
+  capacity?: number;
 }
 
 export interface UpdateVendorInput {
@@ -83,6 +97,20 @@ export interface PrototypeWorkspaceStore {
   addExpense(
     workspaceId: string,
     input: CreateExpenseInput
+  ): Promise<PrototypeWorkspace | null>;
+  addSeatTable(
+    workspaceId: string,
+    input: CreateSeatTableInput
+  ): Promise<PrototypeWorkspace | null>;
+  updateSeatTable(
+    workspaceId: string,
+    tableId: string,
+    input: UpdateSeatTableInput
+  ): Promise<PrototypeWorkspace | null>;
+  assignGuestToSeatTable(
+    workspaceId: string,
+    guestId: string,
+    tableId: string | null
   ): Promise<PrototypeWorkspace | null>;
   setTaskCompletion(
     workspaceId: string,
@@ -163,6 +191,23 @@ function createPublicRsvpSession(
   workspace: PrototypeWorkspace,
   guest: PrototypeGuest
 ): PrototypePublicRsvpSession {
+  const seatingAssignment =
+    workspace.seatingPlan.tables.find((table) => table.guestIds.includes(guest.id)) ?? null;
+  const primaryVenue =
+    workspace.plan.vendorMatches.find(
+      (vendor) =>
+        vendor.category === "venue" &&
+        workspace.vendorTracker.some(
+          (entry) => entry.vendorId === vendor.id && entry.stage === "booked"
+        )
+    ) ??
+    workspace.plan.vendorMatches.find((vendor) => vendor.category === "venue") ??
+    null;
+  const fallbackDestination = [primaryVenue?.addressLine, primaryVenue?.postalCode, primaryVenue?.city]
+    .filter((value): value is string => typeof value === "string" && value.length > 0)
+    .join(", ");
+  const destination = primaryVenue?.addressLine ?? fallbackDestination;
+
   return {
     guest: structuredClone(guest),
     context: {
@@ -172,7 +217,22 @@ function createPublicRsvpSession(
       invitedEvents: workspace.plan.eventBlueprints.filter((event) =>
         guest.eventIds.includes(event.id)
       ),
-      invitationCopy: workspace.onboarding.invitationCopy
+      invitationCopy: workspace.onboarding.invitationCopy,
+      ...(seatingAssignment
+        ? {
+            seatingAssignment: {
+              tableName: seatingAssignment.name,
+              tableShape: seatingAssignment.shape
+            }
+          }
+        : {}),
+      ...(destination
+        ? {
+            routePlanningLink:
+              primaryVenue?.mapsUrl ??
+              `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
+          }
+        : {})
     }
   };
 }
@@ -183,6 +243,7 @@ function normalizeWorkspace(workspace: PrototypeWorkspace): PrototypeWorkspace {
   const tasks = mergeTasks(workspace.tasks ?? [], createPrototypeTasks(plan));
   const guests = (workspace.guests ?? []).map((guest) => normalizeGuest(guest));
   const expenses = workspace.expenses ?? [];
+  const seatingPlan = workspace.seatingPlan ?? { tables: [] };
 
   return {
     ...workspace,
@@ -194,6 +255,7 @@ function normalizeWorkspace(workspace: PrototypeWorkspace): PrototypeWorkspace {
     guestSummary: summarizeGuests(guests),
     progress: calculateProgress(tasks),
     expenses,
+    seatingPlan,
     vendorTracker: mergePrototypeVendorTracker(
       workspace.vendorTracker ?? [],
       plan.vendorMatches,
@@ -223,9 +285,28 @@ function createWorkspaceRecord(input: WeddingBootstrapInput): PrototypeWorkspace
     guestSummary: summarizeGuests([]),
     progress: calculateProgress(tasks),
     expenses: [],
+    seatingPlan: {
+      tables: []
+    },
     vendorTracker: createPrototypeVendorTracker(plan.vendorMatches, now),
     budgetOverview: calculateBudgetOverview(plan.budgetCategories, [])
   };
+}
+
+function createSeatTableRecord(input: CreateSeatTableInput): PrototypeSeatTable {
+  return {
+    id: randomUUID(),
+    name: input.name,
+    shape: input.shape,
+    capacity: input.capacity,
+    guestIds: []
+  };
+}
+
+function removeGuestFromAllTables(workspace: PrototypeWorkspace, guestId: string) {
+  for (const table of workspace.seatingPlan.tables) {
+    table.guestIds = table.guestIds.filter((entry) => entry !== guestId);
+  }
 }
 
 function mergeTasks(
@@ -423,6 +504,80 @@ export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore 
     return cloneWorkspace(workspace);
   }
 
+  async addSeatTable(workspaceId: string, input: CreateSeatTableInput) {
+    const workspace = this.workspaces.get(workspaceId);
+
+    if (!workspace) {
+      return null;
+    }
+
+    workspace.seatingPlan.tables.push(createSeatTableRecord(input));
+    workspace.updatedAt = new Date().toISOString();
+
+    return cloneWorkspace(workspace);
+  }
+
+  async updateSeatTable(workspaceId: string, tableId: string, input: UpdateSeatTableInput) {
+    const workspace = this.workspaces.get(workspaceId);
+
+    if (!workspace) {
+      return null;
+    }
+
+    const table = workspace.seatingPlan.tables.find((entry) => entry.id === tableId);
+
+    if (!table) {
+      return null;
+    }
+
+    if (typeof input.name === "string") {
+      table.name = input.name;
+    }
+
+    if (input.shape === "round" || input.shape === "rect") {
+      table.shape = input.shape;
+    }
+
+    if (typeof input.capacity === "number" && Number.isFinite(input.capacity) && input.capacity > 0) {
+      table.capacity = input.capacity;
+      table.guestIds = table.guestIds.slice(0, input.capacity);
+    }
+
+    workspace.updatedAt = new Date().toISOString();
+    return cloneWorkspace(workspace);
+  }
+
+  async assignGuestToSeatTable(workspaceId: string, guestId: string, tableId: string | null) {
+    const workspace = this.workspaces.get(workspaceId);
+
+    if (!workspace) {
+      return null;
+    }
+
+    const guest = workspace.guests.find((entry) => entry.id === guestId);
+
+    if (!guest) {
+      return null;
+    }
+
+    removeGuestFromAllTables(workspace, guestId);
+
+    if (tableId) {
+      const table = workspace.seatingPlan.tables.find((entry) => entry.id === tableId);
+
+      if (!table) {
+        return null;
+      }
+
+      if (!table.guestIds.includes(guestId) && table.guestIds.length < table.capacity) {
+        table.guestIds.push(guestId);
+      }
+    }
+
+    workspace.updatedAt = new Date().toISOString();
+    return cloneWorkspace(workspace);
+  }
+
   async setTaskCompletion(workspaceId: string, taskId: string, completed: boolean) {
     const workspace = this.workspaces.get(workspaceId);
 
@@ -483,6 +638,86 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
     const state = await this.readState();
     const workspace = createWorkspaceRecord(input);
     state.workspaces.push(workspace);
+    await this.writeState(state);
+    return cloneWorkspace(workspace);
+  }
+
+  async addSeatTable(workspaceId: string, input: CreateSeatTableInput) {
+    const state = await this.readState();
+    const workspace = state.workspaces.find((entry) => entry.id === workspaceId);
+
+    if (!workspace) {
+      return null;
+    }
+
+    workspace.seatingPlan.tables.push(createSeatTableRecord(input));
+    workspace.updatedAt = new Date().toISOString();
+
+    await this.writeState(state);
+    return cloneWorkspace(workspace);
+  }
+
+  async updateSeatTable(workspaceId: string, tableId: string, input: UpdateSeatTableInput) {
+    const state = await this.readState();
+    const workspace = state.workspaces.find((entry) => entry.id === workspaceId);
+
+    if (!workspace) {
+      return null;
+    }
+
+    const table = workspace.seatingPlan.tables.find((entry) => entry.id === tableId);
+
+    if (!table) {
+      return null;
+    }
+
+    if (typeof input.name === "string") {
+      table.name = input.name;
+    }
+
+    if (input.shape === "round" || input.shape === "rect") {
+      table.shape = input.shape;
+    }
+
+    if (typeof input.capacity === "number" && Number.isFinite(input.capacity) && input.capacity > 0) {
+      table.capacity = input.capacity;
+      table.guestIds = table.guestIds.slice(0, input.capacity);
+    }
+
+    workspace.updatedAt = new Date().toISOString();
+    await this.writeState(state);
+    return cloneWorkspace(workspace);
+  }
+
+  async assignGuestToSeatTable(workspaceId: string, guestId: string, tableId: string | null) {
+    const state = await this.readState();
+    const workspace = state.workspaces.find((entry) => entry.id === workspaceId);
+
+    if (!workspace) {
+      return null;
+    }
+
+    const guest = workspace.guests.find((entry) => entry.id === guestId);
+
+    if (!guest) {
+      return null;
+    }
+
+    removeGuestFromAllTables(workspace, guestId);
+
+    if (tableId) {
+      const table = workspace.seatingPlan.tables.find((entry) => entry.id === tableId);
+
+      if (!table) {
+        return null;
+      }
+
+      if (!table.guestIds.includes(guestId) && table.guestIds.length < table.capacity) {
+        table.guestIds.push(guestId);
+      }
+    }
+
+    workspace.updatedAt = new Date().toISOString();
     await this.writeState(state);
     return cloneWorkspace(workspace);
   }
@@ -784,3 +1019,4 @@ export function isUpdateVendorInput(value: unknown): value is UpdateVendorInput 
     typeof candidate.note === "string"
   );
 }
+

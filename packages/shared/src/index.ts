@@ -183,6 +183,20 @@ export interface PrototypeExpense {
   vendorName: string;
 }
 
+export type PrototypeTableShape = "round" | "rect";
+
+export interface PrototypeSeatTable {
+  id: string;
+  name: string;
+  shape: PrototypeTableShape;
+  capacity: number;
+  guestIds: string[];
+}
+
+export interface PrototypeSeatingPlan {
+  tables: PrototypeSeatTable[];
+}
+
 export type PrototypeVendorStage =
   | "suggested"
   | "contacted"
@@ -229,6 +243,7 @@ export interface PrototypeWorkspace {
   guestSummary: PrototypeGuestSummary;
   progress: PrototypeProgress;
   expenses: PrototypeExpense[];
+  seatingPlan: PrototypeSeatingPlan;
   vendorTracker: PrototypeVendorTrackerEntry[];
   budgetOverview: PrototypeBudgetOverview;
 }
@@ -253,6 +268,11 @@ export interface PrototypePublicRsvpContext {
   region: string;
   invitedEvents: EventBlueprint[];
   invitationCopy: WeddingInvitationCopy;
+  seatingAssignment?: {
+    tableName: string;
+    tableShape: PrototypeTableShape;
+  };
+  routePlanningLink?: string;
 }
 
 export interface PrototypePublicRsvpSession {
@@ -1833,3 +1853,4 @@ export function continueWeddingConsultantConversation(
       };
   }
 }
+

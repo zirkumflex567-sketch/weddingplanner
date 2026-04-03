@@ -2,6 +2,7 @@ import type {
   PlannedEventId,
   PrototypeExpense,
   PrototypeGuest,
+  PrototypeSeatTable,
   PrototypePublicRsvpSession,
   PrototypeVendorStage,
   PrototypeWorkspaceProfile,
@@ -168,6 +169,18 @@ interface UpdateVendorInput {
   stage: PrototypeVendorStage;
   quoteAmount: number | null;
   note: string;
+}
+
+interface CreateSeatTableInput {
+  name: string;
+  shape: "round" | "rect";
+  capacity: number;
+}
+
+interface UpdateSeatTableInput {
+  name?: string;
+  shape?: "round" | "rect";
+  capacity?: number;
 }
 
 interface UpdatePublicRsvpInput {
@@ -445,6 +458,50 @@ export function addExpense(workspaceId: string, input: CreateExpenseInput) {
     },
     body: JSON.stringify(input)
   });
+}
+
+export function addSeatTable(workspaceId: string, input: CreateSeatTableInput) {
+  return requestJson<WorkspaceResponse>(`/prototype/workspaces/${workspaceId}/seating/tables`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function updateSeatTable(
+  workspaceId: string,
+  tableId: string,
+  input: UpdateSeatTableInput
+) {
+  return requestJson<WorkspaceResponse>(
+    `/prototype/workspaces/${workspaceId}/seating/tables/${tableId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function assignGuestToSeatTable(
+  workspaceId: string,
+  guestId: string,
+  tableId: PrototypeSeatTable["id"] | null
+) {
+  return requestJson<WorkspaceResponse>(
+    `/prototype/workspaces/${workspaceId}/seating/guests/${guestId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ tableId })
+    }
+  );
 }
 
 export function updateVendorLead(

@@ -45,6 +45,9 @@ function createWorkspace(): PrototypeWorkspace {
       totalTasks: tasks.length
     },
     expenses: [],
+    seatingPlan: {
+      tables: []
+    },
     vendorTracker: createPrototypeVendorTracker(plan.vendorMatches, "2026-04-02T00:00:00.000Z"),
     budgetOverview: calculateBudgetOverview(plan.budgetCategories, [])
   };
@@ -130,3 +133,4 @@ describe("createGuidedPlanningSession", () => {
     });
   });
 });
+

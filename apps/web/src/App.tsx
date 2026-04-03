@@ -20,7 +20,9 @@ import {
 } from "@wedding/shared";
 import {
   addExpense,
+  addSeatTable,
   addGuest,
+  assignGuestToSeatTable,
   type ConsultationAssistantMode,
   type ConsultationAssistantTier,
   type ConsultantSession,
@@ -79,6 +81,12 @@ type VendorDraft = {
   stage: PrototypeVendorStage;
   quoteAmount: string;
   note: string;
+};
+
+type SeatTableDraft = {
+  name: string;
+  shape: "round" | "rect";
+  capacity: number;
 };
 
 type AppView = "library" | "guided";
@@ -329,6 +337,14 @@ function createVendorDraft(): VendorDraft {
     stage: "suggested",
     quoteAmount: "",
     note: ""
+  };
+}
+
+function createSeatTableDraft(): SeatTableDraft {
+  return {
+    name: "",
+    shape: "round",
+    capacity: 8
   };
 }
 
@@ -675,6 +691,7 @@ function DashboardApp() {
     createExpenseDraft()
   );
   const [vendorDrafts, setVendorDrafts] = useState<Record<string, VendorDraft>>({});
+  const [seatTableDraft, setSeatTableDraft] = useState<SeatTableDraft>(() => createSeatTableDraft());
   const [consultationTurn, setConsultationTurn] = useState<WeddingConsultantTurn | null>(null);
   const [consultationMessages, setConsultationMessages] = useState<ConsultationMessage[]>([]);
   const [consultationDraft, setConsultationDraft] = useState("");
@@ -1216,6 +1233,47 @@ function DashboardApp() {
     }
   }
 
+  async function handleSeatTableSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!workspace) {
+      return;
+    }
+
+    setStatus("saving");
+    setError(null);
+
+    try {
+      const result = await addSeatTable(workspace.id, seatTableDraft);
+      hydrateWorkspace(result.workspace, { resetUi: false });
+      setSeatTableDraft(createSeatTableDraft());
+      await refreshProfiles();
+      setStatus("ready");
+    } catch {
+      setError("Der Tisch konnte gerade nicht gespeichert werden.");
+      setStatus("ready");
+    }
+  }
+
+  async function handleGuestSeatAssignment(guestId: string, tableId: string | null) {
+    if (!workspace) {
+      return;
+    }
+
+    setStatus("saving");
+    setError(null);
+
+    try {
+      const result = await assignGuestToSeatTable(workspace.id, guestId, tableId);
+      hydrateWorkspace(result.workspace, { resetUi: false });
+      await refreshProfiles();
+      setStatus("ready");
+    } catch {
+      setError("Der Sitzplatz konnte gerade nicht aktualisiert werden.");
+      setStatus("ready");
+    }
+  }
+
   function updateVendorDraft(vendorId: string, nextDraft: Partial<VendorDraft>) {
     setVendorDrafts((current) => ({
       ...current,
@@ -1236,6 +1294,16 @@ function DashboardApp() {
 
   function getVendorTrackerEntry(vendorId: string) {
     return workspace?.vendorTracker.find((entry) => entry.vendorId === vendorId) ?? null;
+  }
+
+  function getGuestSeatTable(guestId: string) {
+    return (
+      workspace?.seatingPlan.tables.find((table) => table.guestIds.includes(guestId)) ?? null
+    );
+  }
+
+  function getGuestNameById(guestId: string) {
+    return workspace?.guests.find((entry) => entry.id === guestId)?.name ?? "Offener Platz";
   }
 
   function getVendorPortfolioLink(vendor: VendorMatch) {
@@ -2517,6 +2585,29 @@ function DashboardApp() {
                   <p>Essen: {mealPreferenceLabels[guest.mealPreference]}</p>
                   {guest.dietaryNotes ? <p>{guest.dietaryNotes}</p> : null}
                   {guest.message ? <p>{guest.message}</p> : null}
+                  <p>
+                    Sitzplatz: {getGuestSeatTable(guest.id)?.name ?? "Noch nicht gesetzt"}
+                  </p>
+                  <label className="portal-field">
+                    Tischzuweisung
+                    <select
+                      value={getGuestSeatTable(guest.id)?.id ?? ""}
+                      onChange={(event) =>
+                        void handleGuestSeatAssignment(
+                          guest.id,
+                          event.target.value || null
+                        )
+                      }
+                    >
+                      <option value="">Noch offen</option>
+                      {(workspace?.seatingPlan.tables ?? []).map((table) => (
+                        <option key={table.id} value={table.id}>
+                          {table.name} / {table.shape === "round" ? "Rund" : "Eckig"} /{" "}
+                          {table.guestIds.length}/{table.capacity}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <div className="guided-chip-row">
                     {(["pending", "attending", "declined"] as const).map((statusOption) => (
                       <button
@@ -2548,6 +2639,136 @@ function DashboardApp() {
                 </p>
               ) : null}
             </div>
+          </section>
+
+          <section className="experience-panel">
+            <div className="section-headline">
+              <div>
+                <p className="eyebrow">Seating</p>
+                <h2>Saalplan mit runden und eckigen Tischen</h2>
+              </div>
+              <p className="section-copy">
+                Tische anlegen, Kapazitaeten setzen und Gaeste direkt den Plaetzen zuordnen.
+              </p>
+            </div>
+            <form className="guided-form guided-form--compact" onSubmit={handleSeatTableSubmit}>
+              <label>
+                Tischname
+                <input
+                  value={seatTableDraft.name}
+                  onChange={(event) =>
+                    setSeatTableDraft((current) => ({ ...current, name: event.target.value }))
+                  }
+                  placeholder="Tisch 1 / Familie / Brautpaar"
+                />
+              </label>
+              <div className="guided-two-up">
+                <label>
+                  Form
+                  <select
+                    value={seatTableDraft.shape}
+                    onChange={(event) =>
+                      setSeatTableDraft((current) => ({
+                        ...current,
+                        shape: event.target.value as "round" | "rect"
+                      }))
+                    }
+                  >
+                    <option value="round">Rund</option>
+                    <option value="rect">Eckig</option>
+                  </select>
+                </label>
+                <label>
+                  Plaetze
+                  <input
+                    type="number"
+                    min="2"
+                    max="20"
+                    value={seatTableDraft.capacity}
+                    onChange={(event) =>
+                      setSeatTableDraft((current) => ({
+                        ...current,
+                        capacity: Number(event.target.value || 0)
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+              <button type="submit" className="secondary-button" disabled={status === "saving"}>
+                Tisch anlegen
+              </button>
+            </form>
+
+            <div className="guided-card-stack guided-card-stack--vendors">
+              {(workspace?.seatingPlan.tables ?? []).map((table) => (
+                <article key={table.id} className="guided-vendor-card">
+                  <div className="guided-vendor-head">
+                    <div>
+                      <strong>{table.name}</strong>
+                      <p>
+                        {table.shape === "round" ? "Runder Tisch" : "Eckiger Tisch"} /{" "}
+                        {table.guestIds.length} von {table.capacity} besetzt
+                      </p>
+                    </div>
+                    <span className="stage-pill">
+                      {table.guestIds.length}/{table.capacity}
+                    </span>
+                  </div>
+                  <div className="guided-chip-row">
+                    {table.guestIds.map((guestId) => {
+                      const guest = workspace?.guests.find((entry) => entry.id === guestId);
+                      return guest ? <span key={guestId}>{guest.name}</span> : null;
+                    })}
+                  </div>
+                </article>
+              ))}
+              {(workspace?.seatingPlan.tables ?? []).length === 0 ? (
+                <p className="empty-state guided-filter-empty">
+                  Noch keine Tische angelegt. Startet mit euren Grundformen und weist danach die
+                  ersten Gaeste zu.
+                </p>
+              ) : null}
+            </div>
+
+            {(workspace?.seatingPlan.tables ?? []).length > 0 ? (
+              <div className="floor-plan-grid" aria-label="Saalplan Vorschau">
+                {(workspace?.seatingPlan.tables ?? []).map((table) => {
+                  const emptySeats = Math.max(table.capacity - table.guestIds.length, 0);
+                  const seatLabels = [
+                    ...table.guestIds.map((guestId) => getGuestNameById(guestId)),
+                    ...Array.from({ length: emptySeats }, () => "Frei")
+                  ];
+
+                  return (
+                    <article
+                      key={`${table.id}-floor-plan`}
+                      className={`floor-plan-table floor-plan-table--${table.shape}`}
+                    >
+                      <div className="floor-plan-table__surface">
+                        <strong>{table.name}</strong>
+                        <span>
+                          {table.shape === "round" ? "Rund" : "Eckig"} / {table.capacity} Plaetze
+                        </span>
+                      </div>
+                      <div className="floor-plan-table__seats">
+                        {seatLabels.map((label, index) => (
+                          <span
+                            key={`${table.id}-seat-${index}`}
+                            className={
+                              label === "Frei"
+                                ? "floor-plan-seat floor-plan-seat--empty"
+                                : "floor-plan-seat"
+                            }
+                          >
+                            {label}
+                          </span>
+                        ))}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : null}
           </section>
         </div>
       </section>

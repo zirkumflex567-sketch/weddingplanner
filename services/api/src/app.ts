@@ -26,11 +26,13 @@ import {
 } from "@wedding/ingestion";
 import {
   InMemoryPrototypeWorkspaceStore,
+  type CreateSeatTableInput,
   isCreateExpenseInput,
   isCreateGuestInput,
   isSetTaskCompletionInput,
   isUpdateGuestInput,
   isUpdateVendorInput,
+  type UpdateSeatTableInput,
   type PrototypeWorkspaceStore
 } from "./prototype-store";
 import {
@@ -1536,6 +1538,31 @@ function isWeddingConsultantVoiceSynthesisPayload(
   );
 }
 
+function isCreateSeatTableInput(value: unknown): value is CreateSeatTableInput {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      typeof (value as Record<string, unknown>).name === "string" &&
+      ((value as Record<string, unknown>).shape === "round" ||
+        (value as Record<string, unknown>).shape === "rect") &&
+      typeof (value as Record<string, unknown>).capacity === "number"
+  );
+}
+
+function isUpdateSeatTableInput(value: unknown): value is UpdateSeatTableInput {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      ((value as Record<string, unknown>).name === undefined ||
+        typeof (value as Record<string, unknown>).name === "string") &&
+      ((value as Record<string, unknown>).shape === undefined ||
+        (value as Record<string, unknown>).shape === "round" ||
+        (value as Record<string, unknown>).shape === "rect") &&
+      ((value as Record<string, unknown>).capacity === undefined ||
+        typeof (value as Record<string, unknown>).capacity === "number")
+  );
+}
+
 export function buildApp(options: BuildAppOptions = {}) {
   const app = Fastify({ logger: false });
   const workspaceStore =
@@ -1890,6 +1917,72 @@ export function buildApp(options: BuildAppOptions = {}) {
     }
 
     return reply.code(201).send({ workspace });
+  });
+
+  app.post("/prototype/workspaces/:id/seating/tables", async (request, reply) => {
+    const params = request.params as { id: string };
+
+    if (!isCreateSeatTableInput(request.body)) {
+      return reply.code(400).send({ error: "Invalid seating table payload" });
+    }
+
+    const workspace = await workspaceStore.addSeatTable(params.id, request.body);
+
+    if (!workspace) {
+      return reply.code(404).send({ error: "Workspace not found" });
+    }
+
+    return reply.code(201).send({ workspace });
+  });
+
+  app.patch("/prototype/workspaces/:id/seating/tables/:tableId", async (request, reply) => {
+    const params = request.params as { id: string; tableId: string };
+
+    if (!isUpdateSeatTableInput(request.body)) {
+      return reply.code(400).send({ error: "Invalid seating table update payload" });
+    }
+
+    const workspace = await workspaceStore.updateSeatTable(
+      params.id,
+      params.tableId,
+      request.body
+    );
+
+    if (!workspace) {
+      return reply.code(404).send({ error: "Workspace or table not found" });
+    }
+
+    return { workspace };
+  });
+
+  app.patch("/prototype/workspaces/:id/seating/guests/:guestId", async (request, reply) => {
+    const params = request.params as { id: string; guestId: string };
+    const body = request.body as { tableId?: string | null };
+
+    if (
+      !body ||
+      typeof body !== "object" ||
+      !("tableId" in body) ||
+      !(
+        body.tableId === null ||
+        body.tableId === undefined ||
+        typeof body.tableId === "string"
+      )
+    ) {
+      return reply.code(400).send({ error: "Invalid seating assignment payload" });
+    }
+
+    const workspace = await workspaceStore.assignGuestToSeatTable(
+      params.id,
+      params.guestId,
+      body.tableId ?? null
+    );
+
+    if (!workspace) {
+      return reply.code(404).send({ error: "Workspace, guest or table not found" });
+    }
+
+    return { workspace };
   });
 
   app.patch("/prototype/workspaces/:id/vendors/:vendorId", async (request, reply) => {

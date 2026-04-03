@@ -158,6 +158,52 @@ export function PublicRsvpPage({ token }: PublicRsvpPageProps) {
               ))}
             </div>
 
+            {session.context.seatingAssignment ? (
+              <div className="experience-panel">
+                <div className="section-headline">
+                  <div>
+                    <p className="eyebrow">Ihr Platz</p>
+                    <h2>
+                      {session.context.seatingAssignment.tableName} /{" "}
+                      {session.context.seatingAssignment.tableShape === "round"
+                        ? "Runder Tisch"
+                        : "Eckiger Tisch"}
+                    </h2>
+                  </div>
+                </div>
+                <p className="portal-copy">
+                  Sobald sich der Saalplan aendert, seht ihr hier direkt euren aktuellen Platz.
+                </p>
+                {session.context.routePlanningLink ? (
+                  <a
+                    className="secondary-button"
+                    href={session.context.routePlanningLink}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Route zur Location oeffnen
+                  </a>
+                ) : null}
+              </div>
+            ) : session.context.routePlanningLink ? (
+              <div className="experience-panel">
+                <div className="section-headline">
+                  <div>
+                    <p className="eyebrow">Anreise</p>
+                    <h2>Route zur Location</h2>
+                  </div>
+                </div>
+                <a
+                  className="secondary-button"
+                  href={session.context.routePlanningLink}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Route zur Location oeffnen
+                </a>
+              </div>
+            ) : null}
+
             <form className="portal-form" onSubmit={handleSubmit}>
               <div className="portal-section">
                 <p className="portal-label">Antwort</p>
@@ -276,3 +322,4 @@ export function PublicRsvpPage({ token }: PublicRsvpPageProps) {
     </main>
   );
 }
+

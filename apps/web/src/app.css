@@ -1480,6 +1480,71 @@ textarea {
   color: var(--muted);
 }
 
+.floor-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.floor-plan-table {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: 28px;
+  border: 1px solid rgba(97, 63, 47, 0.12);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.7), transparent 60%),
+    rgba(255, 249, 242, 0.92);
+  box-shadow: 0 22px 48px rgba(97, 63, 47, 0.08);
+}
+
+.floor-plan-table__surface {
+  display: grid;
+  place-items: center;
+  gap: 0.24rem;
+  padding: 1rem;
+  background: rgba(214, 191, 175, 0.34);
+  border: 1px solid rgba(97, 63, 47, 0.12);
+  text-align: center;
+}
+
+.floor-plan-table--round .floor-plan-table__surface {
+  min-height: 170px;
+  border-radius: 999px;
+}
+
+.floor-plan-table--rect .floor-plan-table__surface {
+  min-height: 140px;
+  border-radius: 28px;
+}
+
+.floor-plan-table__surface span {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.floor-plan-table__seats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: center;
+}
+
+.floor-plan-seat {
+  padding: 0.42rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(97, 63, 47, 0.1);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.floor-plan-seat--empty {
+  color: var(--muted);
+  background: rgba(245, 238, 229, 0.82);
+  border-style: dashed;
+}
+
 .guided-inline-toggle {
   display: flex;
   justify-content: space-between;
@@ -1541,7 +1606,8 @@ textarea {
   }
 
   .guided-two-up,
-  .guided-vendor-editor {
+  .guided-vendor-editor,
+  .floor-plan-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1576,3 +1642,4 @@ textarea {
     margin-top: 0.55rem;
   }
 }
+

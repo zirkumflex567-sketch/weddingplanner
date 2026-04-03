@@ -1624,6 +1624,70 @@ describe("prototype workspace flow", () => {
     ]);
   });
 
+  it("persists seating tables, guest assignments and exposes them on the public guest page", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const workspace = createResponse.json().workspace;
+
+    const guestResponse = await app.inject({
+      method: "POST",
+      url: `/prototype/workspaces/${workspace.id}/guests`,
+      payload: {
+        name: "Lena Beispiel",
+        household: "Familie Beispiel",
+        email: "lena@example.com",
+        eventIds: ["civil-ceremony", "celebration"]
+      }
+    });
+    const guestWorkspace = guestResponse.json().workspace;
+    const guest = guestWorkspace.guests.find((entry: { email: string }) => entry.email === "lena@example.com");
+
+    const tableResponse = await app.inject({
+      method: "POST",
+      url: `/prototype/workspaces/${workspace.id}/seating/tables`,
+      payload: {
+        name: "Tisch 1",
+        shape: "round",
+        capacity: 8
+      }
+    });
+
+    expect(tableResponse.statusCode).toBe(201);
+    const table = tableResponse.json().workspace.seatingPlan.tables[0];
+
+    const assignResponse = await app.inject({
+      method: "PATCH",
+      url: `/prototype/workspaces/${workspace.id}/seating/guests/${guest.id}`,
+      payload: {
+        tableId: table.id
+      }
+    });
+
+    expect(assignResponse.statusCode).toBe(200);
+    expect(assignResponse.json().workspace.seatingPlan.tables[0]).toMatchObject({
+      name: "Tisch 1",
+      guestIds: [guest.id]
+    });
+
+    const publicResponse = await app.inject({
+      method: "GET",
+      url: `/public/rsvp/${guest.accessToken}`
+    });
+
+    expect(publicResponse.statusCode).toBe(200);
+    expect(publicResponse.json().context.seatingAssignment).toMatchObject({
+      tableName: "Tisch 1",
+      tableShape: "round"
+    });
+    expect(publicResponse.json().context.routePlanningLink).toContain("google.com/maps");
+  });
+
   it("updates a guest through the public rsvp route and persists dietary details", async () => {
     const app = buildApp();
     openApps.push(app);
