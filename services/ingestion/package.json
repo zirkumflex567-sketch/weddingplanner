@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "pipeline:weekly": "tsx src/pipeline.ts weekly-baseline",
     "pipeline:premium": "tsx src/pipeline.ts premium-deep-scan",
-    "pipeline:batch": "tsx src/batch-sweep.ts"
+    "pipeline:batch": "tsx src/batch-sweep.ts",
+    "quarantine:report": "tsx src/quarantine-report.ts"
   },
   "dependencies": {
     "@wedding/shared": "0.0.0"

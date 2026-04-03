@@ -67,6 +67,11 @@ const quarantineFile = path.resolve(outputRoot, "vendor-discovery-quarantine.jso
 export interface DiscoveryQuarantineRecord extends DiscoveryDbRecord {
   quarantineReason: string;
   quarantinedAt: string;
+  firstSeenAt?: string;
+  lastSeenAt?: string;
+  seenCount?: number;
+  reasonHistory?: string[];
+  reviewStatus?: "pending" | "approved" | "rejected";
 }
 
 const defaultCategories: VendorSearchCategory[] = [
@@ -261,14 +266,14 @@ export async function runVendorDiscoveryPipeline(
   }
 
   const accepted: DiscoveryDbRecord[] = [];
-  const quarantined: DiscoveryQuarantineRecord[] = [];
+  const quarantinedCurrentRun: DiscoveryQuarantineRecord[] = [];
   for (const record of dedupe.values()) {
     const decision = classifyDiscoveryRecord(record);
     if (decision.accepted) {
       accepted.push(record);
       continue;
     }
-    quarantined.push({
+    quarantinedCurrentRun.push({
       ...record,
       quarantineReason: decision.reason ?? "quality-filter",
       quarantinedAt: new Date().toISOString()
@@ -276,8 +281,9 @@ export async function runVendorDiscoveryPipeline(
   }
 
   const nextDb = accepted.sort((a, b) => b.freshnessTimestamp.localeCompare(a.freshnessTimestamp));
-  const nextQuarantine = quarantined.sort((a, b) =>
-    b.quarantinedAt.localeCompare(a.quarantinedAt)
+  const previousQuarantine = await readDiscoveryQuarantine();
+  const nextQuarantine = mergeQuarantineRecords(previousQuarantine, quarantinedCurrentRun).sort(
+    (a, b) => (b.lastSeenAt ?? b.quarantinedAt).localeCompare(a.lastSeenAt ?? a.quarantinedAt)
   );
   await writeDiscoveryDb(nextDb);
   await writeDiscoveryQuarantine(nextQuarantine);
@@ -711,6 +717,67 @@ async function writeDiscoveryDb(rows: DiscoveryDbRecord[]) {
 
 async function writeDiscoveryQuarantine(rows: DiscoveryQuarantineRecord[]) {
   await writeFile(quarantineFile, JSON.stringify(rows, null, 2), "utf-8");
+}
+
+async function readDiscoveryQuarantine(): Promise<DiscoveryQuarantineRecord[]> {
+  try {
+    const content = await readFile(quarantineFile, "utf-8");
+    const parsed = JSON.parse(content) as unknown;
+    return Array.isArray(parsed) ? (parsed as DiscoveryQuarantineRecord[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function mergeQuarantineRecords(
+  previous: DiscoveryQuarantineRecord[],
+  currentRun: DiscoveryQuarantineRecord[]
+) {
+  const map = new Map<string, DiscoveryQuarantineRecord>();
+
+  for (const record of previous) {
+    map.set(createRecordKey(record), {
+      ...record,
+      firstSeenAt: record.firstSeenAt ?? record.quarantinedAt,
+      lastSeenAt: record.lastSeenAt ?? record.quarantinedAt,
+      seenCount: record.seenCount ?? 1,
+      reasonHistory: [...new Set(record.reasonHistory ?? [record.quarantineReason])],
+      reviewStatus: record.reviewStatus ?? "pending"
+    });
+  }
+
+  for (const record of currentRun) {
+    const key = createRecordKey(record);
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, {
+        ...record,
+        firstSeenAt: record.quarantinedAt,
+        lastSeenAt: record.quarantinedAt,
+        seenCount: 1,
+        reasonHistory: [record.quarantineReason],
+        reviewStatus: "pending"
+      });
+      continue;
+    }
+
+    map.set(key, {
+      ...existing,
+      ...record,
+      id: existing.id,
+      freshnessTimestamp:
+        existing.freshnessTimestamp >= record.freshnessTimestamp
+          ? existing.freshnessTimestamp
+          : record.freshnessTimestamp,
+      firstSeenAt: existing.firstSeenAt ?? existing.quarantinedAt,
+      lastSeenAt: record.quarantinedAt,
+      seenCount: (existing.seenCount ?? 1) + 1,
+      reasonHistory: [...new Set([...(existing.reasonHistory ?? []), record.quarantineReason])],
+      reviewStatus: existing.reviewStatus ?? "pending"
+    });
+  }
+
+  return [...map.values()];
 }
 
 async function persistReport(report: PipelineRunReport) {
