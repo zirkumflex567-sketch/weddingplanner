@@ -39,3 +39,12 @@ Stand: 2026-04-03
 - Weitere natürliche Sprachmuster für Operator-Intents ergänzen (z. B. „rausnehmen“, „erstmal ohne ...“).
 - Persona-Ton weiter schärfen: weniger technisch, mehr empathischer Hochzeitsplaner.
 - Restliche `ae/oe/ue`-Texte in statischen UI-Strings systematisch in den Source-Daten bereinigen.
+
+## Update 2026-04-03 (menschlicher Operator-Flow)
+
+- Operator versteht jetzt natürlichere Eingaben wie:
+  - „Wir haben schon einen DJ gefunden, füge DJ XY manuell hinzu …“
+- Manuelle Anbieter werden kundenspezifisch gespeichert (als `planned`-Eintrag in den Workspace-Ausgaben mit `amount=0`), inklusive optionaler Kontaktdaten.
+- Bei unvollständigen Angaben reagiert der Bot mit klarer Rückfrage (fehlender Name/Kategorie), statt still zu scheitern.
+- Operator-Antworten priorisieren jetzt die konkrete Bestätigung der Aktion statt generischer Berater-Floskeln.
+- Beratungs-Ton wurde weichgezeichnet (u. a. weniger „Hebel“-Sprache).

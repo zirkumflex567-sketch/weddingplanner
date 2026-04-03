@@ -506,9 +506,12 @@ export function buildApp(options: BuildAppOptions = {}) {
     const turn = continueWeddingConsultantConversation(workspace, currentStepId, {
       text: userMessage
     });
-    const assistantMessageRaw = operatorActionNote
-      ? `${turn.assistantMessage}\n\n${operatorActionNote}`
-      : turn.assistantMessage;
+    const assistantMessageRaw =
+      assistantMode === "operator" && operatorActionNote
+        ? `${operatorActionNote}\n\nWenn ihr möchtet, übernehme ich als Nächstes direkt den passenden Folgepunkt (z. B. Anfrage-Text, Budgetnotiz oder nächste Priorität).`
+        : operatorActionNote
+          ? `${turn.assistantMessage}\n\n${operatorActionNote}`
+          : turn.assistantMessage;
     const normalizedTurn = normalizeConsultantTurnText({
       ...turn,
       assistantMessage: assistantMessageRaw
@@ -727,12 +730,31 @@ function normalizeConsultantTurnText<T extends { assistantMessage: string; sugge
 ): T {
   return {
     ...turn,
-    assistantMessage: replaceCommonGermanUmlauts(turn.assistantMessage),
+    assistantMessage: softenConsultantTone(replaceCommonGermanUmlauts(turn.assistantMessage)),
     suggestedReplies: turn.suggestedReplies?.map((entry) => ({
       ...entry,
-      label: replaceCommonGermanUmlauts(entry.label)
+      label: softenConsultantTone(replaceCommonGermanUmlauts(entry.label))
     }))
   };
+}
+
+function softenConsultantTone(input: string): string {
+  const replacements: Array<[RegExp, string]> = [
+    [/\bEuer naechster Hebel ist jetzt\b/g, "Als nächstes würde ich euch empfehlen"],
+    [/\bEuer nächster Hebel ist jetzt\b/g, "Als nächstes würde ich euch empfehlen"],
+    [/\bEuer naechster Hebel\b/g, "Als nächster sinnvoller Schritt"],
+    [/\bEuer nächster Hebel\b/g, "Als nächster sinnvoller Schritt"],
+    [/\bHebel\b/g, "Schritt"],
+    [/\bwie in einer Beratung\b/g, "wie in einem guten Beratungsgespräch"],
+    [/\bblind weiterzuschieben\b/g, "ohne Plan weiterzugehen"],
+    [/\bKern-Vendoren\b/g, "wichtigen Dienstleister"]
+  ];
+
+  let text = input;
+  for (const [pattern, replacement] of replacements) {
+    text = text.replace(pattern, replacement);
+  }
+  return text;
 }
 
 function replaceCommonGermanUmlauts(input: string): string {
@@ -900,10 +922,59 @@ async function applyOperatorMessageToWorkspace(
     }
   }
 
+  const manualVendorIntent = parseManualVendorIntent(userMessage);
+  if (manualVendorIntent.intentDetected) {
+    if (!manualVendorIntent.name || !manualVendorIntent.category) {
+      const missing = [
+        manualVendorIntent.name ? null : "Name des Anbieters",
+        manualVendorIntent.category ? null : "Kategorie (z. B. DJ/Musik, Catering, Foto)"
+      ].filter(Boolean);
+
+      return {
+        workspace,
+        note:
+          `Operator-Hinweis: Ich trage den Anbieter gern für dieses Paar ein. ` +
+          `Mir fehlt noch: ${missing.join(" und ")}. ` +
+          `Optional direkt mitsenden: Telefon, E-Mail, Adresse.`
+      };
+    }
+
+    const detailParts = [
+      manualVendorIntent.phone ? `Telefon: ${manualVendorIntent.phone}` : null,
+      manualVendorIntent.email ? `E-Mail: ${manualVendorIntent.email}` : null,
+      manualVendorIntent.address ? `Adresse: ${manualVendorIntent.address}` : null
+    ].filter(Boolean);
+    const detailText = detailParts.length > 0 ? ` (${detailParts.join(" | ")})` : "";
+
+    const withExpense = await workspaceStore.addExpense(workspace.id, {
+      label: `Manuell ergänzt: ${manualVendorIntent.name}${detailText}`,
+      category: manualVendorIntent.category,
+      amount: 0,
+      status: "planned",
+      vendorName: manualVendorIntent.name
+    });
+
+    if (!withExpense) {
+      return {
+        workspace,
+        note: "Operator-Hinweis: Ich konnte den manuellen Anbieter gerade nicht speichern."
+      };
+    }
+
+    workspace = withExpense;
+    changed.push(
+      `${manualVendorIntent.name} wurde manuell in ${mapCategoryToLabel(
+        manualVendorIntent.category
+      )} gespeichert`
+    );
+  }
+
   if (changed.length === 0) {
     return {
       workspace,
-      note: "Operator-Hinweis: Ich habe keine konkrete Profiländerung erkannt, aber eure Priorisierung aufgenommen."
+      note:
+        "Operator-Hinweis: Ich habe noch keine konkrete Änderung erkannt. " +
+        "Wenn ihr wollt, formuliere ich euch direkt ein passendes Beispiel."
     };
   }
 
@@ -923,6 +994,144 @@ async function applyOperatorMessageToWorkspace(
     workspace: updated,
     note: `Operator-Update: ${changed.join(", ")}.`
   };
+}
+
+function mapCategoryToLabel(
+  category: "venue" | "catering" | "photography" | "music" | "attire" | "florals" | "stationery-admin"
+) {
+  switch (category) {
+    case "venue":
+      return "Location";
+    case "catering":
+      return "Catering";
+    case "photography":
+      return "Fotografie";
+    case "music":
+      return "Musik";
+    case "attire":
+      return "Styling & Outfit";
+    case "florals":
+      return "Floristik";
+    case "stationery-admin":
+      return "Papeterie & Admin";
+    default:
+      return category;
+  }
+}
+
+function parseManualVendorIntent(userMessage: string): {
+  intentDetected: boolean;
+  category?: "venue" | "catering" | "photography" | "music" | "attire" | "florals" | "stationery-admin";
+  name?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+} {
+  const text = userMessage.trim();
+  const lower = text.toLowerCase();
+  const hasActionWord = /\b(manuell|hinzuf|eintragen|gefunden|gebucht)\b/.test(lower);
+  const hasVendorHint =
+    /\b(dj|dienstleister|anbieter|fotograf|catering|band|floristik|styling|location)\b/.test(lower) ||
+    lower.includes("nicht im sortiment");
+  const intentDetected = hasActionWord && hasVendorHint;
+
+  const category = detectVendorCategory(lower);
+  let name =
+    extractDjName(text) ??
+    extractByLabel(
+      text,
+      /(?:anbieter|dienstleister|fotograf(?:in)?|band|cater(?:er|ing)?|location)\s*[:\-]?\s*([^,.\n]+)/i
+    ) ??
+    extractByLabel(text, /(?:haben|gefunden|gebucht)\s+(?:schon\s+)?([^,.\n]{3,80})/i);
+  if (name && /\b(gefunden|gebucht|manuell|hinzu|eintragen)\b/i.test(name)) {
+    name =
+      extractByLabel(
+        text,
+        /(?:fuege|füge|trag|trage)[^.\n]*?\bdj\s+([^,.\n]+?)(?:\s+manuell|\s+hinzu|,|\.|$)/i
+      ) ?? name;
+  }
+  const phone = extractByLabel(
+    text,
+    /(?:telefon|tel\.?|mobil|phone)\s*[:\-]?\s*([+()0-9\/\-\s]{6,})/i
+  );
+  const email = extractByLabel(text, /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
+  const addressRaw = extractByLabel(
+    text,
+    /(?:adresse|anschrift)\s*(?:ist\s*)?[:\-]?\s*([^.\n]{5,160})/i
+  );
+  const address = addressRaw
+    ?.replace(/^(?:ist\s*[:\-]?\s*)/i, "")
+    .replace(/,\s*(?:telefon|tel\.?|mobil|phone)\b.*$/i, "")
+    .trim();
+
+  return {
+    intentDetected,
+    category,
+    name: cleanExtract(name),
+    phone: cleanExtract(phone),
+    email: cleanExtract(email),
+    address: cleanExtract(address)
+  };
+}
+
+function detectVendorCategory(
+  lower: string
+): "venue" | "catering" | "photography" | "music" | "attire" | "florals" | "stationery-admin" | undefined {
+  if (/\b(dj|musik|band)\b/.test(lower)) {
+    return "music";
+  }
+  if (/\b(catering|essen|menue)\b/.test(lower)) {
+    return "catering";
+  }
+  if (/\b(foto|fotograf)\b/.test(lower)) {
+    return "photography";
+  }
+  if (/\b(floristik|blumen|deko)\b/.test(lower)) {
+    return "florals";
+  }
+  if (/\b(styling|kleid|anzug|outfit)\b/.test(lower)) {
+    return "attire";
+  }
+  if (/\b(location|venue|saal)\b/.test(lower)) {
+    return "venue";
+  }
+  return undefined;
+}
+
+function extractByLabel(text: string, pattern: RegExp): string | undefined {
+  const match = text.match(pattern);
+  return match?.[1];
+}
+
+function extractDjName(text: string): string | undefined {
+  const matches = [...text.matchAll(/\bdj\s+([^\n,\.]{2,80})/gi)];
+  if (matches.length === 0) {
+    return undefined;
+  }
+
+  for (let index = matches.length - 1; index >= 0; index -= 1) {
+    const raw = matches[index]?.[1];
+    if (!raw) {
+      continue;
+    }
+    const candidate = raw
+      .replace(/\b(manuell|hinzu|eintragen|bitte)\b.*$/i, "")
+      .trim();
+    if (!candidate || /\b(gefunden|gebucht)\b/i.test(candidate)) {
+      continue;
+    }
+    return candidate;
+  }
+
+  return undefined;
+}
+
+function cleanExtract(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const next = value.replace(/\s+/g, " ").trim();
+  return next.length > 0 ? next : undefined;
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
