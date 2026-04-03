@@ -6,9 +6,11 @@
  * Input: one JSON arg with task payload
  * Output: JSON array of normalized records
  *
- * This adapter is designed to run in headless server environments.
- * It uses a search-first discovery approach, then extracts first-party
- * contact signals from candidate pages.
+ * Strategy:
+ * 1. Search portal-specific listing pages
+ * 2. Parse listing page + JSON-LD
+ * 3. Follow likely external vendor links
+ * 4. Return normalized contact facts
  */
 
 const taskRaw = process.argv[2] ?? "{}";
@@ -26,8 +28,9 @@ const category = asString(task.category) || "venue";
 const mode = asString(task.mode) || "free-baseline";
 const maxResults =
   mode === "premium-deep-scan"
-    ? Number.parseInt(process.env.BROWSER_USE_ADAPTER_MAX_RESULTS_PREMIUM ?? "16", 10)
-    : Number.parseInt(process.env.BROWSER_USE_ADAPTER_MAX_RESULTS_FREE ?? "8", 10);
+    ? Number.parseInt(process.env.BROWSER_USE_ADAPTER_MAX_RESULTS_PREMIUM ?? "20", 10)
+    : Number.parseInt(process.env.BROWSER_USE_ADAPTER_MAX_RESULTS_FREE ?? "10", 10);
+const timeoutMs = Number.parseInt(process.env.BROWSER_USE_ADAPTER_TIMEOUT_MS ?? "18000", 10);
 
 if (!portalUrl) {
   process.stdout.write("[]");
@@ -37,77 +40,92 @@ if (!portalUrl) {
 const categoryLabel = categoryToQueryLabel(category);
 const portalHost = safeHost(portalUrl);
 const searchQuery = `site:${portalHost} ${categoryLabel} ${region}`;
-const timeoutMs = Number.parseInt(process.env.BROWSER_USE_ADAPTER_TIMEOUT_MS ?? "15000", 10);
 
 const result = await discoverPortalRecords({
   searchQuery,
-  region,
   portalUrl,
-  maxResults: Number.isFinite(maxResults) && maxResults > 0 ? maxResults : 8,
+  portalHost,
+  region,
+  maxResults: Number.isFinite(maxResults) && maxResults > 0 ? maxResults : 10,
   timeoutMs
 });
 
 process.stdout.write(JSON.stringify(result));
 
 async function discoverPortalRecords(input) {
-  const candidates = await searchDuckDuckGo(input.searchQuery, input.maxResults, input.timeoutMs);
-  const portalCandidates = buildPortalFallbackCandidates(input.portalUrl);
-  const queue = [...candidates, ...portalCandidates];
+  const searchCandidates = await searchDuckDuckGo(input.searchQuery, input.maxResults, input.timeoutMs);
+  const portalFallback = buildPortalFallbackCandidates(input.portalUrl);
+  const queue = [...searchCandidates, ...portalFallback];
+
+  const seenUrls = new Set();
   const records = [];
-  const seen = new Set();
 
   for (const candidate of queue) {
-    if (!candidate.url || seen.has(candidate.url)) {
+    if (!candidate.url || seenUrls.has(candidate.url)) {
       continue;
     }
-    seen.add(candidate.url);
-    const page = await fetchHtml(candidate.url, input.timeoutMs);
-    if (!page) {
+    seenUrls.add(candidate.url);
+
+    const pageHtml = await fetchHtml(candidate.url, input.timeoutMs);
+    if (!pageHtml) {
       continue;
     }
 
-    const extracted = extractRecordFromHtml({
+    const pageRecord = extractRecordFromHtml({
       url: candidate.url,
       title: candidate.title,
-      html: page
+      html: pageHtml,
+      region: input.region
     });
-
-    if (!extracted.name && !extracted.websiteUrl && !extracted.contactPhone && !extracted.contactEmail) {
-      continue;
+    if (isUsefulRecord(pageRecord)) {
+      records.push(pageRecord);
     }
 
-    if (!extracted.address) {
-      extracted.address = findAddressSnippet(page, input.region);
-    }
-    if (!extracted.priceHints || extracted.priceHints.length === 0) {
-      extracted.priceHints = findPriceHints(page);
+    for (const structured of extractSchemaOrgRecords(candidate.url, pageHtml)) {
+      if (isUsefulRecord(structured)) {
+        records.push(structured);
+      }
     }
 
-    records.push(extracted);
-    if (records.length >= input.maxResults) {
+    const outbound = extractLikelyVendorLinks(candidate.url, pageHtml, input.portalHost);
+    for (const link of outbound.slice(0, 4)) {
+      if (seenUrls.has(link)) {
+        continue;
+      }
+      seenUrls.add(link);
+
+      const vendorHtml = await fetchHtml(link, input.timeoutMs);
+      if (!vendorHtml) {
+        continue;
+      }
+
+      const vendorRecord = extractRecordFromHtml({
+        url: link,
+        title: "",
+        html: vendorHtml,
+        region: input.region
+      });
+      if (isUsefulRecord(vendorRecord)) {
+        records.push(vendorRecord);
+      }
+
+      for (const structured of extractSchemaOrgRecords(link, vendorHtml)) {
+        if (isUsefulRecord(structured)) {
+          records.push(structured);
+        }
+      }
+
+      if (records.length >= input.maxResults * 4) {
+        break;
+      }
+    }
+
+    if (records.length >= input.maxResults * 4) {
       break;
     }
   }
 
-  return dedupeRecords(records);
-}
-
-function buildPortalFallbackCandidates(portalUrl) {
-  const targets = [];
-  const suffixes = ["", "/kontakt", "/impressum", "/contact", "/ueber-uns"];
-
-  for (const suffix of suffixes) {
-    const resolved = safeJoinUrl(portalUrl, suffix);
-    if (!resolved) {
-      continue;
-    }
-    targets.push({
-      url: resolved,
-      title: ""
-    });
-  }
-
-  return targets;
+  return dedupeRecords(records).slice(0, input.maxResults);
 }
 
 async function searchDuckDuckGo(query, maxResults, timeoutMs) {
@@ -127,15 +145,11 @@ async function searchDuckDuckGo(query, maxResults, timeoutMs) {
     if (!resolved) {
       continue;
     }
-    candidates.push({
-      url: resolved,
-      title
-    });
-    if (candidates.length >= maxResults * 2) {
+    candidates.push({ url: resolved, title });
+    if (candidates.length >= maxResults * 3) {
       break;
     }
   }
-
   return candidates;
 }
 
@@ -166,28 +180,135 @@ async function fetchHtml(url, timeoutMs) {
   }
 }
 
+function buildPortalFallbackCandidates(portalUrl) {
+  const suffixes = ["", "/kontakt", "/impressum", "/about", "/ueber-uns", "/vendor", "/dienstleister"];
+  const out = [];
+  for (const suffix of suffixes) {
+    const target = safeJoinUrl(portalUrl, suffix);
+    if (target) {
+      out.push({ url: target, title: "" });
+    }
+  }
+  return out;
+}
+
 function extractRecordFromHtml(input) {
   const html = input.html;
   const title = firstMatch(html, /<title[^>]*>(.*?)<\/title>/is);
   const h1 = firstMatch(html, /<h1[^>]*>(.*?)<\/h1>/is);
-  const email = firstMatch(html, /mailto:([^"'?\s>]+)/i);
+  const email = sanitizeEmail(firstMatch(html, /mailto:([^"'?\s>]+)/i));
   const phone = normalizePhone(firstMatch(html, /tel:([^"'?\s>]+)/i));
   const openingHours = extractOpeningHours(html);
   const priceHints = findPriceHints(html);
+  const address = findAddressSnippet(html, input.region);
   const websiteUrl = safeOrigin(input.url);
-
   const name = cleanName(h1 || title || input.title || hostToName(input.url));
-  const contactEmail = sanitizeEmail(email);
 
   return {
     ...(name ? { name } : {}),
     ...(websiteUrl ? { websiteUrl } : {}),
     sourceUrl: input.url,
+    ...(address ? { address } : {}),
     ...(phone ? { contactPhone: phone } : {}),
-    ...(contactEmail ? { contactEmail } : {}),
+    ...(email ? { contactEmail: email } : {}),
     ...(openingHours.length > 0 ? { openingHours } : {}),
     ...(priceHints.length > 0 ? { priceHints } : {})
   };
+}
+
+function extractSchemaOrgRecords(sourceUrl, html) {
+  const rows = [];
+  const scripts = [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  for (const match of scripts) {
+    const raw = (match[1] ?? "").trim();
+    if (!raw) {
+      continue;
+    }
+
+    const parsed = safeJsonParse(raw);
+    if (!parsed) {
+      continue;
+    }
+
+    const nodes = flattenJsonLd(parsed);
+    for (const node of nodes) {
+      if (!node || typeof node !== "object") {
+        continue;
+      }
+      const typeValue = normalizeWhitespace(asString(node["@type"]));
+      if (
+        !/(LocalBusiness|Organization|LodgingBusiness|EventVenue|EntertainmentBusiness|FoodEstablishment)/i.test(
+          typeValue
+        )
+      ) {
+        continue;
+      }
+
+      const addressText =
+        typeof node.address === "string"
+          ? normalizeWhitespace(node.address)
+          : node.address && typeof node.address === "object"
+            ? normalizeWhitespace(
+                [
+                  asString(node.address.streetAddress),
+                  asString(node.address.postalCode),
+                  asString(node.address.addressLocality)
+                ]
+                  .filter(Boolean)
+                  .join(" ")
+              )
+            : "";
+
+      const openingHours = normalizeOpeningHours(node.openingHoursSpecification ?? node.openingHours);
+      const email = sanitizeEmail(firstIn(asStringArray(node.email)));
+      const phone = normalizePhone(firstIn(asStringArray(node.telephone)));
+      const priceRange = asString(node.priceRange);
+      const websiteUrl = asString(node.url) || safeOrigin(sourceUrl) || "";
+      const name = cleanName(asString(node.name) || hostToName(websiteUrl || sourceUrl));
+
+      rows.push({
+        ...(name ? { name } : {}),
+        ...(websiteUrl ? { websiteUrl } : {}),
+        sourceUrl,
+        ...(addressText ? { address: addressText } : {}),
+        ...(email ? { contactEmail: email } : {}),
+        ...(phone ? { contactPhone: phone } : {}),
+        ...(openingHours.length > 0 ? { openingHours } : {}),
+        ...(priceRange ? { priceHints: [priceRange] } : {})
+      });
+    }
+  }
+  return rows;
+}
+
+function extractLikelyVendorLinks(baseUrl, html, portalHost) {
+  const out = new Set();
+  const links = [...html.matchAll(/<a[^>]*href=["']([^"']+)["'][^>]*>/gi)];
+  for (const link of links) {
+    const href = decodeHtmlEntities(link[1] ?? "");
+    if (!href) {
+      continue;
+    }
+    try {
+      const absolute = new URL(href, baseUrl).toString();
+      const host = safeHost(absolute);
+      if (!host || host === portalHost) {
+        continue;
+      }
+      if (
+        host.includes("facebook.com") ||
+        host.includes("instagram.com") ||
+        host.includes("youtube.com") ||
+        host.includes("linkedin.com")
+      ) {
+        continue;
+      }
+      out.add(absolute);
+    } catch {
+      // ignore invalid links
+    }
+  }
+  return [...out];
 }
 
 function findAddressSnippet(html, region) {
@@ -203,7 +324,7 @@ function findAddressSnippet(html, region) {
       return value;
     }
   }
-  return undefined;
+  return "";
 }
 
 function findPriceHints(html) {
@@ -214,19 +335,17 @@ function findPriceHints(html) {
     /\b\d[\d.\s]{1,12}\s?(?:€|eur)\s*(?:pro\s*person|p\.?\s*p\.?)\b/gi,
     /\bpauschal(?:e|paket)?\s+\d[\d.\s]{1,12}\s?(?:€|eur)\b/gi
   ];
-
   for (const regex of regexes) {
     for (const match of plain.matchAll(regex)) {
       const value = normalizeWhitespace(match[0] ?? "");
       if (value) {
         hints.add(value);
       }
-      if (hints.size >= 5) {
+      if (hints.size >= 6) {
         return [...hints];
       }
     }
   }
-
   return [...hints];
 }
 
@@ -249,28 +368,26 @@ function extractOpeningHours(html) {
 
 function dedupeRecords(records) {
   const map = new Map();
-  for (const entry of records) {
-    const key = (entry.websiteUrl || entry.sourceUrl || entry.name || "").toLowerCase();
+  for (const row of records) {
+    const key = normalizeWhitespace(
+      [row.websiteUrl || "", row.sourceUrl || "", row.name || ""].filter(Boolean).join("|")
+    ).toLowerCase();
     if (!key) {
       continue;
     }
-    if (!map.has(key)) {
-      map.set(key, entry);
+    const prev = map.get(key);
+    if (!prev) {
+      map.set(key, row);
       continue;
     }
-    const current = map.get(key);
     map.set(key, {
-      ...current,
-      ...entry,
-      openingHours: mergeArrays(current.openingHours, entry.openingHours),
-      priceHints: mergeArrays(current.priceHints, entry.priceHints)
+      ...prev,
+      ...row,
+      openingHours: mergeArrays(prev.openingHours, row.openingHours),
+      priceHints: mergeArrays(prev.priceHints, row.priceHints)
     });
   }
   return [...map.values()];
-}
-
-function mergeArrays(a = [], b = []) {
-  return [...new Set([...a, ...b])].filter(Boolean);
 }
 
 function resolveSearchHref(rawHref) {
@@ -279,8 +396,8 @@ function resolveSearchHref(rawHref) {
   }
   try {
     if (rawHref.startsWith("/l/?")) {
-      const parsed = new URL(`https://duckduckgo.com${rawHref}`);
-      const target = parsed.searchParams.get("uddg");
+      const url = new URL(`https://duckduckgo.com${rawHref}`);
+      const target = url.searchParams.get("uddg");
       return target ? decodeURIComponent(target) : null;
     }
     if (rawHref.startsWith("http://") || rawHref.startsWith("https://")) {
@@ -292,19 +409,47 @@ function resolveSearchHref(rawHref) {
   }
 }
 
+function normalizeOpeningHours(value) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => normalizeWhitespace(asString(entry))).filter(Boolean);
+  }
+  if (value && typeof value === "object") {
+    const day = asString(value.dayOfWeek);
+    const opens = asString(value.opens);
+    const closes = asString(value.closes);
+    const line = normalizeWhitespace(`${day} ${opens}-${closes}`.trim());
+    return line ? [line] : [];
+  }
+  const line = normalizeWhitespace(asString(value));
+  return line ? [line] : [];
+}
+
+function flattenJsonLd(value) {
+  if (Array.isArray(value)) {
+    return value.flatMap((entry) => flattenJsonLd(entry));
+  }
+  if (value && typeof value === "object") {
+    if (Array.isArray(value["@graph"])) {
+      return value["@graph"].flatMap((entry) => flattenJsonLd(entry));
+    }
+    return [value];
+  }
+  return [];
+}
+
+function safeJsonParse(value) {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
 function safeOrigin(url) {
   try {
     return new URL(url).origin;
   } catch {
-    return undefined;
-  }
-}
-
-function safeJoinUrl(base, suffix) {
-  try {
-    return new URL(suffix, base).toString();
-  } catch {
-    return null;
+    return "";
   }
 }
 
@@ -316,41 +461,156 @@ function safeHost(url) {
   }
 }
 
-function firstMatch(value, regex) {
-  const match = value.match(regex);
-  return match?.[1] ? normalizeWhitespace(stripTags(decodeHtmlEntities(match[1]))) : "";
+function safeJoinUrl(base, suffix) {
+  try {
+    return new URL(suffix, base).toString();
+  } catch {
+    return "";
+  }
 }
 
 function cleanName(value) {
-  return normalizeWhitespace(
+  const normalized = normalizeWhitespace(
     value
       .replace(/\|.*$/u, "")
       .replace(/[-–—].*$/u, "")
       .replace(/\b(hotel|hochzeit|event|deutschland|homepage)\b/gi, "")
       .trim()
   );
+  return normalized
+    .replace(/^[^a-zA-Z0-9ÄÖÜäöüß]+/u, "")
+    .replace(/[^a-zA-Z0-9ÄÖÜäöüß]+$/u, "")
+    .trim();
 }
 
 function hostToName(url) {
   try {
-    const hostname = new URL(url).hostname.replace(/^www\./i, "");
-    return hostname.split(".")[0] ?? hostname;
+    const host = new URL(url).hostname.replace(/^www\./i, "");
+    return host.split(".")[0] ?? host;
   } catch {
     return "";
   }
 }
 
+function hasMeaningfulData(row) {
+  return Boolean(row.name || row.websiteUrl || row.contactEmail || row.contactPhone || row.address);
+}
+
+function isUsefulRecord(row) {
+  if (!hasMeaningfulData(row)) {
+    return false;
+  }
+
+  const name = normalizeWhitespace(asString(row.name));
+  if (!name) {
+    return Boolean(row.contactEmail || row.contactPhone || row.address);
+  }
+
+  if (name.length < 2 || name.length > 90) {
+    return false;
+  }
+
+  if (/[{}()[\]=<>]/.test(name)) {
+    return false;
+  }
+
+  const lower = name.toLowerCase();
+  const blocked = [
+    "impressum",
+    "kontakt",
+    "dashboard",
+    "site relocation",
+    "entscheidungen zu treffen",
+    "locaties en bedrijfsuitjes",
+    "anbieterkennzeichnung",
+    "digitale loesungen",
+    "share on whatsapp",
+    "trouwen is keuzes",
+    "javascript",
+    "const ",
+    "function ",
+    "window.",
+    "document."
+  ];
+  if (blocked.some((token) => lower.includes(token))) {
+    return false;
+  }
+
+  const usefulSignals = [
+    row.contactEmail,
+    row.contactPhone,
+    row.address,
+    row.priceHints && row.priceHints.length > 0 ? "price" : "",
+    row.openingHours && row.openingHours.length > 0 ? "hours" : ""
+  ].filter(Boolean);
+
+  if (usefulSignals.length === 0) {
+    return false;
+  }
+
+  if (name.split(" ").length > 7 && usefulSignals.length < 2) {
+    return false;
+  }
+
+  return true;
+}
+
+function firstMatch(value, regex) {
+  const match = value.match(regex);
+  return match?.[1] ? normalizeWhitespace(stripTags(decodeHtmlEntities(match[1]))) : "";
+}
+
+function stripTags(value) {
+  return value.replace(/<[^>]+>/g, " ");
+}
+
+function decodeHtmlEntities(value) {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, "\"")
+    .replace(/&#39;/g, "'");
+}
+
 function normalizePhone(value) {
-  const stripped = normalizeWhitespace(value || "").replace(/[^\d+]/g, "");
-  return stripped.length >= 7 ? stripped : "";
+  const normalized = normalizeWhitespace(value || "").replace(/[^\d+]/g, "");
+  return normalized.length >= 7 ? normalized : "";
 }
 
 function sanitizeEmail(value) {
-  const email = normalizeWhitespace(value || "").toLowerCase();
-  if (!email.includes("@") || email.length < 5) {
+  const email = normalizeWhitespace(value || "")
+    .replace(/\\u0022/g, "")
+    .replace(/["'\\]/g, "")
+    .toLowerCase();
+  if (!email || !email.includes("@")) {
     return "";
   }
   return email;
+}
+
+function normalizeWhitespace(value) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function mergeArrays(a = [], b = []) {
+  return [...new Set([...(a ?? []), ...(b ?? [])])].filter(Boolean);
+}
+
+function asString(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function asStringArray(value) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => asString(entry)).filter(Boolean);
+  }
+  const single = asString(value);
+  return single ? [single] : [];
+}
+
+function firstIn(values) {
+  return values.length > 0 ? values[0] : "";
 }
 
 function categoryToQueryLabel(category) {
@@ -370,30 +630,9 @@ function categoryToQueryLabel(category) {
     videography: "hochzeitsvideo",
     photobooth: "fotobox hochzeit",
     magician: "zauberer hochzeit",
-    "live-artist": "live zeichner hochzeit",
+    "live-artist": "live painter hochzeit",
     childcare: "kinderbetreuung hochzeit",
     rentals: "hochzeit verleih"
   };
   return map[category] ?? category;
-}
-
-function stripTags(value) {
-  return value.replace(/<[^>]+>/g, " ");
-}
-
-function decodeHtmlEntities(value) {
-  return value
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, "\"")
-    .replace(/&#39;/g, "'");
-}
-
-function normalizeWhitespace(value) {
-  return value.replace(/\s+/g, " ").trim();
-}
-
-function asString(value) {
-  return typeof value === "string" ? value.trim() : "";
 }
