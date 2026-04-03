@@ -820,6 +820,191 @@ describe("POST /prototype/consultant/reply", () => {
     expect(response.json().turn.assistantMessage).toContain("Restspielraum");
   });
 
+  it("can update a guest directly through operator chat", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+    const guestResponse = await app.inject({
+      method: "POST",
+      url: `/prototype/workspaces/${created.workspace.id}/guests`,
+      payload: {
+        name: "Lena Beispiel",
+        household: "Familie Beispiel",
+        email: "lena@example.com",
+        eventIds: ["civil-ceremony", "celebration"]
+      }
+    });
+    const guestWorkspace = guestResponse.json().workspace;
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: guestWorkspace,
+        currentTurn: {
+          stepId: "guest-experience",
+          focusArea: "guests",
+          assistantMessage: "Wir koennen Gaeste direkt aktualisieren.",
+          suggestedReplies: []
+        },
+        messages: [],
+        assistantMode: "operator",
+        assistantTier: "premium",
+        userMessage:
+          "Bitte markiere Lena Beispiel als zugesagt, vegetarisch und setze notiz: Glutenfrei."
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      workspace: {
+        guests: expect.arrayContaining([
+          expect.objectContaining({
+            name: "Lena Beispiel",
+            rsvpStatus: "attending",
+            mealPreference: "vegetarian",
+            dietaryNotes: "Glutenfrei."
+          })
+        ])
+      }
+    });
+  });
+
+  it("can add a budget item directly through operator chat", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: created.workspace,
+        currentTurn: {
+          stepId: "final-control-room",
+          focusArea: "budget",
+          assistantMessage: "Wir koennen Budgetposten direkt anlegen.",
+          suggestedReplies: []
+        },
+        messages: [],
+        assistantMode: "operator",
+        assistantTier: "premium",
+        userMessage: "Lege bitte einen Budgetposten fuer DJ Stefan Kietz mit 1800 EUR als gebucht an."
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      workspace: {
+        expenses: expect.arrayContaining([
+          expect.objectContaining({
+            label: expect.stringContaining("DJ Stefan Kietz"),
+            amount: 1800,
+            status: "booked"
+          })
+        ])
+      }
+    });
+  });
+
+  it("can update a vendor tracker entry directly through operator chat", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: created.workspace,
+        currentTurn: {
+          stepId: "core-vendors",
+          focusArea: "vendors",
+          assistantMessage: "Wir koennen Vendoren direkt nachziehen.",
+          suggestedReplies: []
+        },
+        messages: [],
+        assistantMode: "operator",
+        assistantTier: "premium",
+        userMessage:
+          "Setze THE SPACE bitte auf kontaktiert und notiz: Rueckruf fuer Freitag geplant."
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      workspace: {
+        vendorTracker: expect.arrayContaining([
+          expect.objectContaining({
+            stage: "contacted",
+            note: "Rueckruf fuer Freitag geplant."
+          })
+        ])
+      }
+    });
+  });
+
+  it("can complete a task directly through operator chat", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+    const taskTitle = created.workspace.tasks[0].title;
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: created.workspace,
+        currentTurn: {
+          stepId: "final-control-room",
+          focusArea: "timeline",
+          assistantMessage: "Wir koennen Aufgaben direkt abhaken.",
+          suggestedReplies: []
+        },
+        messages: [],
+        assistantMode: "operator",
+        assistantTier: "premium",
+        userMessage: `Markiere bitte die Aufgabe ${taskTitle} als erledigt.`
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      workspace: {
+        tasks: expect.arrayContaining([
+          expect.objectContaining({
+            title: taskTitle,
+            completed: true
+          })
+        ])
+      }
+    });
+  });
+
   it("keeps free tier in advisor-only mode even when operator is requested", async () => {
     const app = buildApp();
     openApps.push(app);

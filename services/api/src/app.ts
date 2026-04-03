@@ -417,6 +417,286 @@ function createInvitationCopyPatch(userMessage: string) {
   return Object.keys(patch).length > 0 ? patch : null;
 }
 
+function extractFirstNumber(userMessage: string) {
+  const match = userMessage.match(/(\d+[.,]?\d*)/);
+
+  if (!match) {
+    return null;
+  }
+
+  const normalized = (match[1] ?? "").replace(",", ".");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function findGuestFromMessage(
+  workspace: PrototypeWorkspace,
+  userMessage: string
+) {
+  const normalizedMessage = normalizeConsultantText(userMessage);
+
+  return [...workspace.guests]
+    .sort((left, right) => right.name.length - left.name.length)
+    .find((guest) => normalizedMessage.includes(normalizeConsultantText(guest.name)));
+}
+
+async function maybeHandleGuestUpdate(
+  workspaceStore: PrototypeWorkspaceStore,
+  payload: WeddingConsultantReplyPayload
+) {
+  const normalizedMessage = normalizeConsultantText(payload.userMessage);
+
+  if (!/(gast|gaste|gaeste|rsvp|essen|vegetar|vegan|absag|zusag|email|haushalt|familie)/.test(normalizedMessage)) {
+    return null;
+  }
+
+  const guest = findGuestFromMessage(payload.workspace, payload.userMessage);
+
+  if (!guest) {
+    return null;
+  }
+
+  const rsvpStatus =
+    /(zugesagt|zusage|attending|kommt|dabei)/.test(normalizedMessage)
+      ? "attending"
+      : /(abgesagt|absage|declined|kommt nicht|nicht dabei)/.test(normalizedMessage)
+        ? "declined"
+        : /(offen|pending|noch offen)/.test(normalizedMessage)
+          ? "pending"
+          : undefined;
+  const mealPreference =
+    /(vegan)/.test(normalizedMessage)
+      ? "vegan"
+      : /(vegetar)/.test(normalizedMessage)
+        ? "vegetarian"
+        : /(kindergericht|kids)/.test(normalizedMessage)
+          ? "kids"
+          : /(standard)/.test(normalizedMessage)
+            ? "standard"
+            : undefined;
+  const emailMatch = payload.userMessage.match(
+    /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i
+  );
+  const householdMatch =
+    payload.userMessage.match(/(?:haushalt|familie)\s*:\s*([^\n]+)/i) ??
+    payload.userMessage.match(/familie\s+([A-Za-z??????????????][^\n,]+)/i);
+  const dietaryNotesMatch = payload.userMessage.match(
+    /(?:allergie|allergien|unvertraeglich|unvertraeglichkeit|diary notes|hinweis|notiz)\s*:?\s*([^\n]+)/i
+  );
+  const messageMatch = payload.userMessage.match(/(?:nachricht|message)\s*:\s*([^\n]+)/i);
+  const updatedWorkspace = await workspaceStore.updateGuest(payload.workspace.id, guest.id, {
+    ...(rsvpStatus ? { rsvpStatus } : {}),
+    ...(mealPreference ? { mealPreference } : {}),
+    ...(emailMatch?.[0] ? { email: emailMatch[0].toLowerCase() } : {}),
+    ...(householdMatch?.[1]?.trim() ? { household: householdMatch[1].trim() } : {}),
+    ...(dietaryNotesMatch?.[1]?.trim()
+      ? { dietaryNotes: dietaryNotesMatch[1].trim() }
+      : {}),
+    ...(messageMatch?.[1]?.trim() ? { message: messageMatch[1].trim() } : {})
+  });
+
+  if (!updatedWorkspace) {
+    return null;
+  }
+
+  const refreshedGuest = updatedWorkspace.guests.find((entry) => entry.id === guest.id) ?? guest;
+
+  return {
+    turn: buildOperatorTurn(
+      updatedWorkspace,
+      "guest-experience",
+      "guests",
+      `Ich habe ${refreshedGuest.name} direkt aktualisiert. RSVP: ${refreshedGuest.rsvpStatus}, Essen: ${refreshedGuest.mealPreference}, Haushalt: ${refreshedGuest.household}.`
+    ),
+    provider: "deterministic" as const,
+    model: "operator-v1",
+    workspace: updatedWorkspace
+  };
+}
+
+async function maybeHandleExpenseCreate(
+  workspaceStore: PrototypeWorkspaceStore,
+  payload: WeddingConsultantReplyPayload
+) {
+  const normalizedMessage = normalizeConsultantText(payload.userMessage);
+
+  if (!/(budget|kosten|ausgabe|expense|eintrag|posten|bezahlt|gebucht|geplant)/.test(normalizedMessage)) {
+    return null;
+  }
+
+  const amount = extractFirstNumber(payload.userMessage);
+
+  if (!amount || amount <= 0) {
+    return null;
+  }
+
+  const category =
+    /(location|venue|schloss|gut|raum)/.test(normalizedMessage)
+      ? "venue"
+      : /(cater|essen|menue|buffet)/.test(normalizedMessage)
+        ? "catering"
+        : /(foto|fotograf|video)/.test(normalizedMessage)
+          ? "photography"
+          : /(musik|dj|band)/.test(normalizedMessage)
+            ? "music"
+            : /(styling|kleid|makeup|outfit)/.test(normalizedMessage)
+              ? "attire"
+              : /(flor|blumen|deko)/.test(normalizedMessage)
+                ? "florals"
+                : "stationery-admin";
+  const status =
+    /(bezahlt|paid)/.test(normalizedMessage)
+      ? "paid"
+      : /(gebucht|booked)/.test(normalizedMessage)
+        ? "booked"
+        : "planned";
+  const vendor = findVendorFromMessage(payload.workspace, payload.userMessage);
+  const labelMatch =
+    payload.userMessage.match(/(?:budgetposten|eintrag|label|titel)\s*:\s*([^\n]+)/i) ??
+    payload.userMessage.match(/(?:fuer|f??r)\s+([^\n,]+)/i);
+  const label = labelMatch?.[1]?.trim() || vendor?.name || "Neuer Budgeteintrag";
+  const vendorName = vendor?.name ?? label;
+  const updatedWorkspace = await workspaceStore.addExpense(payload.workspace.id, {
+    label,
+    category,
+    amount,
+    status,
+    vendorName
+  });
+
+  if (!updatedWorkspace) {
+    return null;
+  }
+
+  return {
+    turn: buildOperatorTurn(
+      updatedWorkspace,
+      "final-control-room",
+      "budget",
+      `Ich habe den Budgeteintrag "${label}" mit ${amount.toLocaleString("de-DE")} EUR als ${status} angelegt. Neuer Restspielraum: ${updatedWorkspace.budgetOverview.overall.remaining.toLocaleString("de-DE")} EUR.`
+    ),
+    provider: "deterministic" as const,
+    model: "operator-v1",
+    workspace: updatedWorkspace
+  };
+}
+
+async function maybeHandleVendorUpdate(
+  workspaceStore: PrototypeWorkspaceStore,
+  payload: WeddingConsultantReplyPayload
+) {
+  const normalizedMessage = normalizeConsultantText(payload.userMessage);
+  const vendor = findVendorFromMessage(payload.workspace, payload.userMessage);
+
+  if (!vendor || !/(vendor|angebot|quote|kontaktiert|gebucht|verworfen|abgelehnt|notiz|stage)/.test(normalizedMessage)) {
+    return null;
+  }
+
+  const stage =
+    /(gebucht|booked)/.test(normalizedMessage)
+      ? "booked"
+      : /(angebot|quote|quoted)/.test(normalizedMessage)
+        ? "quoted"
+        : /(kontaktiert|contacted)/.test(normalizedMessage)
+          ? "contacted"
+          : /(verworfen|abgelehnt|rejected)/.test(normalizedMessage)
+            ? "rejected"
+            : undefined;
+  const quoteAmount = /(angebot|quote|quoted|eur|euro)/.test(normalizedMessage)
+    ? extractFirstNumber(payload.userMessage)
+    : null;
+  const noteMatch = payload.userMessage.match(/(?:notiz|note)\s*:\s*([^\n]+)/i);
+  const trackerEntry =
+    payload.workspace.vendorTracker.find((entry) => entry.vendorId === vendor.id) ?? null;
+
+  if (!stage && quoteAmount === null && !noteMatch?.[1]?.trim()) {
+    return null;
+  }
+
+  const updatedWorkspace = await workspaceStore.updateVendor(payload.workspace.id, vendor.id, {
+    stage: stage ?? trackerEntry?.stage ?? "suggested",
+    quoteAmount:
+      typeof quoteAmount === "number" && Number.isFinite(quoteAmount)
+        ? quoteAmount
+        : trackerEntry?.quoteAmount ?? null,
+    note: noteMatch?.[1]?.trim() ?? trackerEntry?.note ?? ""
+  });
+
+  if (!updatedWorkspace) {
+    return null;
+  }
+
+  const refreshedEntry =
+    updatedWorkspace.vendorTracker.find((entry) => entry.vendorId === vendor.id) ?? trackerEntry;
+
+  return {
+    turn: buildOperatorTurn(
+      updatedWorkspace,
+      vendor.category === "venue" ? "venue-and-date" : "core-vendors",
+      "vendors",
+      `Ich habe ${vendor.name} aktualisiert. Stage: ${refreshedEntry?.stage ?? "suggested"}${typeof refreshedEntry?.quoteAmount === "number" ? `, Angebot: ${refreshedEntry.quoteAmount.toLocaleString("de-DE")} EUR` : ""}${refreshedEntry?.note ? `, Notiz: ${refreshedEntry.note}` : ""}.`
+    ),
+    provider: "deterministic" as const,
+    model: "operator-v1",
+    workspace: updatedWorkspace
+  };
+}
+
+async function maybeHandleTaskCompletion(
+  workspaceStore: PrototypeWorkspaceStore,
+  payload: WeddingConsultantReplyPayload
+) {
+  const normalizedMessage = normalizeConsultantText(payload.userMessage);
+
+  if (!/(aufgabe|task|todo|to do|erledigt|abhaken|offen|wieder aufmachen)/.test(normalizedMessage)) {
+    return null;
+  }
+
+  const task = [...payload.workspace.tasks]
+    .sort((left, right) => right.title.length - left.title.length)
+    .find((entry) => normalizedMessage.includes(normalizeConsultantText(entry.title)));
+
+  if (!task) {
+    return null;
+  }
+
+  const completed =
+    /(erledigt|abhaken|done|abgeschlossen)/.test(normalizedMessage) &&
+    !/(offen|wieder aufmachen|reopen)/.test(normalizedMessage)
+      ? true
+      : /(offen|wieder aufmachen|reopen)/.test(normalizedMessage)
+        ? false
+        : null;
+
+  if (completed === null) {
+    return null;
+  }
+
+  const updatedWorkspace = await workspaceStore.setTaskCompletion(
+    payload.workspace.id,
+    task.id,
+    completed
+  );
+
+  if (!updatedWorkspace) {
+    return null;
+  }
+
+  return {
+    turn: buildOperatorTurn(
+      updatedWorkspace,
+      "final-control-room",
+      "timeline",
+      completed
+        ? `Ich habe die Aufgabe "${task.title}" als erledigt markiert.`
+        : `Ich habe die Aufgabe "${task.title}" wieder geoeffnet.`
+    ),
+    provider: "deterministic" as const,
+    model: "operator-v1",
+    workspace: updatedWorkspace
+  };
+}
+
 function createOperatorSummaryMessage(
   payload: WeddingConsultantReplyPayload,
   baselineTurn: WeddingConsultantTurn
@@ -807,6 +1087,10 @@ async function resolveOperatorIntent(
   payload: WeddingConsultantReplyPayload
 ) {
   return (
+    (await maybeHandleGuestUpdate(workspaceStore, payload)) ??
+    (await maybeHandleExpenseCreate(workspaceStore, payload)) ??
+    (await maybeHandleVendorUpdate(workspaceStore, payload)) ??
+    (await maybeHandleTaskCompletion(workspaceStore, payload)) ??
     (await maybeHandleVendorCategoryToggle(workspaceStore, payload)) ??
     (await maybeHandleInvitationCopyUpdate(workspaceStore, payload)) ??
     (await maybeHandleGuestImport(workspaceStore, payload)) ??
