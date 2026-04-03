@@ -485,7 +485,8 @@ function classifyDiscoveryRecord(record: DiscoveryDbRecord): {
     "te",
     "app",
     "business",
-    "ihr web"
+    "ihr web",
+    "mageschneiderte versicherungen fur freelancer, selbstandige und unternehmen"
   ];
   if (lowValueNameTokens.some((token) => lowerName === token || lowerName.includes(token))) {
     if (record.contactEmail && record.contactPhone) {
@@ -504,6 +505,12 @@ function classifyDiscoveryRecord(record: DiscoveryDbRecord): {
     10
   );
   const minQuality = Number.parseInt(process.env.DISCOVERY_MIN_QUALITY_SCORE ?? "60", 10);
+  if (hasStrongNonWeddingBusinessSignal(record)) {
+    return {
+      accepted: false,
+      reason: "non-wedding-business-signal"
+    };
+  }
 
   if (
     relevanceScore < (Number.isFinite(minRelevance) ? minRelevance : 45) &&
@@ -664,6 +671,34 @@ function categoryFit(record: DiscoveryDbRecord) {
   };
   const negatives = categoryNegative[record.category] ?? [];
   return !negatives.some((token) => corpus.includes(token));
+}
+
+function hasStrongNonWeddingBusinessSignal(record: DiscoveryDbRecord) {
+  const corpus = [
+    record.name ?? "",
+    record.websiteUrl ?? "",
+    record.sourceUrl ?? "",
+    record.note ?? ""
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const tokens = [
+    "versicherung",
+    "versicherungen",
+    "freelancer",
+    "selbständige",
+    "selbstandige",
+    "unternehmen",
+    "startup",
+    "software",
+    "webdesign",
+    "orangefluid",
+    "exali"
+  ];
+
+  const hits = tokens.filter((token) => corpus.includes(token));
+  return hits.length >= 2;
 }
 
 function normalizeModeArg(value?: string | null): PipelineMode | null {
