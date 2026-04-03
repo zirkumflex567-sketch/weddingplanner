@@ -497,11 +497,13 @@ function classifyDiscoveryRecord(record: DiscoveryDbRecord): {
   const hasContactSignal = Boolean(record.contactEmail || record.contactPhone || record.address);
   const qualityScore = record.sourceQualityScore ?? 0;
   const relevanceScore = computeWeddingRelevanceScore(record);
-  const hasCategoryFit = categoryFit(record);
+  const disableCategoryFit = (process.env.DISCOVERY_DISABLE_CATEGORY_FIT ?? "").toLowerCase() === "true";
+  const hasCategoryFit = disableCategoryFit ? true : categoryFit(record);
   const minRelevance = Number.parseInt(
     process.env.DISCOVERY_MIN_WEDDING_RELEVANCE ?? "45",
     10
   );
+  const minQuality = Number.parseInt(process.env.DISCOVERY_MIN_QUALITY_SCORE ?? "60", 10);
 
   if (
     relevanceScore < (Number.isFinite(minRelevance) ? minRelevance : 45) &&
@@ -520,7 +522,7 @@ function classifyDiscoveryRecord(record: DiscoveryDbRecord): {
     };
   }
 
-  if (hasContactSignal || qualityScore >= 60) {
+  if (hasContactSignal || qualityScore >= (Number.isFinite(minQuality) ? minQuality : 60)) {
     return { accepted: true };
   }
   return { accepted: false, reason: "insufficient-contact-and-score" };
