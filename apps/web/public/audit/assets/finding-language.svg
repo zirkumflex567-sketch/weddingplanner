@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#f9f1f1"/>
+  <rect x="70" y="80" width="1140" height="560" rx="20" fill="#ffffff" stroke="#eadede"/>
+  <text x="110" y="160" font-size="42" font-family="Georgia, serif" fill="#2b2324">P1: Sprache wirkt technisch/uneinheitlich</text>
+  <text x="110" y="220" font-size="26" font-family="Georgia, serif" fill="#6c5d60">Live-Wording noch nicht vollständig alltagstauglich</text>
+  <rect x="110" y="280" width="1060" height="250" rx="12" fill="#fff6e8" stroke="#efd9b6"/>
+  <text x="140" y="350" font-size="28" font-family="Georgia, serif" fill="#8a6a35">Gefunden: „Vendoren“, „Venue-Desk“, „RSVP“, „Co-Pilot“</text>
+  <text x="140" y="405" font-size="28" font-family="Georgia, serif" fill="#8a6a35">Ziel: klare Sprache wie bei echter Hochzeitsplanung</text>
+</svg>
+

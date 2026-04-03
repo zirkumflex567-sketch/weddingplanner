@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wedding Audit Report</title>
+    <style>
+      :root {
+        --bg: #f6efef;
+        --card: #fff;
+        --ink: #211e1e;
+        --muted: #6a6262;
+        --ok: #2f7d58;
+        --warn: #9e6a2b;
+        --bad: #8d2f42;
+      }
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--ink);
+        background: radial-gradient(circle at 20% 0%, #fff, var(--bg));
+      }
+      .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 20px 80px; }
+      h1 { margin: 0 0 8px; font-size: 42px; }
+      .sub { color: var(--muted); margin: 0 0 24px; }
+      .card {
+        background: var(--card);
+        border: 1px solid #e6dede;
+        border-radius: 16px;
+        padding: 18px;
+        margin: 14px 0;
+        box-shadow: 0 8px 30px #00000008;
+      }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+      .p-ok { background: #e7f4ed; color: var(--ok); }
+      .p-warn { background: #fff2df; color: var(--warn); }
+      .p-bad { background: #fde8ed; color: var(--bad); }
+      figure { margin: 10px 0 0; }
+      img { width: 100%; border-radius: 10px; border: 1px solid #e9e2e2; }
+      figcaption { color: var(--muted); font-size: 13px; margin-top: 6px; }
+      ul { margin: 8px 0 0 18px; }
+      @media (max-width: 860px) { .row { grid-template-columns: 1fr; } h1 { font-size: 32px; } }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>Live Audit: Wedding Planner</h1>
+      <p class="sub">Stand: 3. April 2026 · Browser-Use-first Audit · OpenClaw Chat-Lane geprüft</p>
+
+      <section class="card">
+        <h2>Skill-Check (Browser Use statt Playwright)</h2>
+        <ul>
+          <li>Playwright-Skills wurden auf Browser-Use-first umgestellt.</li>
+          <li>Website-Audit und Chat-Test wurden mit Browser Use gefahren.</li>
+          <li>Playwright wurde im Projekt entfernt (Dependency/Skripte).</li>
+        </ul>
+      </section>
+
+      <section class="row">
+        <article class="card">
+          <span class="pill p-bad">P0</span>
+          <h3>White Screen bei „Gäste“</h3>
+          <p>Klick auf den linken Menüpunkt „Gäste“ führt reproduzierbar zu einer leeren Seite.</p>
+          <figure>
+            <img src="./assets/finding-white-screen.svg" alt="White-Screen-Befund" />
+            <figcaption>Evidenz-Slide: reproduzierter Blank-Screen.</figcaption>
+          </figure>
+        </article>
+        <article class="card">
+          <span class="pill p-bad">P0</span>
+          <h3>Premium/Operator nicht stabil</h3>
+          <p>Fehlerbanner: „Der KI-Consultant war gerade nicht erreichbar …“.</p>
+          <figure>
+            <img src="./assets/finding-premium-error.svg" alt="Premium-Fehlerbefund" />
+            <figcaption>Evidenz-Slide: Premium-Lane-Ausfall.</figcaption>
+          </figure>
+        </article>
+      </section>
+
+      <section class="row">
+        <article class="card">
+          <span class="pill p-warn">P1</span>
+          <h3>Chat bleibt im Location-Block hängen</h3>
+          <p>Selbst nach „weiter zu den Vendoren“ bleibt der aktive Schritt oft unverändert.</p>
+          <figure>
+            <img src="./assets/finding-step-stall.svg" alt="Step-Stall-Befund" />
+            <figcaption>Evidenz-Slide: fehlender Fortschritt im geführten Ablauf.</figcaption>
+          </figure>
+        </article>
+        <article class="card">
+          <span class="pill p-warn">P1</span>
+          <h3>Sprache nicht zielgruppengerecht</h3>
+          <p>Live-Texte enthalten weiter technische Begriffe wie „Vendoren“, „Venue-Desk“, „RSVP“.</p>
+          <figure>
+            <img src="./assets/finding-language.svg" alt="Sprachbefund" />
+            <figcaption>Evidenz-Slide: UX-/Wording-Befunde.</figcaption>
+          </figure>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Fortschritt „Hochzeit planen“ (Agentenmodus)</h2>
+        <p><strong>Ziel:</strong> mindestens 50% geplant über den Agenten-Chat.</p>
+        <p><strong>Aktuell live verifiziert:</strong> nicht erreichbar, weil P0/P1-Blocker die stabile Schrittfortschaltung verhindern.</p>
+        <ul>
+          <li>Erreicht: Profilfundament + Location-Arbeit.</li>
+          <li>Nicht stabil erreicht: Kern-Dienstleister, Gäste, Standesamt, Finalblock via Chat-Fortschritt.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Was bereits lokal gefixt wurde</h2>
+        <ul>
+          <li>Playwright im Projekt entfernt.</li>
+          <li>Umlaut- und Wording-Bereinigung gestartet.</li>
+          <li>Mehrere UI-Texte auf verständlichere Begriffe umgestellt.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>
+

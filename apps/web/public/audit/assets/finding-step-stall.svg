@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#f8efef"/>
+  <rect x="70" y="80" width="1140" height="560" rx="20" fill="#ffffff" stroke="#eadede"/>
+  <text x="110" y="160" font-size="42" font-family="Georgia, serif" fill="#2b2324">P1: Schritt-Fortschritt bleibt hängen</text>
+  <text x="110" y="220" font-size="26" font-family="Georgia, serif" fill="#6c5d60">Trotz Chat-Nachrichten und Quick-Reply</text>
+  <rect x="110" y="280" width="500" height="240" rx="12" fill="#f2efe8" stroke="#e2dbcd"/>
+  <text x="145" y="340" font-size="24" font-family="Georgia, serif" fill="#6a5a3f">Location und Datum</text>
+  <text x="145" y="380" font-size="36" font-family="Georgia, serif" fill="#8f7042">Jetzt dran</text>
+  <rect x="670" y="280" width="500" height="240" rx="12" fill="#f8f4f4" stroke="#e8dddd"/>
+  <text x="705" y="340" font-size="24" font-family="Georgia, serif" fill="#6a5a5a">Kern-Dienstleister</text>
+  <text x="705" y="380" font-size="36" font-family="Georgia, serif" fill="#8a7373">Später</text>
+</svg>
+

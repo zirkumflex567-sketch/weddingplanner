@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#f8eff0"/>
+  <rect x="70" y="80" width="1140" height="560" rx="20" fill="#ffffff" stroke="#eadfe1"/>
+  <text x="110" y="160" font-size="42" font-family="Georgia, serif" fill="#2b2324">P0: White Screen nach Klick auf „Gäste“</text>
+  <text x="110" y="220" font-size="26" font-family="Georgia, serif" fill="#6c5d60">Reproduzierbar im Live-System (Browser Use)</text>
+  <rect x="110" y="270" width="1060" height="300" rx="12" fill="#f3e8ea" stroke="#e6d6da"/>
+  <text x="140" y="430" font-size="28" font-family="Georgia, serif" fill="#8d2f42">Leerer Bildschirm, Navigation nicht mehr nutzbar</text>
+</svg>
+

@@ -1,0 +1,22 @@
+{
+  "name": "wedding",
+  "private": true,
+  "packageManager": "npm@11.10.0",
+  "workspaces": [
+    "apps/web",
+    "services/api",
+    "services/ingestion",
+    "services/ai-orchestrator",
+    "packages/shared"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "dev:web": "npm run dev --workspace @wedding/web",
+    "dev:api": "npm run dev --workspace @wedding/api"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  }
+}
