@@ -2,12 +2,15 @@ import type {
   PlannedEventId,
   PrototypeExpense,
   PrototypeGuest,
+  PrototypeSeatTable,
   PrototypePublicRsvpSession,
   PrototypeVendorStage,
   PrototypeWorkspaceProfile,
   PrototypeWorkspace,
-  WeddingBootstrapInput
+  WeddingBootstrapInput,
+  WeddingConsultantTurn
 } from "@wedding/shared";
+import type { ConsultationMessage } from "../components/ConsultationPanel";
 
 interface WorkspaceResponse {
   workspace: PrototypeWorkspace;
@@ -168,11 +171,111 @@ interface UpdateVendorInput {
   note: string;
 }
 
+interface CreateSeatTableInput {
+  name: string;
+  shape: "round" | "rect";
+  capacity: number;
+}
+
+interface UpdateSeatTableInput {
+  name?: string;
+  shape?: "round" | "rect";
+  capacity?: number;
+}
+
 interface UpdatePublicRsvpInput {
   rsvpStatus?: PrototypeGuest["rsvpStatus"];
   mealPreference?: PrototypeGuest["mealPreference"];
   dietaryNotes?: string;
   message?: string;
+}
+
+export type ConsultationAssistantMode = "consultant" | "operator";
+export type ConsultationAssistantTier = "free" | "premium";
+
+export interface ConsultantRuntimeMessage {
+  id: string;
+  role: "assistant" | "user";
+  content: string;
+  createdAt: string;
+  assistantMode: ConsultationAssistantMode;
+}
+
+export interface ConsultantWorkspaceContext {
+  workspaceId: string;
+  updatedAt: string;
+  profile: {
+    coupleName: string;
+    targetDate: string;
+    region: string;
+    budgetTotal: number;
+    guestCountTarget: number;
+    plannedEvents: string[];
+    disabledVendorCategories: string[];
+  };
+  planning: {
+    openTaskTitles: string[];
+    activeVenueNames: string[];
+    trackedVendorCount: number;
+    guestCountActual: number;
+    budgetRemaining: number;
+  };
+  conversation: {
+    lastUserMessages: string[];
+    recentPriorities: string[];
+    recentFacts: string[];
+    extractedDrafts: string[];
+  };
+}
+
+export interface ConsultantAgentJob {
+  id: string;
+  workspaceId: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  createdAt: string;
+  updatedAt: string;
+  triggerMessageId: string;
+  requestedMode: ConsultationAssistantMode;
+  kind: "reply";
+  request: {
+    userMessage: string;
+  };
+}
+
+export interface ConsultantSession {
+  workspaceId: string;
+  createdAt: string;
+  updatedAt: string;
+  currentTurn: WeddingConsultantTurn | null;
+  messages: ConsultantRuntimeMessage[];
+  context: ConsultantWorkspaceContext;
+  jobs: ConsultantAgentJob[];
+}
+
+interface ConsultantReplyResponse {
+  turn: WeddingConsultantTurn;
+  provider:
+    | "deterministic"
+    | "ollama"
+    | "fallback"
+    | "openclaw"
+    | "openrouter"
+    | "gemini";
+  model: string;
+  workspace?: PrototypeWorkspace;
+  session?: ConsultantSession;
+}
+
+export interface ConsultantVoiceTranscriptionResponse {
+  text: string;
+  language: string;
+  durationSeconds?: number | null;
+}
+
+export interface ConsultantVoiceSynthesisResponse {
+  audioBase64: string;
+  mimeType: string;
+  sampleRate: number;
 }
 
 const appBasePath = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
@@ -357,6 +460,50 @@ export function addExpense(workspaceId: string, input: CreateExpenseInput) {
   });
 }
 
+export function addSeatTable(workspaceId: string, input: CreateSeatTableInput) {
+  return requestJson<WorkspaceResponse>(`/prototype/workspaces/${workspaceId}/seating/tables`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function updateSeatTable(
+  workspaceId: string,
+  tableId: string,
+  input: UpdateSeatTableInput
+) {
+  return requestJson<WorkspaceResponse>(
+    `/prototype/workspaces/${workspaceId}/seating/tables/${tableId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function assignGuestToSeatTable(
+  workspaceId: string,
+  guestId: string,
+  tableId: PrototypeSeatTable["id"] | null
+) {
+  return requestJson<WorkspaceResponse>(
+    `/prototype/workspaces/${workspaceId}/seating/guests/${guestId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ tableId })
+    }
+  );
+}
+
 export function updateVendorLead(
   workspaceId: string,
   vendorId: string,
@@ -390,3 +537,57 @@ export function setTaskCompleted(
     }
   );
 }
+
+export function replyWithWeddingConsultant(input: {
+  workspace: PrototypeWorkspace;
+  currentTurn: WeddingConsultantTurn;
+  messages: ConsultationMessage[];
+  userMessage: string;
+  assistantMode?: ConsultationAssistantMode;
+  assistantTier?: ConsultationAssistantTier;
+}) {
+  return requestJson<ConsultantReplyResponse>("/prototype/consultant/reply", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function getWeddingConsultantSession(workspaceId: string) {
+  return requestJson<{ session: ConsultantSession | null }>(
+    `/prototype/consultant/sessions/${workspaceId}`
+  );
+}
+
+export function listWeddingConsultantJobs(status?: ConsultantAgentJob["status"]) {
+  const query = status ? `?status=${encodeURIComponent(status)}` : "";
+  return requestJson<{ jobs: ConsultantAgentJob[] }>(`/prototype/consultant/jobs${query}`);
+}
+
+export function transcribeWeddingConsultantVoice(input: {
+  audioBase64: string;
+  mimeType?: string;
+  languageHint?: string;
+  assistantTier?: ConsultationAssistantTier;
+}) {
+  return requestJson<ConsultantVoiceTranscriptionResponse>("/prototype/consultant/transcribe", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  });
+}
+
+export function synthesizeWeddingConsultantVoice(input: { text: string }) {
+  return requestJson<ConsultantVoiceSynthesisResponse>("/prototype/consultant/speak", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  });
+}
+

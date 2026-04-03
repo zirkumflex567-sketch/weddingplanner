@@ -6,12 +6,19 @@ Eine nachhaltige Vendor-Datenbasis aufbauen, die fuer Nutzer nuetzlich ist und u
 
 ## Grundprinzip
 
-Nicht "moeglichst viele Vendoren", sondern:
+Nicht nur "moeglichst viele Vendoren", sondern:
 
 - brauchbare Felder
 - nachvollziehbare Herkunft
 - aktualisierbare Daten
 - saubere Qualitaet
+
+Gleichzeitig soll die Datenbasis kuenftig bewusst breiter werden:
+
+- deutschlandweite Grundausstattung fuer Free
+- tiefer Radius-/PLZ-Scan fuer Premium
+- klassische Hochzeitsanbieter plus alternative Event- und Venue-Kandidaten
+- Unterkunfts- und Hotelpfade fuer Gaeste rund um die Feier
 
 ## Bevorzugte Datenquellen in Reihenfolge
 
@@ -103,28 +110,48 @@ Ohne diese Felder ist ein Match nur schwer glaubwuerdig.
 
 - nur ausreichend gute Datensaetze fuer Produktsuche freigeben
 
-## Paid Refresh Prinzip
-
-Deutschlandweite Daten werden nicht pauschal vorab gezogen.
-Stattdessen gilt:
-
-- kuratierte Seeds koennen als Sofortabdeckung dienen
-- aktuelle deutschlandweite Daten werden erst nach bezahlter Kundenanfrage ueber einen Refresh-Job gezogen
-- Discovery und Publish sind getrennt
-
-Das bedeutet konkret:
-
-- Portale und Verzeichnisse duerfen Kandidaten liefern
-- publiziert werden aber nur first-party Facts, strukturierte Business-Facts oder claimed data
-
 ## Qualitaetsregeln
 
 - jede Empfehlung braucht einen Quellenkontext
 - unvollstaendige Daten duerfen nicht mit falscher Praezision dargestellt werden
 - Preisangaben sind als Band oder Approximation zu behandeln, solange keine echten Angebote vorliegen
 - Freshness muss sichtbar oder intern pruefbar sein
-- Drittportal-Rankings oder Review-Scores sind keine Produkt-Truth und gehoeren nicht in publizierte Vendor-Matches
 
-## Arbeitsannahme fuer die erste Umsetzung
+## Tier-Modell fuer die naechste Umsetzung
 
-Wir starten lieber mit einer kleinen, manuell gepflegten hochwertigen Liste in wenigen Kategorien und Regionen als mit einer breiten, fragilen Datenbasis.
+### Free
+
+- laeuft auf `htown`
+- baut eine deutschlandweite Grundausstattung aus grossen Portalquellen
+- soll viele Kernvendoren schon ohne Premium nutzbar machen
+
+### Premium
+
+- startet auf derselben Datenbasis
+- fuehrt aber fuer Wunsch-PLZ, Wunschstadt oder Radius einen tieferen Suchlauf aus
+- sucht danach zusaetzlich explizit nach unabh??ngigen offiziellen Websites und Ausweichoptionen
+
+## Unterkunft als eigener Produktbaustein
+
+Die Uebernachtung darf nicht duenn und zufaellig bleiben.
+
+Ziel:
+
+- Venue-nahe Hotels und Uebernachtungen strukturiert ausgeben
+- bevorzugt auf Booking.com oder gleichwertige Hotelziele leiten
+- spaeter Affiliate- und Routing-Logik im Gastportal verankern
+
+## Alternative Venue-Kandidaten bewusst einschliessen
+
+Wir suchen nicht nur ???explizite Hochzeitslocations???, sondern bewusst auch:
+
+- Eventlocations
+- Boutique-Hotels
+- Schlosshotels
+- Weingueter
+- Restaurants mit Eventflaechen
+- Gutshaeuser / Hofanlagen / Scheunen
+- Kultur- und Tagungshaeuser mit passendem Ambiente
+
+Damit wird der Produktwert deutlich hoeher, besonders bei Terminengpaessen.
+

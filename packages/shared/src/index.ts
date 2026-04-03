@@ -10,12 +10,15 @@ import {
 } from "./vendor-refresh";
 
 export * from "./vendor-refresh";
+export * from "./vendor-source-network";
 
 export type PlannedEventId =
   | "civil-ceremony"
   | "free-ceremony"
   | "celebration"
   | "brunch";
+
+export type OptionalVendorCategory = Exclude<VendorSeedCategory, "venue">;
 
 export interface WeddingBootstrapInput {
   coupleName: string;
@@ -26,7 +29,8 @@ export interface WeddingBootstrapInput {
   stylePreferences: string[];
   noGoPreferences: string[];
   plannedEvents: PlannedEventId[];
-  disabledVendorCategories?: string[];
+  invitationCopy: WeddingInvitationCopy;
+  disabledVendorCategories?: OptionalVendorCategory[];
 }
 
 export interface WeddingProfile {
@@ -38,7 +42,14 @@ export interface WeddingProfile {
   stylePreferences: string[];
   noGoPreferences: string[];
   plannedEvents: PlannedEventId[];
+  disabledVendorCategories: OptionalVendorCategory[];
   planningWindowMonths: number;
+}
+
+export interface WeddingInvitationCopy {
+  headline: string;
+  body: string;
+  footer: string;
 }
 
 export interface PlanningMilestone {
@@ -89,13 +100,29 @@ export interface VendorMatch {
   category: VendorSeedCategory;
   region: string;
   city?: string;
+  postalCode?: string;
   fitScore: number;
   priceBandLabel: string;
   reasonSummary: string;
+  pricingModel?: VendorPricingModel;
+  priceMin?: number;
+  priceMax?: number;
+  baseFeeMin?: number;
+  baseFeeMax?: number;
   serviceLabel?: string;
+  addressLine?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  openingHours?: string[];
+  mapsUrl?: string;
   websiteUrl?: string;
   portfolioUrl?: string;
   portfolioLabel?: string;
+  contactSourceUrl?: string;
+  contactSourceLabel?: string;
+  pricingSourceUrl?: string;
+  pricingSourceLabel?: string;
+  pricingNotes?: string;
   sourceUrl?: string;
   sourceLabel?: string;
   freshnessLabel?: string;
@@ -157,6 +184,20 @@ export interface PrototypeExpense {
   vendorName: string;
 }
 
+export type PrototypeTableShape = "round" | "rect";
+
+export interface PrototypeSeatTable {
+  id: string;
+  name: string;
+  shape: PrototypeTableShape;
+  capacity: number;
+  guestIds: string[];
+}
+
+export interface PrototypeSeatingPlan {
+  tables: PrototypeSeatTable[];
+}
+
 export type PrototypeVendorStage =
   | "suggested"
   | "contacted"
@@ -203,6 +244,7 @@ export interface PrototypeWorkspace {
   guestSummary: PrototypeGuestSummary;
   progress: PrototypeProgress;
   expenses: PrototypeExpense[];
+  seatingPlan: PrototypeSeatingPlan;
   vendorTracker: PrototypeVendorTrackerEntry[];
   budgetOverview: PrototypeBudgetOverview;
 }
@@ -226,6 +268,17 @@ export interface PrototypePublicRsvpContext {
   targetDate: string;
   region: string;
   invitedEvents: EventBlueprint[];
+  invitationCopy: WeddingInvitationCopy;
+  seatingAssignment?: {
+    tableName: string;
+    tableShape: PrototypeTableShape;
+  };
+  routePlanningLink?: string;
+  staySuggestions?: Array<{
+    name: string;
+    note: string;
+    url?: string;
+  }>;
 }
 
 export interface PrototypePublicRsvpSession {
@@ -402,6 +455,41 @@ const eventBlueprintMap = {
   }
 } as const satisfies Record<PlannedEventId, EventBlueprint>;
 
+export const defaultWeddingInvitationCopy: WeddingInvitationCopy = {
+  headline: "{paar} freut sich auf eure Rueckmeldung",
+  body:
+    "{gast}, ihr seid eingeladen fuer {datum} in {ort}. Bitte gebt kurz Bescheid, ob ihr dabei seid und ob es Essenshinweise gibt.",
+  footer: "Wir freuen uns sehr auf euch."
+};
+
+const optionalVendorCategories: OptionalVendorCategory[] = [
+  "photography",
+  "catering",
+  "music",
+  "florals",
+  "attire"
+];
+
+function normalizeDisabledVendorCategories(
+  value?: OptionalVendorCategory[] | null
+): OptionalVendorCategory[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const allowed = new Set<OptionalVendorCategory>(optionalVendorCategories);
+
+  return [...new Set(value.filter((entry): entry is OptionalVendorCategory => allowed.has(entry)))];
+}
+
+function isVendorCategoryEnabled(
+  category: BudgetCategory["category"] | VendorSeedCategory,
+  disabledVendorCategories: OptionalVendorCategory[]
+) {
+  return !optionalVendorCategories.includes(category as OptionalVendorCategory) ||
+    !disabledVendorCategories.includes(category as OptionalVendorCategory);
+}
+
 function normalizeTags(values: string[]) {
   return values
     .map((value) => value.trim().toLowerCase())
@@ -419,6 +507,35 @@ function normalizeSearchText(value: string) {
     .replace(/[^a-z0-9]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+export function normalizeWeddingInvitationCopy(
+  value?: Partial<WeddingInvitationCopy> | null
+): WeddingInvitationCopy {
+  return {
+    headline:
+      typeof value?.headline === "string" && value.headline.trim().length > 0
+        ? value.headline
+        : defaultWeddingInvitationCopy.headline,
+    body:
+      typeof value?.body === "string" && value.body.trim().length > 0
+        ? value.body
+        : defaultWeddingInvitationCopy.body,
+    footer:
+      typeof value?.footer === "string" && value.footer.trim().length > 0
+        ? value.footer
+        : defaultWeddingInvitationCopy.footer
+  };
+}
+
+export function normalizeWeddingBootstrapInput(
+  input: WeddingBootstrapInput
+): WeddingBootstrapInput {
+  return {
+    ...input,
+    invitationCopy: normalizeWeddingInvitationCopy(input.invitationCopy),
+    disabledVendorCategories: normalizeDisabledVendorCategories(input.disabledVendorCategories)
+  };
 }
 
 function tokenizeSearchText(value: string) {
@@ -447,14 +564,22 @@ function subtractMonths(dateString: string, months: number) {
   return `${nextYear}-${pad(nextMonth)}-${pad(nextDay)}`;
 }
 
-function createBudgetCategories(totalBudget: number): BudgetCategory[] {
+function createBudgetCategories(
+  totalBudget: number,
+  disabledVendorCategories: OptionalVendorCategory[] = []
+): BudgetCategory[] {
+  const activeBudgetEntries = budgetBlueprint.filter((entry) =>
+    isVendorCategoryEnabled(entry.category, disabledVendorCategories)
+  );
+  const totalPercentage =
+    activeBudgetEntries.reduce((sum, entry) => sum + entry.percentage, 0) || 100;
   let allocated = 0;
 
-  return budgetBlueprint.map((entry, index) => {
+  return activeBudgetEntries.map((entry, index) => {
     const plannedAmount =
-      index === budgetBlueprint.length - 1
+      index === activeBudgetEntries.length - 1
         ? totalBudget - allocated
-        : Math.round((totalBudget * entry.percentage) / 100);
+        : Math.round((totalBudget * entry.percentage) / totalPercentage);
 
     allocated += plannedAmount;
 
@@ -477,8 +602,10 @@ function createMilestones(targetDate: string): PlanningMilestone[] {
   }));
 }
 
-function createVendorStarterCategories(): VendorStarterCategory[] {
-  return [
+function createVendorStarterCategories(
+  disabledVendorCategories: OptionalVendorCategory[] = []
+): VendorStarterCategory[] {
+  const starterCategories: VendorStarterCategory[] = [
     {
       category: "venue",
       label: "Locations",
@@ -510,6 +637,10 @@ function createVendorStarterCategories(): VendorStarterCategory[] {
       whyItMatters: "Styling, Brautmode und Look-Entscheidungen muessen frueh zum Gesamtbild passen."
     }
   ];
+
+  return starterCategories.filter((entry) =>
+    isVendorCategoryEnabled(entry.category, disabledVendorCategories)
+  );
 }
 
 function createAdminReminders(targetDate: string): AdminReminder[] {
@@ -619,9 +750,10 @@ function createVendorMatches(
   return curatedVendorSeeds
     .filter(
       (vendor) =>
-        hasCoverageAreaMatch(vendor, coverageAreaIds) ||
-        hasAliasMatch(vendor, normalizedRegion, regionTokens) ||
-        normalizeSearchText(vendor.region) === normalizedRegion
+        isVendorCategoryEnabled(vendor.category, profile.disabledVendorCategories) &&
+        (hasCoverageAreaMatch(vendor, coverageAreaIds) ||
+          hasAliasMatch(vendor, normalizedRegion, regionTokens) ||
+          normalizeSearchText(vendor.region) === normalizedRegion)
     )
     .map((vendor) => {
       const styleOverlap = vendor.styleTags.filter((style) =>
@@ -648,6 +780,11 @@ function createVendorMatches(
         category: vendor.category,
         region: vendor.region,
         fitScore,
+        pricingModel: vendor.pricingModel,
+        priceMin: vendor.priceMin,
+        priceMax: vendor.priceMax,
+        ...(typeof vendor.baseFeeMin === "number" ? { baseFeeMin: vendor.baseFeeMin } : {}),
+        ...(typeof vendor.baseFeeMax === "number" ? { baseFeeMax: vendor.baseFeeMax } : {}),
         priceBandLabel: formatPriceBandLabel(
           vendor.pricingModel,
           vendor.priceMin,
@@ -657,10 +794,21 @@ function createVendorMatches(
         ),
         reasonSummary: vendor.reasonSummary,
         ...(vendor.city ? { city: vendor.city } : {}),
+        ...(vendor.postalCode ? { postalCode: vendor.postalCode } : {}),
         ...(vendor.serviceLabel ? { serviceLabel: vendor.serviceLabel } : {}),
+        ...(vendor.addressLine ? { addressLine: vendor.addressLine } : {}),
+        ...(vendor.contactEmail ? { contactEmail: vendor.contactEmail } : {}),
+        ...(vendor.contactPhone ? { contactPhone: vendor.contactPhone } : {}),
+        ...(vendor.openingHours?.length ? { openingHours: vendor.openingHours } : {}),
+        ...(vendor.mapsUrl ? { mapsUrl: vendor.mapsUrl } : {}),
         ...(vendor.websiteUrl ? { websiteUrl: vendor.websiteUrl } : {}),
         ...(vendor.portfolioUrl ? { portfolioUrl: vendor.portfolioUrl } : {}),
         ...(vendor.portfolioLabel ? { portfolioLabel: vendor.portfolioLabel } : {}),
+        ...(vendor.contactSourceUrl ? { contactSourceUrl: vendor.contactSourceUrl } : {}),
+        ...(vendor.contactSourceLabel ? { contactSourceLabel: vendor.contactSourceLabel } : {}),
+        ...(vendor.pricingSourceUrl ? { pricingSourceUrl: vendor.pricingSourceUrl } : {}),
+        ...(vendor.pricingSourceLabel ? { pricingSourceLabel: vendor.pricingSourceLabel } : {}),
+        ...(vendor.pricingNotes ? { pricingNotes: vendor.pricingNotes } : {}),
         ...(vendor.sourceUrl ? { sourceUrl: vendor.sourceUrl } : {}),
         ...(vendor.sourceLabel ? { sourceLabel: vendor.sourceLabel } : {}),
         ...(vendor.freshnessLabel ? { freshnessLabel: vendor.freshnessLabel } : {})
@@ -713,39 +861,62 @@ export function isWeddingBootstrapInput(value: unknown): value is WeddingBootstr
     Array.isArray(candidate.noGoPreferences) &&
     candidate.noGoPreferences.every((entry) => typeof entry === "string") &&
     Array.isArray(candidate.plannedEvents) &&
-    candidate.plannedEvents.every((entry) => typeof entry === "string")
+    candidate.plannedEvents.every((entry) => typeof entry === "string") &&
+    (typeof candidate.disabledVendorCategories === "undefined" ||
+      (Array.isArray(candidate.disabledVendorCategories) &&
+        candidate.disabledVendorCategories.every((entry) => typeof entry === "string"))) &&
+    (typeof candidate.invitationCopy === "undefined" ||
+      (candidate.invitationCopy !== null &&
+        typeof candidate.invitationCopy === "object" &&
+        (((candidate.invitationCopy as Record<string, unknown>).headline === undefined &&
+          (candidate.invitationCopy as Record<string, unknown>).body === undefined &&
+          (candidate.invitationCopy as Record<string, unknown>).footer === undefined) ||
+          ((typeof (candidate.invitationCopy as Record<string, unknown>).headline === "string" ||
+            typeof (candidate.invitationCopy as Record<string, unknown>).headline ===
+              "undefined") &&
+            (typeof (candidate.invitationCopy as Record<string, unknown>).body === "string" ||
+              typeof (candidate.invitationCopy as Record<string, unknown>).body === "undefined") &&
+            (typeof (candidate.invitationCopy as Record<string, unknown>).footer === "string" ||
+              typeof (candidate.invitationCopy as Record<string, unknown>).footer ===
+                "undefined")))))
   );
 }
 
 export function createBootstrapPlan(input: WeddingBootstrapInput): WeddingBootstrapPlan {
+  const normalizedInput = normalizeWeddingBootstrapInput(input);
+
   const profile: WeddingProfile = {
-    coupleName: input.coupleName.trim(),
-    targetDate: input.targetDate,
-    region: input.region.trim(),
-    guestCountTarget: input.guestCountTarget,
-    budgetTotal: input.budgetTotal,
-    stylePreferences: normalizeTags(input.stylePreferences),
-    noGoPreferences: normalizeTags(input.noGoPreferences),
-    plannedEvents: input.plannedEvents,
+    coupleName: normalizedInput.coupleName.trim(),
+    targetDate: normalizedInput.targetDate,
+    region: normalizedInput.region.trim(),
+    guestCountTarget: normalizedInput.guestCountTarget,
+    budgetTotal: normalizedInput.budgetTotal,
+    stylePreferences: normalizeTags(normalizedInput.stylePreferences),
+    noGoPreferences: normalizeTags(normalizedInput.noGoPreferences),
+    plannedEvents: normalizedInput.plannedEvents,
+    disabledVendorCategories: normalizeDisabledVendorCategories(
+      normalizedInput.disabledVendorCategories
+    ),
     planningWindowMonths: 12
   };
 
   const milestones = createMilestones(profile.targetDate);
-  const budgetCategories = createBudgetCategories(profile.budgetTotal);
+  const budgetCategories = createBudgetCategories(
+    profile.budgetTotal,
+    profile.disabledVendorCategories
+  );
   const vendorSearchStrategy = buildVendorSearchStrategy(profile.region, [
     "venue",
-    "photography",
-    "catering",
-    "music",
-    "florals",
-    "attire"
+    ...optionalVendorCategories.filter(
+      (category) => !profile.disabledVendorCategories.includes(category)
+    )
   ]);
 
   return {
     profile,
     milestones,
     budgetCategories,
-    vendorStarterCategories: createVendorStarterCategories(),
+    vendorStarterCategories: createVendorStarterCategories(profile.disabledVendorCategories),
     adminReminders: createAdminReminders(profile.targetDate),
     eventBlueprints: createEventBlueprints(profile.plannedEvents),
     vendorMatches: createVendorMatches(profile, budgetCategories, vendorSearchStrategy),
@@ -824,7 +995,11 @@ export function mergePrototypeVendorTracker(
     const existing = currentByVendorId.get(vendor.id);
 
     if (existing) {
-      return existing;
+      return {
+        ...existing,
+        note: typeof existing.note === "string" ? existing.note : "",
+        updatedAt: existing.updatedAt ?? updatedAt
+      };
     }
 
     return {
@@ -1684,3 +1859,4 @@ export function continueWeddingConsultantConversation(
       };
   }
 }
+

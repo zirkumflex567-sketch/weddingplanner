@@ -1,3 +1,5 @@
+import { vendorSourceDetailsById } from "./vendor-source-details";
+
 export type VendorSeedCategory =
   | "venue"
   | "photography"
@@ -20,6 +22,11 @@ export interface VendorSeed {
   region: string;
   city?: string;
   postalCode?: string;
+  addressLine?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  openingHours?: string[];
+  mapsUrl?: string;
   coverageAreaIds: string[];
   searchAliases: string[];
   priceMin: number;
@@ -34,6 +41,11 @@ export interface VendorSeed {
   websiteUrl?: string;
   portfolioUrl?: string;
   portfolioLabel?: string;
+  contactSourceUrl?: string;
+  contactSourceLabel?: string;
+  pricingSourceUrl?: string;
+  pricingSourceLabel?: string;
+  pricingNotes?: string;
   sourceUrl?: string;
   sourceLabel?: string;
   freshnessLabel?: string;
@@ -54,7 +66,7 @@ const imanBaderReviewUrl =
 const ringelblumeReviewUrl =
   "https://www.werkenntdenbesten.de/florist/deidesheim/floristik-ringelblume-aXLFpc";
 
-export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
+const curatedVendorSeedBase: VendorSeed[] = [
   {
     id: "berlin-spree-loft",
     name: "Spree Loft Atelier",
@@ -1201,3 +1213,9 @@ export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = [
     freshnessLabel: "Offizielle Website, Stand April 2026"
   }
 ];
+
+export const curatedVendorSeeds: ReadonlyArray<VendorSeed> = curatedVendorSeedBase.map((vendor) => ({
+  ...vendor,
+  ...(vendorSourceDetailsById[vendor.id] ?? {})
+}));
+
