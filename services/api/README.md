@@ -23,6 +23,7 @@ Aktueller Stand:
 - `PATCH /prototype/vendor-refresh-jobs/:id/candidates/:candidateId`
 - `POST /prototype/vendor-refresh-jobs/:id/publish`
 - `GET /prototype/vendor-catalog`
+- `GET /prototype/ingestion/coverage`
 - `npm run dev --workspace @wedding/api` startet die lokale API auf `127.0.0.1:3001`
 - `POST /prototype/workspaces`
 - `GET /prototype/workspaces/:id`
@@ -78,3 +79,12 @@ Der aktuelle Flow ist:
 
 Der Katalog unter `GET /prototype/vendor-catalog` ist damit der erste Produkt-Endpoint,
 der nicht nur Connector-Rohdaten zeigt, sondern bewusst reviewed und publizierte Vendors.
+
+## Ingestion Coverage Endpoint
+
+`GET /prototype/ingestion/coverage` liefert den aktuellen Fortschritt der Deutschland-Abdeckung:
+
+- Runner-Status (`active`, `pid`, `cycles`, letzte Heartbeats)
+- Coverage-Metriken fuer Regionen und Kategorien
+- Regionsliste mit `covered` und Datensatzanzahl
+- aktuelle Stichproben aus der Discovery-DB

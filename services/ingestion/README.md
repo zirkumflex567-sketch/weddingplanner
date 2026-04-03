@@ -110,6 +110,9 @@ Produktions-Scheduler-Helfer:
 
 - `services/ingestion/scripts/run-batch-rotating.sh`
 - berechnet taeglich den Offset per `date +%j` und rotiert so Regionen/Kategorien automatisch
+- `services/ingestion/scripts/continuous-runner.mjs`
+  - faehrt kleine Batch-Pakete dauerhaft nacheinander im Hintergrund
+  - schreibt Runtime-Status nach `output/ingestion/continuous-runner-state.json`
 
 ## Datenregel
 
