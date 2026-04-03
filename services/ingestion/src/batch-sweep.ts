@@ -17,6 +17,8 @@ interface BatchSweepSummary {
   categoryBatchSize: number;
   regionLimit: number;
   categoryLimit: number;
+  regionOffset: number;
+  categoryOffset: number;
   runCount: number;
   totalRefreshRuns: number;
   totalBrowserUseRuns: number;
@@ -32,10 +34,12 @@ export async function runBatchSweepFromCli() {
   const categoryBatchSize = parsePositiveInt(process.env.VENDOR_BATCH_CATEGORY_SIZE, 3);
   const regionLimit = parsePositiveInt(process.env.VENDOR_BATCH_REGION_LIMIT, germanSweepRegions.length);
   const categoryLimit = parsePositiveInt(process.env.VENDOR_BATCH_CATEGORY_LIMIT, germanSweepCategories.length);
+  const regionOffset = parseNonNegativeInt(process.env.VENDOR_BATCH_REGION_OFFSET, 0);
+  const categoryOffset = parseNonNegativeInt(process.env.VENDOR_BATCH_CATEGORY_OFFSET, 0);
   const force = (process.env.VENDOR_PIPELINE_FORCE ?? "true").toLowerCase() === "true";
 
-  const regions = germanSweepRegions.slice(0, regionLimit);
-  const categories = germanSweepCategories.slice(0, categoryLimit);
+  const regions = rotateAndLimit(germanSweepRegions, regionOffset, regionLimit);
+  const categories = rotateAndLimit(germanSweepCategories, categoryOffset, categoryLimit);
   const regionChunks = chunkArray(regions, regionBatchSize);
   const categoryChunks = chunkArray(categories, categoryBatchSize);
   const startedAt = new Date().toISOString();
@@ -72,6 +76,8 @@ export async function runBatchSweepFromCli() {
     categoryBatchSize,
     regionLimit,
     categoryLimit,
+    regionOffset,
+    categoryOffset,
     runCount: outputReportPaths.length,
     totalRefreshRuns,
     totalBrowserUseRuns,
@@ -128,6 +134,20 @@ function safeSlug(value: string) {
 function parsePositiveInt(value: string | undefined, fallback: number) {
   const parsed = Number.parseInt(value ?? "", 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function parseNonNegativeInt(value: string | undefined, fallback: number) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function rotateAndLimit<T>(values: T[], offset: number, limit: number) {
+  if (values.length === 0) {
+    return [];
+  }
+  const normalizedOffset = ((offset % values.length) + values.length) % values.length;
+  const rotated = [...values.slice(normalizedOffset), ...values.slice(0, normalizedOffset)];
+  return rotated.slice(0, Math.max(1, limit));
 }
 
 function normalizeMode(value: string | undefined): PipelineMode {
