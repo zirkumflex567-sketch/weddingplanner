@@ -81,6 +81,17 @@ Adapter-Extraktion (live):
 - fragliche Treffer werden nicht verworfen, sondern in Quarantaene geschrieben:
   - `output/ingestion/vendor-discovery-quarantine.json`
   - inklusive Quarantaenegrund fuer spaetere manuelle Pruefung
+  - Quarantaene ist append-only (Kandidaten bleiben erhalten, nur manuelle Nacharbeit entscheidet)
+
+Manueller Review-Export:
+
+```bash
+npm run quarantine:report --workspace @wedding/ingestion
+```
+
+Schreibt:
+
+- `output/ingestion/quarantine-review.md`
 
 Crawler-Stack-Hinweis:
 
