@@ -31,6 +31,7 @@ Wir bauen keine weitere passive Hochzeits-Checkliste, sondern einen proaktiven, 
 - [docs/architecture/tech-stack.md](docs/architecture/tech-stack.md)
 - [docs/architecture/domain-model.md](docs/architecture/domain-model.md)
 - [docs/roadmap/2026-04-03-openclaw-consultant-recovery-plan.md](docs/roadmap/2026-04-03-openclaw-consultant-recovery-plan.md)
+- [docs/roadmap/2026-04-03-openclaw-consultant-taskboard.md](docs/roadmap/2026-04-03-openclaw-consultant-taskboard.md)
 - [docs/questions/open-questions.md](docs/questions/open-questions.md)
 
 ## Vorgeschlagene Projektstruktur
