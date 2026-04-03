@@ -98,6 +98,8 @@ Batch-Parameter:
 - `VENDOR_BATCH_CATEGORY_SIZE` Anzahl Kategorien pro Paket
 - `VENDOR_BATCH_REGION_LIMIT` limitierte Pilot-Runs
 - `VENDOR_BATCH_CATEGORY_LIMIT` limitierte Pilot-Runs
+- `VENDOR_BATCH_REGION_OFFSET` rotiert den Startpunkt der Regionenliste
+- `VENDOR_BATCH_CATEGORY_OFFSET` rotiert den Startpunkt der Kategorienliste
 
 Outputs:
 
