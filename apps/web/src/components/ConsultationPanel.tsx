@@ -23,7 +23,7 @@ interface ConsultationPanelProps {
   isSpeaking?: boolean;
   assistantTier: ConsultationAssistantTier;
   assistantMode: ConsultationAssistantMode;
-  assistantLane?: "premium" | "fallback" | "rules" | null;
+  assistantLane?: "agent" | "provider-fallback" | "fallback" | "rules" | null;
   guidedSession: GuidedPlanningSession;
   currentTurn: WeddingConsultantTurn | null;
   messages: ConsultationMessage[];
@@ -84,8 +84,10 @@ export function ConsultationPanel({
             "Bleibt im beratenden Modus: Priorisieren, einordnen, Unsicherheit aufloesen und den naechsten sauberen Schritt formulieren."
         };
   const laneLabel =
-    assistantLane === "premium"
-      ? "Premium live auf Shadow"
+    assistantLane === "agent"
+      ? "OpenClaw live auf htown"
+      : assistantLane === "provider-fallback"
+        ? "Provider-Fallback aktiv"
       : assistantLane === "fallback"
         ? "VPS fallback aktiv"
         : assistantLane === "rules"
@@ -311,3 +313,4 @@ export function ConsultationPanel({
     </section>
   );
 }
+

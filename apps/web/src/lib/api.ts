@@ -241,7 +241,13 @@ export interface ConsultantSession {
 
 interface ConsultantReplyResponse {
   turn: WeddingConsultantTurn;
-  provider: "deterministic" | "ollama" | "fallback" | "openclaw";
+  provider:
+    | "deterministic"
+    | "ollama"
+    | "fallback"
+    | "openclaw"
+    | "openrouter"
+    | "gemini";
   model: string;
   workspace?: PrototypeWorkspace;
   session?: ConsultantSession;

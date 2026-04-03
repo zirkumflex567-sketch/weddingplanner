@@ -376,10 +376,20 @@ function toConsultationMessages(session: ConsultantSession): ConsultationMessage
 }
 
 function resolveConsultationLane(
-  provider: "deterministic" | "ollama" | "fallback" | "openclaw"
-): "premium" | "fallback" | "rules" {
+  provider:
+    | "deterministic"
+    | "ollama"
+    | "fallback"
+    | "openclaw"
+    | "openrouter"
+    | "gemini"
+): "agent" | "provider-fallback" | "fallback" | "rules" {
   if (provider === "ollama" || provider === "openclaw") {
-    return "premium";
+    return "agent";
+  }
+
+  if (provider === "openrouter" || provider === "gemini") {
+    return "provider-fallback";
   }
 
   if (provider === "fallback") {
@@ -674,7 +684,7 @@ function DashboardApp() {
   const [consultationAssistantTier, setConsultationAssistantTier] =
     useState<ConsultationAssistantTier>("free");
   const [consultationLane, setConsultationLane] = useState<
-    "premium" | "fallback" | "rules" | null
+    "agent" | "provider-fallback" | "fallback" | "rules" | null
   >(null);
   const [consultationVoiceStatus, setConsultationVoiceStatus] =
     useState<ConsultationVoiceStatus>("idle");

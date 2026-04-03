@@ -20,8 +20,13 @@ export type AssistantTier = "free" | "premium";
 export interface WorkspaceAgentReply {
   assistantMessage: string;
   workspace: PrototypeWorkspace;
-  provider: "openclaw" | "fallback";
+  provider: "openclaw" | "openrouter" | "gemini" | "fallback";
   model: string;
+}
+
+export interface WorkspaceAgentCommandTarget {
+  command: string;
+  provider: "openclaw" | "openrouter" | "gemini";
 }
 
 type WorkspaceAgentOperation =
@@ -308,7 +313,7 @@ function extractJsonObject(raw: string) {
   return null;
 }
 
-async function runOpenClawPrompt(command: string, prompt: string) {
+async function runWorkspaceAgentPrompt(command: string, prompt: string) {
   return new Promise<{ stdout: string; stderr: string; exitCode: number }>((resolve, reject) => {
     const quotedPrompt = prompt.replace(/"/g, '\\"');
     const child = spawn(`${command} --message "${quotedPrompt}"`, {
@@ -334,12 +339,15 @@ async function runOpenClawPrompt(command: string, prompt: string) {
 }
 
 async function planWithOpenClaw(
-  command: string,
+  target: WorkspaceAgentCommandTarget,
   workspace: PrototypeWorkspace,
   userMessage: string,
   tier: AssistantTier
 ) {
-  const result = await runOpenClawPrompt(command, buildPlannerPrompt(workspace, userMessage, tier));
+  const result = await runWorkspaceAgentPrompt(
+    target.command,
+    buildPlannerPrompt(workspace, userMessage, tier)
+  );
 
   if (result.exitCode !== 0) {
     throw new Error(result.stderr || `OpenClaw command failed with ${result.exitCode}`);
@@ -502,32 +510,42 @@ export async function runWorkspaceAgent(input: {
   workspace: PrototypeWorkspace;
   userMessage: string;
   tier: AssistantTier;
-  command: string;
+  commands: WorkspaceAgentCommandTarget[];
 }) {
-  const plan = await planWithOpenClaw(
-    input.command,
-    input.workspace,
-    input.userMessage,
-    input.tier
-  );
-  const execution = await applyWorkspaceAgentPlan(
-    input.workspaceStore,
-    input.workspace,
-    {
-      ...plan,
-      operations: input.tier === "free" ? [] : plan.operations
-    }
-  );
-  const appliedSuffix =
-    execution.appliedSummaries.length > 0
-      ? `\n\nDurchgefuehrte Aenderungen: ${execution.appliedSummaries.join(" / ")}.`
-      : "";
+  const errors: string[] = [];
 
-  return {
-    assistantMessage: `${plan.userFacingReply}${appliedSuffix}`.trim(),
-    workspace: execution.workspace,
-    provider: "openclaw" as const,
-    model: `${input.tier}-workspace-agent-v1-${randomUUID().slice(0, 8)}`
-  } satisfies WorkspaceAgentReply;
+  for (const target of input.commands) {
+    try {
+      const plan = await planWithOpenClaw(
+        target,
+        input.workspace,
+        input.userMessage,
+        input.tier
+      );
+      const execution = await applyWorkspaceAgentPlan(
+        input.workspaceStore,
+        input.workspace,
+        {
+          ...plan,
+          operations: input.tier === "free" ? [] : plan.operations
+        }
+      );
+      const appliedSuffix =
+        execution.appliedSummaries.length > 0
+          ? `\n\nDurchgefuehrte Aenderungen: ${execution.appliedSummaries.join(" / ")}.`
+          : "";
+
+      return {
+        assistantMessage: `${plan.userFacingReply}${appliedSuffix}`.trim(),
+        workspace: execution.workspace,
+        provider: target.provider,
+        model: `${target.provider}-${input.tier}-workspace-agent-v1-${randomUUID().slice(0, 8)}`
+      } satisfies WorkspaceAgentReply;
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  throw new Error(errors.join(" | ") || "No workspace agent command configured");
 }
 

@@ -46,6 +46,7 @@ import {
 import {
   runWorkspaceAgent,
   type AssistantTier,
+  type WorkspaceAgentCommandTarget,
   type WorkspaceAgentReply
 } from "./workspace-agent";
 
@@ -83,7 +84,13 @@ interface WeddingConsultantReplyPayload {
 
 interface WeddingConsultantResponse {
   turn: WeddingConsultantTurn;
-  provider: "deterministic" | "ollama" | "fallback" | "openclaw";
+  provider:
+    | "deterministic"
+    | "ollama"
+    | "fallback"
+    | "openclaw"
+    | "openrouter"
+    | "gemini";
   model: string;
   workspace?: PrototypeWorkspace;
 }
@@ -860,6 +867,57 @@ function createLocalFallbackResponse(
   };
 }
 
+function createWorkspaceAgentCommandChain(
+  tier: AssistantTier
+): WorkspaceAgentCommandTarget[] {
+  const primary =
+    tier === "premium"
+      ? process.env.PREMIUM_WORKSPACE_AGENT_COMMAND ??
+        process.env.FREE_WORKSPACE_AGENT_COMMAND ??
+        ""
+      : process.env.FREE_WORKSPACE_AGENT_COMMAND ?? "";
+  const providerFallback =
+    tier === "premium"
+      ? process.env.PREMIUM_WORKSPACE_AGENT_FALLBACK_COMMAND ??
+        process.env.FREE_WORKSPACE_AGENT_FALLBACK_COMMAND ??
+        process.env.OPENROUTER_WORKSPACE_AGENT_COMMAND ??
+        ""
+      : process.env.FREE_WORKSPACE_AGENT_FALLBACK_COMMAND ??
+        process.env.OPENROUTER_WORKSPACE_AGENT_COMMAND ??
+        "";
+  const hasGeminiKey =
+    process.env.ENABLE_GEMINI_WORKSPACE_AGENT_FALLBACK === "1" &&
+    Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
+  const geminiFallbackCommand =
+    tier === "premium"
+      ? process.env.PREMIUM_GEMINI_WORKSPACE_AGENT_COMMAND ??
+        process.env.FREE_GEMINI_WORKSPACE_AGENT_COMMAND ??
+        (hasGeminiKey ? `node ${resolveGeminiWorkspaceAgentScript()}` : "")
+      : process.env.FREE_GEMINI_WORKSPACE_AGENT_COMMAND ??
+        (hasGeminiKey ? `node ${resolveGeminiWorkspaceAgentScript()}` : "");
+
+  return [
+    primary.trim()
+      ? ({
+          command: primary.trim(),
+          provider: "openclaw"
+        } satisfies WorkspaceAgentCommandTarget)
+      : null,
+    providerFallback.trim()
+      ? ({
+          command: providerFallback.trim(),
+          provider: "openrouter"
+        } satisfies WorkspaceAgentCommandTarget)
+      : null,
+    geminiFallbackCommand.trim()
+      ? ({
+          command: geminiFallbackCommand.trim(),
+          provider: "gemini"
+        } satisfies WorkspaceAgentCommandTarget)
+      : null
+  ].filter((value): value is WorkspaceAgentCommandTarget => Boolean(value));
+}
+
 class DeterministicWeddingConsultantResponder implements WeddingConsultantResponder {
   constructor(private readonly workspaceStore: PrototypeWorkspaceStore) {}
 
@@ -878,15 +936,17 @@ class DeterministicWeddingConsultantResponder implements WeddingConsultantRespon
       return createLocalFallbackResponse(normalizedPayload, baselineTurn);
     }
 
-    const freeCommand = process.env.FREE_WORKSPACE_AGENT_COMMAND ?? "";
-    if (freeCommand.trim()) {
+    const commandChain = createWorkspaceAgentCommandChain(
+      normalizedPayload.assistantTier ?? "free"
+    );
+    if (commandChain.length > 0) {
       try {
         const agentReply = await runWorkspaceAgent({
           workspaceStore: this.workspaceStore,
           workspace: normalizedPayload.workspace,
           userMessage: normalizedPayload.userMessage,
           tier: normalizedPayload.assistantTier ?? "free",
-          command: freeCommand
+          commands: commandChain
         });
 
         return {
@@ -938,13 +998,14 @@ class AiWeddingConsultantResponder implements WeddingConsultantResponder {
       assistantTier: normalizeAssistantTier(payload.assistantTier)
     } satisfies WeddingConsultantReplyPayload;
 
-    const premiumCommand =
-      process.env.PREMIUM_WORKSPACE_AGENT_COMMAND ?? process.env.FREE_WORKSPACE_AGENT_COMMAND ?? "";
+    const commandChain = createWorkspaceAgentCommandChain(
+      normalizedPayload.assistantTier ?? "premium"
+    );
 
     if (
       normalizedPayload.assistantTier === "premium" &&
       normalizedPayload.assistantMode === "operator" &&
-      premiumCommand.trim()
+      commandChain.length > 0
     ) {
       try {
         const agentReply = await runWorkspaceAgent({
@@ -952,7 +1013,7 @@ class AiWeddingConsultantResponder implements WeddingConsultantResponder {
           workspace: normalizedPayload.workspace,
           userMessage: normalizedPayload.userMessage,
           tier: "premium",
-          command: premiumCommand
+          commands: commandChain
         });
 
         return {
@@ -1125,6 +1186,13 @@ function resolveFasterWhisperScript() {
   );
 }
 
+function resolveGeminiWorkspaceAgentScript() {
+  return (
+    process.env.GEMINI_WORKSPACE_AGENT_SCRIPT ??
+    resolve(currentDir, "../../../scripts/workspace-agent-gemini.mjs")
+  );
+}
+
 function isAssistantChatMessage(value: unknown): value is AssistantChatMessage {
   return Boolean(
     value &&
@@ -1194,9 +1262,7 @@ export function buildApp(options: BuildAppOptions = {}) {
     options.consultantRuntimeStore ?? new InMemoryConsultantRuntimeStore();
   const consultantResponder =
     options.consultantResponder ??
-    (process.env.AI_ORCHESTRATOR_URL
-      ? new AiWeddingConsultantResponder(process.env.AI_ORCHESTRATOR_URL, workspaceStore)
-      : new DeterministicWeddingConsultantResponder(workspaceStore));
+    new DeterministicWeddingConsultantResponder(workspaceStore);
   const freeTranscriber =
     process.env.FASTER_WHISPER_ENABLED === "1"
       ? new FasterWhisperConsultantVoiceService(
