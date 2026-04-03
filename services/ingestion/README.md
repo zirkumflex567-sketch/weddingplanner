@@ -27,6 +27,8 @@ Fuer echte Connector-Runs nutzt der Ingestion-Service aktuell:
 - `GOOGLE_PLACES_API_BASE_URL` optional fuer alternative Base-URLs
 - `BROWSER_USE_CLI_COMMAND` fuer den headless Browser-Use-Discovery-Lauf
 - `BROWSER_USE_TIMEOUT_MS` optionales Timeout pro Browser-Use-Aufruf
+- `SITE_CRAWLER_COMMAND` fuer den hostgebundenen Crawl-Fallback
+- `SITE_CRAWLER_TIMEOUT_MS` optionales Timeout pro Fallback-Aufruf
 
 Wenn Schluessel fehlen, werden Connectoren nicht hart crashen, sondern mit `skipped` und klarer Note im Run abgelegt.
 
@@ -63,6 +65,9 @@ Adapter-Tuning:
 - `BROWSER_USE_ADAPTER_MAX_RESULTS_FREE` default `8`
 - `BROWSER_USE_ADAPTER_MAX_RESULTS_PREMIUM` default `16`
 - `BROWSER_USE_ADAPTER_TIMEOUT_MS` default `15000`
+- `SITE_CRAWLER_MIN_BROWSER_RECORDS` default `2` (darunter greift Crawler-Fallback)
+- `SITE_CRAWLER_MAX_PAGES` default `8`
+- `SITE_CRAWLER_FETCH_TIMEOUT_MS` default `15000`
 
 Adapter-Extraktion (live):
 
@@ -81,6 +86,9 @@ Crawler-Stack-Hinweis:
 
 - Skill-Suche via `npx skills find crawler` wurde eingebunden.
 - Installiert: `mindmorass/reflex@site-crawler` als stabilere Crawl-Basis fuer die naechste Adapter-Stufe.
+- Aktive technische Fallback-Stufe:
+  - `services/ingestion/scripts/site-crawler-adapter.mjs`
+  - wird automatisch genutzt, wenn Browser-Use zu wenig Treffer liefert oder fehlschlaegt.
 
 Empfohlener htown-Cron fuer den Free-Baseline-Lauf (woechentlich Sonntag 03:30):
 

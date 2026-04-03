@@ -9,6 +9,7 @@ import {
 import { createVendorRefreshJob } from "./index";
 import { createVendorRefreshExecutor, type VendorRefreshRun } from "./runtime";
 import { runBrowserUseDiscovery, type BrowserUseDiscoveryResult } from "./browser-use-runner";
+import { runSiteCrawlerDiscovery, type SiteCrawlerResult } from "./site-crawler-runner";
 
 export type PipelineMode = "weekly-baseline" | "premium-deep-scan";
 
@@ -48,6 +49,11 @@ export interface PipelineRunReport {
     portalId: string;
     category: VendorSearchCategory;
     result: BrowserUseDiscoveryResult;
+  }>;
+  siteCrawlerRuns: Array<{
+    portalId: string;
+    category: VendorSearchCategory;
+    result: SiteCrawlerResult;
   }>;
   dbRecordCount: number;
 }
@@ -107,6 +113,7 @@ export async function runPipelineFromCli() {
         skippedAsNotDue: report.skippedAsNotDue,
         refreshRunCount: report.refreshRuns.length,
         browserUseRunCount: report.browserUseRuns.length,
+        siteCrawlerRunCount: report.siteCrawlerRuns.length,
         dbRecordCount: report.dbRecordCount
       },
       null,
@@ -136,6 +143,7 @@ export async function runVendorDiscoveryPipeline(
     skippedAsNotDue: false,
     refreshRuns: [],
     browserUseRuns: [],
+    siteCrawlerRuns: [],
     dbRecordCount: 0
   };
 
@@ -207,6 +215,47 @@ export async function runVendorDiscoveryPipeline(
           portal.id,
           dedupe
         );
+      }
+
+      const minBrowserRecords = Number.parseInt(
+        process.env.SITE_CRAWLER_MIN_BROWSER_RECORDS ?? "2",
+        10
+      );
+      const shouldRunCrawlerFallback =
+        browserUseResult.status !== "success" ||
+        browserUseResult.records.length <
+          (Number.isFinite(minBrowserRecords) ? minBrowserRecords : 2);
+
+      if (shouldRunCrawlerFallback) {
+        const siteCrawlerResult = await runSiteCrawlerDiscovery({
+          portalId: portal.id,
+          portalLabel: portal.label,
+          portalUrl: portal.websiteUrl,
+          region: input.region,
+          category,
+          mode:
+            input.mode === "premium-deep-scan"
+              ? "premium-deep-scan"
+              : "free-baseline"
+        });
+        report.siteCrawlerRuns.push({
+          portalId: portal.id,
+          category,
+          result: siteCrawlerResult
+        });
+        if (siteCrawlerResult.status === "success") {
+          upsertFromBrowserUseRun(
+            {
+              status: "success",
+              command: siteCrawlerResult.command,
+              records: siteCrawlerResult.records
+            },
+            category,
+            input.region,
+            portal.id,
+            dedupe
+          );
+        }
       }
     }
   }
