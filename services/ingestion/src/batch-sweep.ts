@@ -32,13 +32,15 @@ export async function runBatchSweepFromCli() {
   const mode = normalizeMode(process.env.VENDOR_BATCH_MODE);
   const regionBatchSize = parsePositiveInt(process.env.VENDOR_BATCH_REGION_SIZE, 2);
   const categoryBatchSize = parsePositiveInt(process.env.VENDOR_BATCH_CATEGORY_SIZE, 3);
-  const regionLimit = parsePositiveInt(process.env.VENDOR_BATCH_REGION_LIMIT, germanSweepRegions.length);
+  const customRegions = parseCsvList(process.env.VENDOR_BATCH_REGIONS);
+  const regionPool = customRegions.length > 0 ? customRegions : germanSweepRegions;
+  const regionLimit = parsePositiveInt(process.env.VENDOR_BATCH_REGION_LIMIT, regionPool.length);
   const categoryLimit = parsePositiveInt(process.env.VENDOR_BATCH_CATEGORY_LIMIT, germanSweepCategories.length);
   const regionOffset = parseNonNegativeInt(process.env.VENDOR_BATCH_REGION_OFFSET, 0);
   const categoryOffset = parseNonNegativeInt(process.env.VENDOR_BATCH_CATEGORY_OFFSET, 0);
   const force = (process.env.VENDOR_PIPELINE_FORCE ?? "true").toLowerCase() === "true";
 
-  const regions = rotateAndLimit(germanSweepRegions, regionOffset, regionLimit);
+  const regions = rotateAndLimit(regionPool, regionOffset, regionLimit);
   const categories = rotateAndLimit(germanSweepCategories, categoryOffset, categoryLimit);
   const regionChunks = chunkArray(regions, regionBatchSize);
   const categoryChunks = chunkArray(categories, categoryBatchSize);
@@ -155,6 +157,14 @@ function normalizeMode(value: string | undefined): PipelineMode {
     return "premium-deep-scan";
   }
   return "weekly-baseline";
+}
+
+function parseCsvList(value: string | undefined) {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
