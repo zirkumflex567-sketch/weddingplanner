@@ -150,6 +150,50 @@ interface PublishedVendorCatalogPublishResponse {
   publishedRecords: PublishedVendorCatalogRecord[];
 }
 
+export interface IngestionCoverageSnapshot {
+  generatedAt: string;
+  runner: {
+    active: boolean;
+    pid?: number;
+    cycles?: number;
+    lastHeartbeatAt?: string;
+    lastCycleStartedAt?: string;
+    lastCycleCompletedAt?: string;
+    lastError?: string;
+  };
+  coverage: {
+    regionsTotal: number;
+    regionsCovered: number;
+    regionsCoveragePercent: number;
+    categoriesTotal: number;
+    categoriesCovered: number;
+    categoriesCoveragePercent: number;
+    recordsTotal: number;
+  };
+  regions: Array<{
+    name: string;
+    covered: boolean;
+    recordCount: number;
+    lastUpdatedAt?: string;
+  }>;
+  categories: Array<{
+    name: string;
+    covered: boolean;
+    recordCount: number;
+  }>;
+  samples: Array<{
+    name: string;
+    category: string;
+    region: string;
+    sourcePortalId: string;
+    websiteUrl?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    address?: string;
+    freshnessTimestamp?: string;
+  }>;
+}
+
 interface CreateGuestInput {
   name: string;
   household: string;
@@ -382,6 +426,10 @@ export function publishVendorRefreshJob(jobId: string) {
 
 export function listPublishedVendorCatalog() {
   return requestJson<PublishedVendorCatalogResponse>("/prototype/vendor-catalog");
+}
+
+export function getIngestionCoverageSnapshot() {
+  return requestJson<IngestionCoverageSnapshot>("/prototype/ingestion/coverage");
 }
 
 export function getWorkspace(id: string) {

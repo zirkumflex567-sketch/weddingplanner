@@ -44,6 +44,7 @@ import {
   type ConsultationMessage
 } from "./components/ConsultationPanel";
 import { PublicRsvpPage } from "./PublicRsvpPage";
+import { IngestionCoveragePage } from "./IngestionCoveragePage";
 import "./app.css";
 import "./app-atelier.css";
 
@@ -3858,6 +3859,11 @@ function DashboardApp() {
 
 export default function App() {
   const publicRsvpToken = getPublicRsvpTokenFromPath(window.location.pathname);
+  const isCoveragePath = window.location.pathname.endsWith("/coverage");
+
+  if (isCoveragePath) {
+    return <IngestionCoveragePage />;
+  }
 
   if (publicRsvpToken) {
     return <PublicRsvpPage token={publicRsvpToken} />;

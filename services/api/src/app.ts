@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import cors from "@fastify/cors";
 import Fastify from "fastify";
 import {
@@ -8,6 +10,8 @@ import {
 import {
   createVendorConnectorPreview,
   createVendorRefreshExecutor,
+  germanSweepCategories,
+  germanSweepRegions,
   type DirectoryDiscoveryResultInput,
   type GooglePlacesResultInput,
   type VendorRefreshExecutor,
@@ -50,6 +54,11 @@ export function buildApp(options: BuildAppOptions = {}) {
   app.get("/health", async () => ({
     status: "ok"
   }));
+
+  app.get("/prototype/ingestion/coverage", async () => {
+    const coverage = await buildIngestionCoverageSnapshot();
+    return coverage;
+  });
 
   app.post("/planning/bootstrap", async (request, reply) => {
     if (!isWeddingBootstrapInput(request.body)) {
@@ -556,4 +565,125 @@ function isVendorWebsitePageInputArray(
         typeof entry.fetchedAt === "string"
     )
   );
+}
+
+interface IngestionCoverageRecord {
+  id?: string;
+  name?: string;
+  category?: string;
+  region?: string;
+  websiteUrl?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  address?: string;
+  sourcePortalId?: string;
+  freshnessTimestamp?: string;
+}
+
+async function buildIngestionCoverageSnapshot() {
+  const ingestionOutputRoot = path.resolve(process.cwd(), "../ingestion/output/ingestion");
+  const dbPath = path.resolve(ingestionOutputRoot, "vendor-discovery-db.json");
+  const continuousStatePath = path.resolve(
+    ingestionOutputRoot,
+    "continuous-runner-state.json"
+  );
+
+  const records = await readJsonFile<IngestionCoverageRecord[]>(dbPath, []);
+  const continuousState = await readJsonFile<Record<string, unknown>>(
+    continuousStatePath,
+    {}
+  );
+
+  const regions = germanSweepRegions.map((region) => {
+    const matching = records.filter((record) => record.region === region);
+    const freshest = matching
+      .map((record) => record.freshnessTimestamp ?? "")
+      .sort()
+      .at(-1);
+
+    return {
+      name: region,
+      covered: matching.length > 0,
+      recordCount: matching.length,
+      ...(freshest ? { lastUpdatedAt: freshest } : {})
+    };
+  });
+
+  const categories = germanSweepCategories.map((category) => {
+    const matching = records.filter((record) => record.category === category);
+    return {
+      name: category,
+      covered: matching.length > 0,
+      recordCount: matching.length
+    };
+  });
+
+  const recentSamples = records
+    .slice()
+    .sort((a, b) =>
+      (b.freshnessTimestamp ?? "").localeCompare(a.freshnessTimestamp ?? "")
+    )
+    .slice(0, 25)
+    .map((record) => ({
+      name: record.name ?? "Unbekannt",
+      category: record.category ?? "unknown",
+      region: record.region ?? "unknown",
+      sourcePortalId: record.sourcePortalId ?? "unknown",
+      ...(record.contactEmail ? { contactEmail: record.contactEmail } : {}),
+      ...(record.contactPhone ? { contactPhone: record.contactPhone } : {}),
+      ...(record.address ? { address: record.address } : {}),
+      ...(record.websiteUrl ? { websiteUrl: record.websiteUrl } : {}),
+      ...(record.freshnessTimestamp ? { freshnessTimestamp: record.freshnessTimestamp } : {})
+    }));
+
+  const coveredRegions = regions.filter((entry) => entry.covered).length;
+  const coveredCategories = categories.filter((entry) => entry.covered).length;
+
+  return {
+    generatedAt: new Date().toISOString(),
+    runner: {
+      active: Boolean(continuousState.active),
+      ...(typeof continuousState.pid === "number" ? { pid: continuousState.pid } : {}),
+      ...(typeof continuousState.cycles === "number"
+        ? { cycles: continuousState.cycles }
+        : {}),
+      ...(typeof continuousState.lastHeartbeatAt === "string"
+        ? { lastHeartbeatAt: continuousState.lastHeartbeatAt }
+        : {}),
+      ...(typeof continuousState.lastCycleStartedAt === "string"
+        ? { lastCycleStartedAt: continuousState.lastCycleStartedAt }
+        : {}),
+      ...(typeof continuousState.lastCycleCompletedAt === "string"
+        ? { lastCycleCompletedAt: continuousState.lastCycleCompletedAt }
+        : {}),
+      ...(typeof continuousState.lastError === "string" && continuousState.lastError.length > 0
+        ? { lastError: continuousState.lastError }
+        : {})
+    },
+    coverage: {
+      regionsTotal: regions.length,
+      regionsCovered: coveredRegions,
+      regionsCoveragePercent:
+        regions.length > 0 ? Math.round((coveredRegions / regions.length) * 100) : 0,
+      categoriesTotal: categories.length,
+      categoriesCovered: coveredCategories,
+      categoriesCoveragePercent:
+        categories.length > 0
+          ? Math.round((coveredCategories / categories.length) * 100)
+          : 0,
+      recordsTotal: records.length
+    },
+    regions,
+    categories,
+    samples: recentSamples
+  };
+}
+
+async function readJsonFile<T>(filePath: string, fallback: T): Promise<T> {
+  try {
+    const content = await readFile(filePath, "utf-8");
+    return JSON.parse(content) as T;
+  } catch {
+    return fallback;
+  }
 }
