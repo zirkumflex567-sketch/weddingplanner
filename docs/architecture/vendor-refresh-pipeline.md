@@ -95,6 +95,12 @@ Technischer Ablauf:
 5. Jeder Lauf erzeugt einen Report:
    - `output/ingestion/run-<mode>-<timestamp>.json`
 
+Adapter:
+
+- `services/ingestion/scripts/browser-use-adapter.mjs`
+- nimmt JSON-Tasks entgegen und liefert normalisierte Discovery-Records zurueck
+- laeuft headless und ist fuer htown-Cron geeignet
+
 Wichtig:
 
 - Kein manuelles Sammeln von Portaldaten im Codefluss.

@@ -52,6 +52,18 @@ Lokaler headless Smoke-Test ohne echtes Browser-Use-CLI:
 BROWSER_USE_CLI_COMMAND="node services/ingestion/scripts/browser-use-mock.cjs" npm run pipeline:weekly --workspace @wedding/ingestion
 ```
 
+Produktiver Headless-Adapter (search + extraction):
+
+```bash
+BROWSER_USE_CLI_COMMAND="node services/ingestion/scripts/browser-use-adapter.mjs" npm run pipeline:weekly --workspace @wedding/ingestion
+```
+
+Adapter-Tuning:
+
+- `BROWSER_USE_ADAPTER_MAX_RESULTS_FREE` default `8`
+- `BROWSER_USE_ADAPTER_MAX_RESULTS_PREMIUM` default `16`
+- `BROWSER_USE_ADAPTER_TIMEOUT_MS` default `15000`
+
 Empfohlener htown-Cron fuer den Free-Baseline-Lauf (woechentlich Sonntag 03:30):
 
 ```bash
