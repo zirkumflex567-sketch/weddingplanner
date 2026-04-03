@@ -77,6 +77,10 @@ export function IngestionCoveragePage() {
           <span>Datensaetze gesamt</span>
         </article>
         <article className="coverage-card">
+          <strong>{snapshot?.coverage.observedTotal ?? 0}</strong>
+          <span>Gesichtet (inkl. Quarantaene)</span>
+        </article>
+        <article className="coverage-card">
           <strong>{snapshot?.coverage.quarantinedTotal ?? 0}</strong>
           <span>Quarantaene (Review)</span>
         </article>
@@ -168,6 +172,7 @@ export function IngestionCoveragePage() {
                 <p>{sample.contactEmail ?? "keine Email"}</p>
                 <p>{sample.contactPhone ?? "kein Telefon"}</p>
                 <p>{sample.address ?? "keine Adresse"}</p>
+                <p>{sample.quarantineReason ? `Quarantaene: ${sample.quarantineReason}` : "Quarantaene: nein"}</p>
                 <p>
                   {typeof sample.ratingValue === "number"
                     ? `Bewertung: ${sample.ratingValue.toFixed(1)} (${sample.ratingCount ?? 0})`
