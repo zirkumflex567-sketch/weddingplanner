@@ -5,7 +5,8 @@ import {
   createVendorRefreshExecutor,
   createVendorRefreshJob,
   createVendorRefreshPlan,
-  extractVendorWebsiteFacts
+  extractVendorWebsiteFacts,
+  isWeeklyRunDue
 } from "./index";
 
 describe("vendor refresh planning", () => {
@@ -364,5 +365,11 @@ describe("vendor refresh planning", () => {
         })
       ])
     );
+  });
+
+  it("marks weekly baseline as due when last run is older than 7 days", () => {
+    expect(isWeeklyRunDue("2026-03-20T10:00:00.000Z", "2026-03-28T10:00:00.000Z")).toBe(true);
+    expect(isWeeklyRunDue("2026-03-22T10:00:00.000Z", "2026-03-28T09:59:59.000Z")).toBe(false);
+    expect(isWeeklyRunDue(undefined, "2026-03-28T10:00:00.000Z")).toBe(true);
   });
 });
