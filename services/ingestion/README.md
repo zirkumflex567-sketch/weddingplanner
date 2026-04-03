@@ -64,11 +64,45 @@ Adapter-Tuning:
 - `BROWSER_USE_ADAPTER_MAX_RESULTS_PREMIUM` default `16`
 - `BROWSER_USE_ADAPTER_TIMEOUT_MS` default `15000`
 
+Adapter-Extraktion (live):
+
+- Suchlauf ueber Portal-Domain + Kategorie + Region
+- Portal-Fallback-Seiten (`kontakt`, `impressum`, `ueber-uns`)
+- Follow-up auf externe Vendor-Links aus Portallisten
+- strukturierte Datennutzung aus `application/ld+json` (Schema.org)
+- Felder: Name, Website, Quelle, Adresse, Telefon, E-Mail, Oeffnungszeiten, Preis-Hinweise
+
 Empfohlener htown-Cron fuer den Free-Baseline-Lauf (woechentlich Sonntag 03:30):
 
 ```bash
 30 3 * * 0 cd /home/kevin/workspace/weddingplanner && npm run pipeline:weekly --workspace @wedding/ingestion >> /home/kevin/workspace/weddingplanner/output/ingestion/cron-weekly.log 2>&1
 ```
+
+## Batch-Sweep Deutschland (neu)
+
+Fuer konsequente Flaechenabdeckung kann die Pipeline regionen- und kategorieweise in Paketen laufen:
+
+```bash
+BROWSER_USE_CLI_COMMAND="node services/ingestion/scripts/browser-use-adapter.mjs" \
+VENDOR_BATCH_REGION_SIZE=2 \
+VENDOR_BATCH_CATEGORY_SIZE=3 \
+VENDOR_BATCH_REGION_LIMIT=10 \
+VENDOR_BATCH_CATEGORY_LIMIT=9 \
+npm run pipeline:batch --workspace @wedding/ingestion
+```
+
+Batch-Parameter:
+
+- `VENDOR_BATCH_MODE` = `weekly-baseline` oder `premium-deep-scan`
+- `VENDOR_BATCH_REGION_SIZE` Anzahl Regionen pro Sweep-Paket
+- `VENDOR_BATCH_CATEGORY_SIZE` Anzahl Kategorien pro Paket
+- `VENDOR_BATCH_REGION_LIMIT` limitierte Pilot-Runs
+- `VENDOR_BATCH_CATEGORY_LIMIT` limitierte Pilot-Runs
+
+Outputs:
+
+- einzelne Run-Reports `output/ingestion/batch-run-*.json`
+- Gesamtsummary `output/ingestion/batch-summary-*.json`
 
 ## Datenregel
 

@@ -106,3 +106,19 @@ Wichtig:
 - Kein manuelles Sammeln von Portaldaten im Codefluss.
 - Free und Premium nutzen denselben Datenpfad, Premium laeuft nur tiefer und on-demand.
 - Browser-Use ist bewusst als externes CLI angebunden, damit htown/shadow denselben Adapter nutzen koennen.
+
+## Skalierung auf Deutschlandweite Vollabdeckung
+
+Die Pipeline ist auf kontinuierliches Wachstum ausgelegt:
+
+1. `vendorSourcePortals` enthaelt ein wachsendes Quellnetz ueber Wedding-, Event- und Service-Portale.
+2. Adapter-Lauf kombiniert Suchtreffer, Portal-Unterseiten und externe Vendor-Links.
+3. Schema.org / JSON-LD wird aktiv gelesen, damit Kontakt- und Adressdaten strukturierter uebernommen werden.
+4. Weekly-Lauf fuellt die Basisdatenbank permanent nach.
+5. Premium-Deepscan geht pro Anfrage tiefer in Radius/PLZ und folgt mehr Kandidatenlinks.
+6. Batch-Sweep laeuft Regionen x Kategorien in Paketen und erweitert die Deutschland-Abdeckung iterativ.
+
+Wichtiger Realitaetscheck:
+
+- "Alle Anbieter im Internet" ist ein laufendes Ziel, kein einmaliger Endzustand.
+- Die Architektur ist deshalb auf fortlaufende Discovery, Dedupe und Freshness-Updates ausgelegt.

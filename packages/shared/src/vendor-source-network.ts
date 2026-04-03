@@ -237,6 +237,126 @@ export const vendorSourcePortals: ReadonlyArray<VendorSourcePortal> = [
     premiumTierRole: "konkrete Hotelvorschlaege nahe Venue mit Affiliate-Pfad ausgeben",
     notes:
       "Im Produkt bevorzugt als Weiterleitung oder eingebettete Karten/Meta-Infos nutzen, statt nur lokale Hochzeitslocations als Stay-Suggestions."
+  },
+  {
+    id: "unserehochzeitslocation",
+    label: "unserehochzeitslocation.de",
+    websiteUrl: "https://www.unserehochzeitslocation.de/",
+    coverage: "germany",
+    sourceType: "wedding-marketplace",
+    categories: ["venue", "photography"],
+    strengths: [
+      "deutschlandweite Standortabdeckung",
+      "starker Fokus auf Location- und Fotografen-Matching",
+      "hilfreich fuer regionale Longlists"
+    ],
+    freeTierRole: "venue-baseline in der Flaeche verbreitern",
+    premiumTierRole: "regionales Venue- und Fotografen-Deepening fuer Suchradien"
+  },
+  {
+    id: "wo-heiraten",
+    label: "wo-heiraten.de",
+    websiteUrl: "https://www.wo-heiraten.de/",
+    coverage: "germany",
+    sourceType: "wedding-marketplace",
+    categories: ["venue", "music", "catering", "photography", "florals", "planner"],
+    strengths: [
+      "breites Hochzeitsspektrum ueber viele Vendor-Kategorien",
+      "sinnvoll fuer secondary discovery",
+      "nutzbar fuer Ausweichanbieter bei Terminengpaessen"
+    ],
+    freeTierRole: "zusatzabdeckung fuer vendoren und locations schaffen",
+    premiumTierRole: "hidden gems in nischenkategorien fuer kundenregion suchen"
+  },
+  {
+    id: "mi-boda",
+    label: "mi-boda.com",
+    websiteUrl: "https://mi-boda.com/",
+    coverage: "germany",
+    sourceType: "wedding-marketplace",
+    categories: ["venue", "photography", "music", "florals", "planner", "attire"],
+    strengths: [
+      "deutschlandweite hochzeitsdienstleister",
+      "kombiniert locations und klassische vendoren",
+      "brauchbar fuer portfolio- und inspirationsdaten"
+    ],
+    freeTierRole: "zusatzquelle fuer deutschlandweite grundabdeckung",
+    premiumTierRole: "deep scan fuer style-fit vendoren im kundenprofil"
+  },
+  {
+    id: "eventano",
+    label: "eventano.com",
+    websiteUrl: "https://www.eventano.com/de/",
+    coverage: "germany",
+    sourceType: "event-marketplace",
+    categories: ["venue", "catering", "transport", "rentals"],
+    strengths: [
+      "event- und location-fokus mit deutschlandweiter suche",
+      "gute ausweichquelle fuer nicht-klassische hochzeitslocations",
+      "hilfreich fuer terminengpass-szenarien"
+    ],
+    freeTierRole: "alternative eventlocations fuer basisdaten erfassen",
+    premiumTierRole: "radius-suche fuer ausweichlocations und eventdienstleister"
+  },
+  {
+    id: "simply-wedding",
+    label: "simply-wedding.de",
+    websiteUrl: "https://simply-wedding.de/hochzeitsdienstleister/",
+    coverage: "germany",
+    sourceType: "wedding-marketplace",
+    categories: ["venue", "photography", "catering", "music", "florals", "attire", "planner", "cake", "stationery", "transport"],
+    strengths: [
+      "breite kategorien fuer hochzeitsdienstleister",
+      "geeignet fuer bundesweiten vendor-seed",
+      "nutzbar fuer kontakt- und webdaten"
+    ],
+    freeTierRole: "vendor-grundbestand ueber viele kategorien aufbauen",
+    premiumTierRole: "zielgerichtete vertiefung je kunde und stilprofil"
+  },
+  {
+    id: "hochzeitscheck",
+    label: "hochzeitscheck.de",
+    websiteUrl: "https://www.hochzeitscheck.de/",
+    coverage: "germany",
+    sourceType: "wedding-marketplace",
+    categories: ["venue", "photography", "catering", "music", "planner"],
+    strengths: [
+      "lange bestehendes verzeichnis fuer hochzeitsanbieter",
+      "zusaetzliche source fuer coverage und cross-checks",
+      "hilfreich fuer fallback discovery"
+    ],
+    freeTierRole: "weitere deutschlandweite source fuer vendor discovery",
+    premiumTierRole: "anbieterverdichtung fuer kunden-suchraum"
+  },
+  {
+    id: "locationagent",
+    label: "locationagent.de",
+    websiteUrl: "https://www.locationagent.de/hochzeitslocation",
+    coverage: "germany",
+    sourceType: "event-marketplace",
+    categories: ["venue"],
+    strengths: [
+      "starker location-fokus deutschlandweit",
+      "geeignet fuer non-obvious venue alternativen",
+      "hilfreich fuer engpass- und terminthemen"
+    ],
+    freeTierRole: "venue pool mit eventnahen locations erweitern",
+    premiumTierRole: "radiusbezogene ausweichlocation-suche verstaerken"
+  },
+  {
+    id: "theperfectwedding",
+    label: "theperfectwedding.de",
+    websiteUrl: "https://www.theperfectwedding.de/",
+    coverage: "germany",
+    sourceType: "wedding-marketplace",
+    categories: ["venue", "photography", "catering", "music", "florals", "planner"],
+    strengths: [
+      "deutschlandweite hochzeitsdienstleister-listings",
+      "ergibt zusaetzliche vendor-kandidaten jenseits der kernportale",
+      "nutzbar fuer redundanz und datenabgleich"
+    ],
+    freeTierRole: "hochzeitsportal-abdeckung fuer vendoren vergroessern",
+    premiumTierRole: "tieferes matching fuer kundenanfrage und umkreis"
   }
 ];
 

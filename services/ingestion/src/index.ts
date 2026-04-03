@@ -9,6 +9,8 @@ export * from "./connectors";
 export * from "./runtime";
 export * from "./browser-use-runner";
 export * from "./pipeline";
+export * from "./region-batches";
+export * from "./batch-sweep";
 
 export type VendorRefreshStageId =
   | "discovery"
