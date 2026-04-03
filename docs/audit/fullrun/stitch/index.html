@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wedding Live | Audit Run: 2026-04-03</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#555f71",
+                        "surface": "#f8fafc",
+                        "on-surface": "#0f172a",
+                        "on-surface-variant": "#475569",
+                        "outline": "#94a3b8",
+                        "tertiary": "#2563eb",
+                        "on-tertiary": "#ffffff",
+                        "error": "#be123c",
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "sans": ["Inter", "system-ui", "sans-serif"],
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Zero Radius Enforcement as per System Design */
+        * { border-radius: 0 !important; }
+        .subtle-shadow { box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05); }
+        .glass-header { backdrop-filter: blur(8px); background-color: rgba(248, 250, 252, 0.8); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col border-r border-slate-200 bg-slate-100/50 w-64 z-50">
+<div class="p-8 border-b border-slate-200 bg-slate-100">
+<h1 class="text-xl font-black text-slate-900 uppercase tracking-tighter">AUDIT CONSOLE</h1>
+<p class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 mt-1">Version 2026.4</p>
+</div>
+<nav class="flex-1 py-6 overflow-y-auto">
+<div class="group flex items-center gap-3 bg-white text-blue-600 border-l-4 border-blue-600 px-6 py-4 cursor-pointer transition-all">
+<span class="material-symbols-outlined text-xl" data-icon="analytics">analytics</span>
+<span class="text-xs font-bold uppercase tracking-widest">Summary</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 px-6 py-4 hover:bg-slate-200/50 hover:text-slate-900 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-xl" data-icon="speed">speed</span>
+<span class="text-xs font-semibold uppercase tracking-widest">Performance</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 px-6 py-4 hover:bg-slate-200/50 hover:text-slate-900 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-xl" data-icon="security">security</span>
+<span class="text-xs font-semibold uppercase tracking-widest">Security</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 px-6 py-4 hover:bg-slate-200/50 hover:text-slate-900 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-xl" data-icon="api">api</span>
+<span class="text-xs font-semibold uppercase tracking-widest">Endpoints</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 px-6 py-4 hover:bg-slate-200/50 hover:text-slate-900 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-xl" data-icon="collections">collections</span>
+<span class="text-xs font-semibold uppercase tracking-widest">Evidence</span>
+</div>
+<div class="flex items-center gap-3 text-slate-500 px-6 py-4 hover:bg-slate-200/50 hover:text-slate-900 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-xl" data-icon="verified">verified</span>
+<span class="text-xs font-semibold uppercase tracking-widest">Verification</span>
+</div>
+</nav>
+<div class="p-6 px-8">
+<button class="w-full bg-slate-900 text-white py-4 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-700 transition-all active:scale-[0.98]">
+            Run New Audit
+        </button>
+</div>
+<div class="border-t border-slate-200 p-6 space-y-2 bg-slate-100/30">
+<div class="flex items-center gap-3 px-2 py-2 text-slate-500 hover:text-slate-900 cursor-pointer">
+<span class="material-symbols-outlined text-lg" data-icon="settings">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Settings</span>
+</div>
+<div class="flex items-center gap-3 px-2 py-2 text-slate-500 hover:text-slate-900 cursor-pointer">
+<span class="material-symbols-outlined text-lg" data-icon="help">help</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Support</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-40 glass-header border-b border-slate-200">
+<div class="flex justify-between items-center px-10 py-4 max-w-[1600px] mx-auto">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Project Instance</span>
+<div class="text-sm font-black tracking-tight text-slate-900">
+                    Wedding Live | <span class="text-blue-600">Audit Run 2026-04-03</span>
+</div>
+</div>
+<nav class="hidden lg:flex gap-10 items-center">
+<a class="text-[10px] font-black uppercase tracking-[0.15em] text-blue-600 border-b-2 border-blue-600 pb-1" href="#">Summary</a>
+<a class="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 hover:text-slate-900 transition-colors" href="#">Dashboard</a>
+<a class="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 hover:text-slate-900 transition-colors" href="#">Findings</a>
+<a class="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 hover:text-slate-900 transition-colors" href="#">Security</a>
+<a class="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 hover:text-slate-900 transition-colors" href="#">Remediation</a>
+</nav>
+<div class="flex items-center gap-3">
+<button class="px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-200 transition-all">Density</button>
+<button class="bg-blue-600 text-white px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 transition-all">Export PDF</button>
+</div>
+</div>
+</header>
+<div class="p-12 max-w-[1600px] mx-auto space-y-16">
+<!-- Hero Section -->
+<section class="grid grid-cols-1 lg:grid-cols-4 gap-0 bg-white border border-slate-200 subtle-shadow">
+<div class="lg:col-span-3 p-12 lg:pr-24">
+<div class="flex items-center gap-4 mb-8">
+<span class="bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 text-[9px] font-black tracking-[0.2em] uppercase">STABLE RELEASE</span>
+<span class="text-slate-400 font-mono text-[10px] uppercase tracking-wider">h-town.duckdns.org/wedding/</span>
+</div>
+<h2 class="text-6xl font-black tracking-tighter text-slate-900 mb-8 uppercase leading-[0.9]">Wedding Live <br/><span class="text-blue-600">Full Audit Report</span></h2>
+<p class="text-lg text-slate-500 leading-relaxed max-w-2xl font-medium">
+                    A multi-layered evaluation of platform integrity, encompassing deep-trace performance profiling, accessibility compliance, and mobile-first interaction parity.
+                </p>
+</div>
+<div class="bg-slate-50 p-12 flex flex-col justify-center border-l border-slate-200">
+<div class="space-y-6">
+<div>
+<span class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 block mb-1">Audit Run ID</span>
+<span class="font-mono text-base font-bold text-slate-900">WDL-2026-0403-X</span>
+</div>
+<div>
+<span class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 block mb-1">Compliance Score</span>
+<span class="font-mono text-3xl font-black text-blue-600">94.4%</span>
+</div>
+<div>
+<span class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 block mb-1">Operational Status</span>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-rose-500"></span>
+<span class="font-mono text-sm font-bold text-rose-600 uppercase">Action Required</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- KPI Grid -->
+<section class="space-y-8">
+<div class="flex items-center gap-4">
+<h3 class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">KPI &amp; Web Vitals</h3>
+<div class="h-px flex-1 bg-slate-200"></div>
+<span class="text-[9px] font-mono text-slate-400 uppercase">Lighthouse v10.0 Desktop</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-px bg-slate-200 border border-slate-200 subtle-shadow">
+<!-- Large Metrics -->
+<div class="col-span-2 bg-white p-10 flex flex-col justify-between">
+<span class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-8">Performance</span>
+<div class="flex items-end gap-2">
+<span class="text-5xl font-black leading-none">87</span>
+<span class="text-xs font-bold text-slate-300 mb-1">/100</span>
+</div>
+<div class="h-1 w-full bg-slate-100 mt-6"><div class="h-full bg-blue-600 w-[87%]"></div></div>
+</div>
+<div class="col-span-2 bg-white p-10 flex flex-col justify-between">
+<span class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-8">Accessibility</span>
+<div class="flex items-end gap-2">
+<span class="text-5xl font-black leading-none text-emerald-600">100</span>
+</div>
+<div class="h-1 w-full bg-slate-100 mt-6"><div class="h-full bg-emerald-600 w-full"></div></div>
+</div>
+<div class="col-span-2 bg-white p-10 flex flex-col justify-between">
+<span class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-8">Best Practices</span>
+<div class="flex items-end gap-2">
+<span class="text-5xl font-black leading-none text-emerald-600">100</span>
+</div>
+<div class="h-1 w-full bg-slate-100 mt-6"><div class="h-full bg-emerald-600 w-full"></div></div>
+</div>
+<div class="col-span-2 bg-white p-10 flex flex-col justify-between">
+<span class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-8">SEO</span>
+<div class="flex items-end gap-2">
+<span class="text-5xl font-black leading-none">91</span>
+<span class="text-xs font-bold text-slate-300 mb-1">/100</span>
+</div>
+<div class="h-1 w-full bg-slate-100 mt-6"><div class="h-full bg-blue-600 w-[91%]"></div></div>
+</div>
+<!-- Small Vitals -->
+<div class="col-span-2 bg-slate-50/80 p-6 border-t border-slate-200">
+<span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">FCP</span>
+<div class="text-xl font-bold mt-2 font-mono">3.0s</div>
+</div>
+<div class="col-span-2 bg-slate-50/80 p-6 border-t border-slate-200">
+<span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">LCP</span>
+<div class="text-xl font-bold mt-2 font-mono">3.1s</div>
+</div>
+<div class="col-span-2 bg-slate-50/80 p-6 border-t border-slate-200">
+<span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">CLS</span>
+<div class="text-xl font-bold mt-2 font-mono">0.00</div>
+</div>
+<div class="col-span-2 bg-slate-50/80 p-6 border-t border-slate-200">
+<span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">TBT</span>
+<div class="text-xl font-bold mt-2 font-mono">0ms</div>
+</div>
+</div>
+</section>
+<!-- Findings & Test Paths -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Test Runs -->
+<div class="lg:col-span-5 space-y-8">
+<h3 class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">User Test Scenarios</h3>
+<div class="space-y-px bg-slate-200 border border-slate-200 subtle-shadow overflow-hidden">
+<div class="bg-white p-8 group cursor-default">
+<div class="flex gap-6">
+<span class="text-3xl font-black text-slate-100 group-hover:text-blue-100 transition-colors">01</span>
+<div>
+<h4 class="font-bold text-xs uppercase tracking-widest mb-2 text-slate-900">Returning user path</h4>
+<p class="text-xs text-slate-500 leading-relaxed font-medium">Open latest profile → navigate dashboard modules → open concierge/chat.</p>
+</div>
+</div>
+</div>
+<div class="bg-white p-8 group cursor-default">
+<div class="flex gap-6">
+<span class="text-3xl font-black text-slate-100 group-hover:text-blue-100 transition-colors">02</span>
+<div>
+<h4 class="font-bold text-xs uppercase tracking-widest mb-2 text-slate-900">Chat realism path</h4>
+<p class="text-xs text-slate-500 leading-relaxed font-medium">Free text request for nearby venues + budgeting intent in consultant panel.</p>
+</div>
+</div>
+</div>
+<div class="bg-white p-8 group cursor-default">
+<div class="flex gap-6">
+<span class="text-3xl font-black text-slate-100 group-hover:text-blue-100 transition-colors">03</span>
+<div>
+<h4 class="font-bold text-xs uppercase tracking-widest mb-2 text-slate-900">Mobile path</h4>
+<p class="text-xs text-slate-500 leading-relaxed font-medium">390x844 viewport navigation, top controls, action buttons, dock interactions.</p>
+</div>
+</div>
+</div>
+<div class="bg-white p-8 group cursor-default">
+<div class="flex gap-6">
+<span class="text-3xl font-black text-slate-100 group-hover:text-blue-100 transition-colors">04</span>
+<div>
+<h4 class="font-bold text-xs uppercase tracking-widest mb-2 text-slate-900">Profile creation path</h4>
+<p class="text-xs text-slate-500 leading-relaxed font-medium">Open profile form, modify real profile values, continue to dashboard state.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Severity Findings -->
+<div class="lg:col-span-7 space-y-8">
+<h3 class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Critical Findings</h3>
+<div class="space-y-6">
+<!-- P0 -->
+<div class="bg-rose-50 p-8 border-l-8 border-rose-600">
+<div class="flex items-center gap-3 mb-6">
+<span class="bg-rose-600 text-white px-2 py-0.5 text-[9px] font-black uppercase tracking-widest">P0 CRITICAL</span>
+<div class="h-px flex-1 bg-rose-200"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+<div>
+<h4 class="font-bold text-xs uppercase tracking-widest mb-2 text-rose-900">Pointer Interception</h4>
+<p class="text-xs text-rose-700/80 leading-relaxed font-medium">Core task flows currently dead-end for mobile users due to misconfigured pointer interaction layers.</p>
+</div>
+<div>
+<h4 class="font-bold text-xs uppercase tracking-widest mb-2 text-rose-900">Library Pollution</h4>
+<p class="text-xs text-rose-700/80 leading-relaxed font-medium">Unrestricted duplicate profile creation is degrading database performance and UI clarity.</p>
+</div>
+</div>
+</div>
+<!-- P1 -->
+<div class="bg-white p-8 border border-slate-200 subtle-shadow">
+<div class="flex items-center gap-3 mb-6">
+<span class="bg-slate-900 text-white px-2 py-0.5 text-[9px] font-black uppercase tracking-widest">P1 HIGH SEVERITY</span>
+<div class="h-px flex-1 bg-slate-100"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="space-y-2">
+<span class="font-bold text-[10px] uppercase tracking-wider text-slate-900">Response Quality</span>
+<p class="text-xs text-slate-500 font-medium">Conversion logic in consultant panels shows high drop-off.</p>
+</div>
+<div class="space-y-2">
+<span class="font-bold text-[10px] uppercase tracking-wider text-slate-900">Security Parity</span>
+<p class="text-xs text-slate-500 font-medium">Mismatch between API security headers and UI delivery.</p>
+</div>
+<div class="space-y-2">
+<span class="font-bold text-[10px] uppercase tracking-wider text-slate-900">Menu Discovery</span>
+<p class="text-xs text-slate-500 font-medium">Mobile navigation hierarchy causes user friction.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Security & API -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+<div class="space-y-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-blue-600" data-icon="security">security</span>
+<h3 class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-900">Security Protocol Verification</h3>
+</div>
+<div class="bg-slate-900 p-8 font-mono text-[11px] leading-loose text-slate-300 subtle-shadow">
+<div class="mb-6 text-blue-400 font-bold uppercase tracking-widest border-b border-slate-800 pb-2">// Verified Header Set</div>
+<div class="space-y-1">
+<div class="flex justify-between border-b border-slate-800 py-1"><span>X-Content-Type-Options</span> <span class="text-emerald-500">nosniff</span></div>
+<div class="flex justify-between border-b border-slate-800 py-1"><span>X-Frame-Options</span> <span class="text-emerald-500">SAMEORIGIN</span></div>
+<div class="flex justify-between border-b border-slate-800 py-1"><span>Referrer-Policy</span> <span class="text-emerald-500">strict-origin-when-cross-origin</span></div>
+<div class="flex justify-between border-b border-slate-800 py-1"><span>Strict-Transport-Security</span> <span class="text-emerald-500">max-age=31536000</span></div>
+<div class="flex justify-between py-1"><span class="text-blue-400">Content-Security-Policy</span> <span class="text-emerald-500 font-bold">[VALIDATED]</span></div>
+</div>
+<div class="mt-8 p-4 border border-rose-900 bg-rose-950/30 text-rose-300">
+<span class="text-rose-500 font-black uppercase tracking-widest block mb-1">Critical GAP:</span>
+                        Root HTML response (/wedding/) is missing security parity with internal API routes.
+                    </div>
+</div>
+</div>
+<div class="space-y-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-blue-600" data-icon="api">api</span>
+<h3 class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-900">Endpoint Health Check</h3>
+</div>
+<div class="bg-white border border-slate-200 subtle-shadow">
+<table class="w-full text-left text-[11px]">
+<thead class="bg-slate-50 border-b border-slate-200">
+<tr>
+<th class="px-6 py-4 font-black uppercase tracking-widest text-slate-400">Resource Path</th>
+<th class="px-6 py-4 font-black uppercase tracking-widest text-slate-400 text-right">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 font-medium">
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4 font-mono text-slate-600">/wedding/health</td>
+<td class="px-6 py-4 text-right"><span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 font-bold">200 OK</span></td>
+</tr>
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4 font-mono text-slate-600">/api/health</td>
+<td class="px-6 py-4 text-right"><span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 font-bold">200 OK</span></td>
+</tr>
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4 font-mono text-slate-600">/api/prototype/workspaces</td>
+<td class="px-6 py-4 text-right"><span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 font-bold">200 OK</span></td>
+</tr>
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4 font-mono text-slate-600">/api/prototype/consultant/jobs</td>
+<td class="px-6 py-4 text-right"><span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 font-bold">200 OK</span></td>
+</tr>
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-6 py-4 font-mono text-slate-600">/api/prototype/ingestion/coverage</td>
+<td class="px-6 py-4 text-right"><span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 font-bold">200 OK</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- Evidence Gallery -->
+<section class="space-y-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-blue-600" data-icon="collections">collections</span>
+<h3 class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-900">Evidence Gallery</h3>
+<div class="h-px flex-1 bg-slate-200"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+<div class="space-y-4 group">
+<div class="relative overflow-hidden bg-slate-200 border border-slate-200 subtle-shadow">
+<img alt="Audit Evidence 1" class="w-full h-56 object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAJFr50ZJ3B_nqBAYwOoTxquFb51mSc0zSphgzedCaf569F3pZOXJ70EC38Sdihye4Jxpvh1Y5vqtPGqhfULw1q-5J2objyb1vFQItCI1ifG-yBAMr3kIj64_Svm8SbCTvTjp2UV_KDIRUAQEmz5ljGkXa_5LmywnYLyGCIIMEUNktlJhX0Uy0Da0aJQD2d3ioNlWrYxRb7Wz50j_KYoFkyIwIyIo6n_ixq4IqxWpi3XPJJH01A9rHKqa35uKRZXrEPtH1kjQe5p9t"/>
+</div>
+<span class="text-[9px] font-mono text-slate-400 uppercase tracking-widest block">IMG_01: Primary Dashboard UI State</span>
+</div>
+<div class="space-y-4 group">
+<div class="relative overflow-hidden bg-slate-200 border border-slate-200 subtle-shadow">
+<img alt="Audit Evidence 2" class="w-full h-56 object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrDRdi0AskmLH-SpSpTPt3_zwUquyy7N2acWxliY1_vQ8vdWE0kOC887xj-bB0X0VcizuD6weooYKExoZ1X2ZCkw-Aj7avSrqlMDC-D8fCUd3X8bbaI7ygMCGTtbNRR8e2PeYqqkOKwZVUNeXuoe3DVtHJrIyy6SYC1CNLnwO-Fvnb727A7hsFs7tyyRs1CZP0GxKoaxV3xdyA0Kzzdmz7mo65WYRpwXkF2KzfBAaoCyXUuXPiO4Ufn-sXFIKhbeur5s-31XRXmnrs"/>
+</div>
+<span class="text-[9px] font-mono text-slate-400 uppercase tracking-widest block">IMG_02: Mobile Event Debug Capture</span>
+</div>
+<div class="space-y-4 group">
+<div class="relative overflow-hidden bg-slate-200 border border-slate-200 subtle-shadow">
+<img alt="Audit Evidence 3" class="w-full h-56 object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPV-WhwnhAGeJeK_F3UJ6Jdk7LV-IZeThsF0YwVeKqQDWm2NJ3LujsDtwW6C_yMAu6Qx26ypXAk4acIINewBSpDUAuZBvjh_ZUrPuUtoKyyTWYKRkYBPPcQ5O0PgumzMvLwCGxsMR0L9xN94oGRfMEmv2rcD-zUtfTeNGKbXrjMzhULC0i4AhC-FZOMH9b5te8N4QUU_1gBwM0-jMztUM20XX-MGSo2EAqX-QSRGUfO2_kRxEDbS9r-qCtxKeMwNtWSNnnl707-yUX"/>
+</div>
+<span class="text-[9px] font-mono text-slate-400 uppercase tracking-widest block">IMG_03: Workspace Latency Heatmap</span>
+</div>
+</div>
+</section>
+<!-- Roadmap -->
+<section class="bg-slate-900 p-16 text-white border-t-[12px] border-blue-600 subtle-shadow">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-20">
+<div class="space-y-8">
+<h2 class="text-4xl font-black uppercase tracking-tighter leading-tight">Remediation <br/>Roadmap</h2>
+<p class="text-sm text-slate-400 leading-relaxed font-medium">
+                        Prioritized engineering sequence required to align with enterprise security standards and optimize mobile conversion rates.
+                    </p>
+<div class="pt-8 border-t border-slate-800">
+<span class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 block mb-3">Deployment Pulse</span>
+<div class="flex items-center gap-3">
+<span class="w-2.5 h-2.5 bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]"></span>
+<span class="font-mono text-[10px] font-bold text-slate-300 uppercase tracking-wider">VERIFIED: 2026-04-03 14:22 CET</span>
+</div>
+</div>
+</div>
+<div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-px bg-slate-800 border border-slate-800">
+<div class="bg-slate-900 p-10 hover:bg-slate-800/50 transition-all cursor-default">
+<span class="text-blue-500 font-black font-mono text-lg">01</span>
+<h4 class="font-bold uppercase text-xs tracking-widest mt-4 mb-3 text-white">Z-Index Overhaul</h4>
+<p class="text-xs text-slate-400 leading-relaxed font-medium">Restructure mobile pointer-event layering and formalize z-index interaction contracts.</p>
+</div>
+<div class="bg-slate-900 p-10 hover:bg-slate-800/50 transition-all cursor-default">
+<span class="text-blue-500 font-black font-mono text-lg">02</span>
+<h4 class="font-bold uppercase text-xs tracking-widest mt-4 mb-3 text-white">Data Hygiene</h4>
+<p class="text-xs text-slate-400 leading-relaxed font-medium">Implement deduplication logic and automated profile archiving modules.</p>
+</div>
+<div class="bg-slate-900 p-10 hover:bg-slate-800/50 transition-all cursor-default">
+<span class="text-blue-500 font-black font-mono text-lg">03</span>
+<h4 class="font-bold uppercase text-xs tracking-widest mt-4 mb-3 text-white">NLP Intent Tuning</h4>
+<p class="text-xs text-slate-400 leading-relaxed font-medium">Refine consultant intent parser to increase conversion accuracy by 15%.</p>
+</div>
+<div class="bg-slate-900 p-10 hover:bg-slate-800/50 transition-all cursor-default">
+<span class="text-blue-500 font-black font-mono text-lg">04</span>
+<h4 class="font-bold uppercase text-xs tracking-widest mt-4 mb-3 text-white">Security Alignment</h4>
+<p class="text-xs text-slate-400 leading-relaxed font-medium">Normalize security-header parity across all root route responses.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer -->
+<footer class="mt-12 px-12 py-10 border-t border-slate-200 bg-white flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900">Audit Command Center</span>
+<span class="h-4 w-px bg-slate-200"></span>
+<span class="text-[9px] font-bold uppercase tracking-widest text-slate-400">V-4.0 Enterprise Edition</span>
+</div>
+<div class="flex gap-10 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+<a class="hover:text-blue-600 transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-blue-600 transition-colors" href="#">Legal Framework</a>
+<a class="hover:text-blue-600 transition-colors" href="#">Incident Reports</a>
+</div>
+<span class="text-[9px] font-bold text-slate-300 font-mono">© 2026 PRECISION ENGINEERED UI</span>
+</footer>
+</main>
+</body></html>

@@ -1,0 +1,7 @@
+{
+  "https://h-town.duckdns.org/wedding/health": "200",
+  "https://h-town.duckdns.org/wedding/api/health": "200",
+  "https://h-town.duckdns.org/wedding/api/prototype/workspaces": "200",
+  "https://h-town.duckdns.org/wedding/api/prototype/consultant/jobs": "200",
+  "https://h-town.duckdns.org/wedding/api/prototype/ingestion/coverage": "200"
+}

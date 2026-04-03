@@ -41,3 +41,17 @@ data/generated/
 data/imports/
 data/tmp/
 data/runtime/
+
+# MCP local config (contains local secrets)
+.mcp.json
+.gsd/mcp.json
+
+# ── GSD baseline (auto-generated) ──
+.gsd
+*.swp
+*.swo
+*~
+*.code-workspace
+target/
+vendor/
+.cache/

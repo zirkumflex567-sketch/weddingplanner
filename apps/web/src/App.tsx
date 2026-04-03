@@ -3698,6 +3698,14 @@ function DashboardApp() {
           </div>
         </header>
 
+        {/*
+          Mobile pointer contract (<= 820px):
+          - menu closed: topbar + mobile dock own taps; rail + underlay must not intercept
+            (`workspace-rail` without `--open`, `workspace-underlay` without `--visible`).
+          - menu open: rail owns navigation taps, underlay owns outside-tap close target,
+            while topbar toggle/dock remain above underlay for deterministic recovery.
+          Keep `mobileNavOpen` as the single source of truth for these class toggles.
+        */}
         <div
           className={`workspace-underlay ${mobileNavOpen ? "workspace-underlay--visible" : ""}`}
           onClick={() => setMobileNavOpen(false)}

@@ -1,0 +1,130 @@
+viewport: 3825x2160
+page: 3825x9486
+scroll: (0, 0)
+[51]<div id=root />
+	Wedding Consultant
+	Eine kuratierte Planungsoberflaeche statt einer ueberschallten Checklistenwand.
+	Ihr startet mit einem Profil, bekommt danach nur den jeweils sinnvollen naechsten Schritt und behaltet Budget, Vendoren, Gaeste und RSVP in einer eleganten Arbeitsoberflaeche zusammen.
+	[5]<button />
+		Neues Beratungsprofil
+	[13]<button />
+		Letztes Profil oeffnen
+	Profilbibliothek
+	34
+	aktive Planungsprofile
+	Fortschritt
+	Tasks ueber alle Profile
+	Gaeste im Blick
+	15
+	verfolgte Einladungen
+	Bereit
+	Profilbibliothek
+	Gespeicherte Profile
+	Jedes Profil merkt sich den aktuellen Beratungsschritt, Budgetstand und RSVP-Lage.
+	Naechster Fokus
+	Live Smoke
+	67454 Hassloch / 2027-09-11 / 80 Gaeste / 28.000 EUR
+	Location-Shortlist
+	am
+	11. September 2027
+	Tasks erledigt
+	[52]<button />
+		Profil oeffnen
+	[22]<button aria-label=Profil loeschen Live Smoke />
+		Profil loeschen
+	Naechster Fokus
+	Live Smoke
+	67454 Hassloch / 2027-09-11 / 80 Gaeste / 28.000 EUR
+	Location-Shortlist
+	am
+	11. September 2027
+	Tasks erledigt
+	[53]<button />
+		Profil oeffnen
+	[27]<button aria-label=Profil loeschen Live Smoke />
+		Profil loeschen
+	Naechster Fokus
+	Live Smoke
+	67454 Hassloch / 2027-09-11 / 80 Gaeste / 28.000 EUR
+	Location-Shortlist
+	am
+	11. September 2027
+	Tasks erledigt
+	[54]<button />
+		Profil oeffnen
+	[32]<button aria-label=Profil loeschen Live Smoke />
+		Profil loeschen
+	Naechster Fokus
+	Alina & Jonas
+	67454 Hassloch / 2026-09-10 / 70 Gaeste / 30.000 EUR
+	Kern-Vendoren
+	am
+	10. September 2026
+	Tasks erledigt
+	[55]<button />
+		Profil oeffnen
+	[37]<button aria-label=Profil loeschen Alina & Jonas />
+		Profil loeschen
+	Naechster Fokus
+	Alina & Jonas
+	67454 Hassloch / 2026-09-10 / 88 Gaeste / 38.000 EUR
+	Kern-Vendoren
+	am
+	10. September 2026
+	Tasks erledigt
+	[56]<button />
+		Profil oeffnen
+	[42]<button aria-label=Profil loeschen Alina & Jonas />
+		Profil loeschen
+	Naechster Fokus
+	Alina & Jonas
+	67454 Hassloch / 2026-09-10 / 70 Gaeste / 30.000 EUR
+	Location-Shortlist
+	am
+	10. September 2026
+	Tasks erledigt
+	[57]<button />
+		Profil oeffnen
+	[58]<button aria-label=Profil loeschen Alina & Jonas />
+		Profil loeschen
+	Naechster Fokus
+	Alina & Jonas
+	67454 Hassloch / 2026-09-10 / 70 Gaeste / 30.000 EUR
+	Kern-Vendoren
+	am
+	10. September 2026
+	Tasks erledigt
+	[59]<button />
+		Profil oeffnen
+	[60]<button aria-label=Profil loeschen Alina & Jonas />
+		Profil loeschen
+	Naechster Fokus
+	Alina & Jonas
+	list finalisieren als erledigt / 2026-09-10 / 82 Gaeste / 36.000 EUR
+	Location-Shortlist
+	am
+	10. September 2026
+	Tasks erledigt
+	[61]<button />
+		Profil oeffnen
+	[62]<button aria-label=Profil loeschen Alina & Jonas />
+		Profil loeschen
+	Naechster Fokus
+	Alina & Jonas
+	shortlist finalisieren als erledigt / 2026-09-10 / 70 Gaeste / 36.000 EUR
+	Location-Shortlist
+	am
+	10. September 2026
+	Tasks erledigt
+	[63]<button />
+		Profil oeffnen
+	[64]<button aria-label=Profil loeschen Alina & Jonas />
+		Profil loeschen
+	Neues Profil
+	Beratung vorbereiten
+	Paarname, Datum, Region, Budget und Stilrichtungen reichen fuer einen belastbaren Start in den Guided Flow.
+	Ihr koennt bestehende Profile wieder aufnehmen oder ein neues Beratungsprofil anlegen. Danach fuehrt euch der Consultant nur noch durch den jeweils aktuellen Planungsschritt.
+	[49]<button />
+		Profilformular oeffnen
+	[47]<button />
+		Aktuellstes Profil oeffnen

@@ -1411,10 +1411,12 @@ img {
     transform: translateX(-120%);
     transition: transform 180ms ease;
     z-index: 22;
+    pointer-events: none;
   }
 
   .workspace-rail--open {
     transform: translateX(0);
+    pointer-events: auto;
   }
 
   .workspace-main {
@@ -1443,6 +1445,13 @@ img {
 }
 
 @media (max-width: 820px) {
+  /*
+    Mobile layering contract:
+    1) topbar controls stay highest for deterministic menu recovery,
+    2) dock stays tappable when visible,
+    3) rail receives taps only in --open state,
+    4) underlay receives taps only in --visible state as close target.
+  */
   .atelier-shell {
     width: min(100% - 1rem, 1380px);
   }
@@ -1450,6 +1459,16 @@ img {
   .workspace-topbar {
     inset: 0.5rem 0.5rem auto 0.5rem;
     padding: 0.8rem 0.9rem;
+    z-index: 30;
+  }
+
+  .workspace-underlay {
+    z-index: 18;
+    pointer-events: none;
+  }
+
+  .workspace-underlay--visible {
+    pointer-events: auto;
   }
 
   .topbar-links {
@@ -1500,6 +1519,7 @@ img {
     backdrop-filter: blur(20px);
     border-top: 1px solid rgba(255, 255, 255, 0.48);
     z-index: 25;
+    pointer-events: auto;
   }
 
   .mobile-dock__item {

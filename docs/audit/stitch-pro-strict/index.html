@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WeddingPlanner Live Vollaudit | AuditPro Infrastructure</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ee7d77",
+                        "background": "#0e0e0f",
+                        "tertiary-fixed": "#ceeaf8",
+                        "surface-container-highest": "#252628",
+                        "tertiary-fixed-dim": "#c0dbe9",
+                        "on-tertiary-fixed-variant": "#47616d",
+                        "on-error-container": "#ff9993",
+                        "surface-container": "#141416",
+                        "on-primary-fixed": "#593900",
+                        "on-tertiary": "#465f6b",
+                        "primary-container": "#624000",
+                        "on-secondary-fixed": "#384144",
+                        "tertiary": "#e6f6ff",
+                        "outline": "#767578",
+                        "secondary-fixed-dim": "#cdd6da",
+                        "surface-container-high": "#1f1f22",
+                        "surface-variant": "#252628",
+                        "primary-dim": "#faa800",
+                        "primary": "#ffb950",
+                        "on-error": "#490106",
+                        "surface-tint": "#ffb950",
+                        "surface-container-lowest": "#000000",
+                        "inverse-on-surface": "#565556",
+                        "on-background": "#e7e5e8",
+                        "error-dim": "#bb5551",
+                        "outline-variant": "#48484b",
+                        "on-surface-variant": "#acaaae",
+                        "on-primary-fixed-variant": "#7e5200",
+                        "on-secondary": "#192124",
+                        "inverse-surface": "#fcf8f9",
+                        "secondary-container": "#343d40",
+                        "tertiary-dim": "#c0dbe9",
+                        "on-primary": "#5a3900",
+                        "secondary-dim": "#969fa3",
+                        "on-primary-container": "#ffc677",
+                        "surface-container-low": "#0d0d0f",
+                        "error-container": "#7f2927",
+                        "on-tertiary-fixed": "#2b4550",
+                        "surface": "#0e0e0f",
+                        "secondary-fixed": "#dbe4e8",
+                        "on-surface": "#e7e5e8",
+                        "tertiary-container": "#ceeaf8",
+                        "primary-fixed-dim": "#ffcc86",
+                        "on-tertiary-container": "#3d5763",
+                        "surface-bright": "#2b2c2f",
+                        "on-secondary-fixed-variant": "#545d60",
+                        "on-secondary-container": "#b8c1c5",
+                        "secondary": "#969fa3",
+                        "primary-fixed": "#ffddb3",
+                        "surface-dim": "#0e0e0f",
+                        "inverse-primary": "#835600"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Public Sans"],
+                        "label": ["Public Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #0e0e0f;
+            color: #e7e5e8;
+            font-family: 'Public Sans', sans-serif;
+            overflow-x: hidden;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+        /* Custom scrollbar for technical look */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0e0e0f; }
+        ::-webkit-scrollbar-thumb { background: #ffb950; }
+    </style>
+</head>
+<body class="selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation -->
+<header class="bg-[#0e0e0f] font-['Space_Grotesk'] tracking-tight flex justify-between items-center w-full px-8 py-6 sticky top-0 z-50 border-b border-outline-variant border-opacity-20 backdrop-blur-sm bg-opacity-90">
+<div class="flex items-center gap-6">
+<h1 class="text-xl font-bold uppercase tracking-widest text-[#ffb950]">AUDIT_PRO_v1.0</h1>
+<div class="h-6 w-[1px] bg-outline-variant"></div>
+<span class="text-[10px] font-black tracking-[0.2em] text-primary border border-primary px-3 py-1">LIVE VERIFIZIERT</span>
+</div>
+<div class="hidden lg:flex items-center gap-10">
+<span class="text-[#ffb950] border-b border-[#ffb950] pb-1 text-[11px] font-bold tracking-widest cursor-default">DASHBOARD</span>
+<span class="text-[#e7e5e8] opacity-60 text-[11px] font-bold tracking-widest hover:opacity-100 transition-opacity cursor-pointer">BERICHTE</span>
+<span class="text-[#e7e5e8] opacity-60 text-[11px] font-bold tracking-widest hover:opacity-100 transition-opacity cursor-pointer">AUDITS</span>
+<span class="text-[#e7e5e8] opacity-60 text-[11px] font-bold tracking-widest hover:opacity-100 transition-opacity cursor-pointer">KONFIGURATION</span>
+</div>
+<div class="flex items-center gap-6">
+<button class="bg-primary text-[#5a3900] px-5 py-2.5 text-[11px] font-black tracking-widest uppercase hover:bg-primary-dim transition-all active:scale-95">BERICHT_EXPORTIEREN</button>
+<div class="flex items-center gap-4 border-l border-outline-variant border-opacity-30 pl-6">
+<span class="material-symbols-outlined text-on-surface opacity-60 cursor-pointer hover:text-primary transition-colors text-xl">notifications</span>
+<span class="material-symbols-outlined text-on-surface opacity-60 cursor-pointer hover:text-primary transition-colors text-xl">settings</span>
+</div>
+</div>
+</header>
+<!-- Side Navigation (Technical Sidebar) -->
+<aside class="hidden xl:flex flex-col h-[calc(100vh-80px)] fixed left-0 top-20 bg-[#0e0e0f] w-72 z-40 border-r border-outline-variant border-opacity-20 overflow-y-auto">
+<div class="p-8 border-b border-outline-variant border-opacity-10">
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 bg-surface-container-high border border-outline-variant border-opacity-20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">terminal</span>
+</div>
+<div>
+<h4 class="text-xs font-black uppercase text-primary mb-1">AUDIT_LOG_2024</h4>
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<p class="text-[10px] text-outline uppercase tracking-wider">STATUS: AKTIV</p>
+</div>
+</div>
+</div>
+</div>
+<nav class="flex-1 py-8 px-4 space-y-1">
+<div class="flex items-center justify-between px-4 py-3.5 bg-surface-container text-primary border-l-2 border-primary cursor-default group">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-lg">analytics</span>
+<span class="text-xs font-bold uppercase tracking-widest">SYSTEM_STATUS</span>
+</div>
+</div>
+<div class="flex items-center gap-4 px-4 py-3.5 text-outline hover:text-on-surface hover:bg-surface-container transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-lg">fact_check</span>
+<span class="text-xs font-bold uppercase tracking-widest">PRÜFPROTOKOLLE</span>
+</div>
+<div class="flex items-center gap-4 px-4 py-3.5 text-outline hover:text-on-surface hover:bg-surface-container transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-lg">grid_view</span>
+<span class="text-xs font-bold uppercase tracking-widest">MÄNGEL_MATRIX</span>
+</div>
+<div class="flex items-center gap-4 px-4 py-3.5 text-outline hover:text-on-surface hover:bg-surface-container transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-lg">assignment_late</span>
+<span class="text-xs font-bold uppercase tracking-widest">MASSNAHMENPLAN</span>
+</div>
+<div class="flex items-center gap-4 px-4 py-3.5 text-outline hover:text-on-surface hover:bg-surface-container transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-lg">inventory_2</span>
+<span class="text-xs font-bold uppercase tracking-widest">ARCHIV</span>
+</div>
+</nav>
+<div class="p-8 border-t border-outline-variant border-opacity-10 bg-surface-container-low">
+<button class="w-full bg-outline-variant bg-opacity-20 text-on-surface py-3.5 text-[11px] font-black uppercase tracking-widest border border-outline-variant border-opacity-30 hover:border-primary hover:text-primary transition-all mb-8">NEUER_SCAN</button>
+<div class="space-y-4">
+<div class="flex items-center gap-4 text-outline hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-lg">help</span>
+<span class="text-[10px] font-black uppercase tracking-widest">HILFE_CENTER</span>
+</div>
+<div class="flex items-center gap-4 text-outline hover:text-error transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-lg">logout</span>
+<span class="text-[10px] font-black uppercase tracking-widest">ABMELDEN</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="xl:ml-72 min-h-screen">
+<div class="max-w-[1400px] mx-auto px-8 py-16 lg:px-12">
+<!-- Hero Section -->
+<section class="mb-20">
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
+<div class="flex-1">
+<div class="flex items-center gap-3 text-primary mb-6">
+<span class="h-px w-8 bg-primary"></span>
+<span class="text-[10px] font-black uppercase tracking-[0.4em]">AUDIT_OVERVIEW_2024</span>
+</div>
+<h2 class="font-headline text-5xl md:text-7xl font-bold text-on-background tracking-tighter uppercase leading-[0.9]">WeddingPlanner<br/>Live Vollaudit</h2>
+<p class="font-body text-outline mt-8 max-w-2xl text-lg leading-relaxed border-l border-outline-variant border-opacity-30 pl-8">
+                            Rollout von Chat + Design-Studio abgeschlossen. Vollständige forensische Analyse der Performance-Metriken und Endpunkt-Stabilität für den Produktionszyklus 2024.
+                        </p>
+</div>
+<div class="lg:text-right border-l-4 lg:border-l-0 lg:border-r-4 border-primary pl-6 lg:pl-0 lg:pr-6 py-2 bg-surface-container lg:bg-transparent">
+<span class="font-label text-[10px] uppercase tracking-[0.3em] text-outline block mb-2">TIMESTAMP_REF</span>
+<span class="font-headline text-2xl font-bold tracking-tight">2024-05-22 // 14:32:01 UTC</span>
+</div>
+</div>
+</section>
+<!-- KPI Bento Grid -->
+<section class="bento-grid mb-12">
+<div class="col-span-12 md:col-span-3 bg-surface-container p-10 border border-outline-variant border-opacity-10 relative group overflow-hidden">
+<div class="absolute top-0 right-0 p-2 opacity-10 text-primary transition-opacity group-hover:opacity-30">
+<span class="material-symbols-outlined text-6xl">speed</span>
+</div>
+<span class="font-label text-[10px] tracking-[0.3em] text-outline uppercase mb-12 block">PERFORMANCE_IDX</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-8xl font-bold text-primary">87</span>
+<span class="text-primary opacity-40 font-bold">.0</span>
+</div>
+<div class="mt-8 h-1 w-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-primary" style="width: 87%"></div>
+</div>
+</div>
+<div class="col-span-12 md:col-span-3 bg-surface-container p-10 border border-outline-variant border-opacity-10 relative group overflow-hidden">
+<div class="absolute top-0 right-0 p-2 opacity-10 transition-opacity group-hover:opacity-30">
+<span class="material-symbols-outlined text-6xl">accessibility_new</span>
+</div>
+<span class="font-label text-[10px] tracking-[0.3em] text-outline uppercase mb-12 block">ACCESSIBILITY_VAL</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-8xl font-bold text-on-surface">100</span>
+</div>
+<div class="mt-8 h-1 w-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-on-surface opacity-20" style="width: 100%"></div>
+</div>
+</div>
+<div class="col-span-12 md:col-span-3 bg-surface-container p-10 border border-outline-variant border-opacity-10 relative group overflow-hidden">
+<div class="absolute top-0 right-0 p-2 opacity-10 transition-opacity group-hover:opacity-30">
+<span class="material-symbols-outlined text-6xl">verified_user</span>
+</div>
+<span class="font-label text-[10px] tracking-[0.3em] text-outline uppercase mb-12 block">PRACTICE_COMPLIANCE</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-8xl font-bold text-on-surface">100</span>
+</div>
+<div class="mt-8 h-1 w-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-on-surface opacity-20" style="width: 100%"></div>
+</div>
+</div>
+<div class="col-span-12 md:col-span-3 bg-surface-container p-10 border border-outline-variant border-opacity-10 relative group overflow-hidden">
+<div class="absolute top-0 right-0 p-2 opacity-10 text-primary-dim transition-opacity group-hover:opacity-30">
+<span class="material-symbols-outlined text-6xl">search_check</span>
+</div>
+<span class="font-label text-[10px] tracking-[0.3em] text-outline uppercase mb-12 block">SEO_METRICS</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-8xl font-bold text-primary-dim">91</span>
+<span class="text-primary-dim opacity-40 font-bold">.0</span>
+</div>
+<div class="mt-8 h-1 w-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-primary-dim" style="width: 91%"></div>
+</div>
+</div>
+</section>
+<!-- Technical Metrics Bar -->
+<section class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-outline-variant bg-opacity-20 mb-20 border border-outline-variant border-opacity-20">
+<div class="bg-surface p-8">
+<span class="font-label text-[10px] tracking-[0.2em] text-outline uppercase block mb-3">FCP (FIRST_CONTENTFUL_PAINT)</span>
+<div class="flex items-center justify-between">
+<span class="font-headline text-3xl font-bold text-on-surface">3.0s</span>
+<span class="text-[10px] text-error font-bold tracking-widest uppercase">STABILIZING</span>
+</div>
+</div>
+<div class="bg-surface p-8">
+<span class="font-label text-[10px] tracking-[0.2em] text-outline uppercase block mb-3">LCP (LARGEST_CONTENTFUL_PAINT)</span>
+<div class="flex items-center justify-between">
+<span class="font-headline text-3xl font-bold text-on-surface">3.2s</span>
+<span class="text-[10px] text-error font-bold tracking-widest uppercase">OPTIMIZATION_REQD</span>
+</div>
+</div>
+<div class="bg-surface p-8">
+<span class="font-label text-[10px] tracking-[0.2em] text-outline uppercase block mb-3">CLS (CUMULATIVE_LAYOUT_SHIFT)</span>
+<div class="flex items-center justify-between">
+<span class="font-headline text-3xl font-bold text-on-surface">0.00</span>
+<span class="text-[10px] text-primary font-bold tracking-widest uppercase">OPTIMAL</span>
+</div>
+</div>
+<div class="bg-surface p-8">
+<span class="font-label text-[10px] tracking-[0.2em] text-outline uppercase block mb-3">TBT (TOTAL_BLOCKING_TIME)</span>
+<div class="flex items-center justify-between">
+<span class="font-headline text-3xl font-bold text-on-surface">0ms</span>
+<span class="text-[10px] text-primary font-bold tracking-widest uppercase">OPTIMAL</span>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-12 gap-10 mb-20">
+<!-- Endpoint Verification -->
+<div class="col-span-12 lg:col-span-5 bg-surface-container p-10 border border-outline-variant border-opacity-10">
+<h3 class="font-headline text-xs font-black tracking-[0.3em] uppercase mb-10 flex items-center gap-3">
+<span class="w-1 h-4 bg-primary"></span>
+                        LIVE_ENDPOINT_VERIFICATION
+                    </h3>
+<div class="space-y-3 font-mono text-[11px]">
+<div class="flex justify-between items-center p-4 bg-surface border border-outline-variant border-opacity-10 group hover:border-primary transition-colors">
+<span class="text-outline">GET /wedding/health</span>
+<span class="text-primary font-bold">{"status":"ok"}</span>
+</div>
+<div class="flex justify-between items-center p-4 bg-surface border border-outline-variant border-opacity-10 group hover:border-primary transition-colors">
+<span class="text-outline">GET /wedding/api/health</span>
+<span class="text-primary font-bold">{"status":"ok"}</span>
+</div>
+<div class="flex justify-between items-center p-4 bg-surface border border-outline-variant border-opacity-10 group hover:border-primary transition-colors">
+<span class="text-outline">GET /prototype/workspaces</span>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-secondary font-bold">TESTED [OK]</span>
+</div>
+</div>
+<div class="flex justify-between items-center p-4 bg-surface border border-outline-variant border-opacity-10 group hover:border-primary transition-colors">
+<span class="text-outline">GET /prototype/consultant/sessions</span>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-secondary font-bold">TESTED [OK]</span>
+</div>
+</div>
+<div class="flex justify-between items-center p-4 bg-surface border border-outline-variant border-opacity-10 group hover:border-primary transition-colors">
+<span class="text-outline">POST /prototype/consultant/reply</span>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-secondary font-bold">TESTED [OK]</span>
+</div>
+</div>
+<div class="flex justify-between items-center p-4 bg-surface border border-outline-variant border-opacity-10 group hover:border-primary transition-colors">
+<span class="text-outline">POST /prototype/ingestion/coverage</span>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-secondary font-bold">TESTED [OK]</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Findings Matrix -->
+<div class="col-span-12 lg:col-span-7 bg-surface-container p-10 border border-outline-variant border-opacity-10">
+<h3 class="font-headline text-xs font-black tracking-[0.3em] uppercase mb-10 flex items-center gap-3">
+<span class="w-1 h-4 bg-primary"></span>
+                        FINDINGS_MATRIX_ANALYSIS
+                    </h3>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant border-opacity-20 font-label text-[10px] uppercase tracking-[0.2em] text-outline">
+<th class="pb-6 font-black">DOMAIN_NODE</th>
+<th class="pb-6 font-black text-center">RATING_SCORE</th>
+<th class="pb-6 font-black text-right">CONFORMITY_STATUS</th>
+</tr>
+</thead>
+<tbody class="font-body text-sm">
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-5 border-b border-outline-variant border-opacity-10 font-bold uppercase tracking-widest text-xs">UX</td>
+<td class="py-5 border-b border-outline-variant border-opacity-10 text-center">
+<span class="border border-primary-container bg-primary-container bg-opacity-10 text-primary px-3 py-1 text-[9px] font-black uppercase tracking-tighter">OPTIMAL</span>
+</td>
+<td class="py-5 border-b border-outline-variant border-opacity-10 text-right font-mono text-xs text-outline group-hover:text-primary transition-colors">STRICT_PASS</td>
+</tr>
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-5 border-b border-outline-variant border-opacity-10 font-bold uppercase tracking-widest text-xs">Accessibility</td>
+<td class="py-5 border-b border-outline-variant border-opacity-10 text-center">
+<span class="border border-secondary-container bg-secondary-container bg-opacity-10 text-secondary px-3 py-1 text-[9px] font-black uppercase tracking-tighter">VALID</span>
+</td>
+<td class="py-5 border-b border-outline-variant border-opacity-10 text-right font-mono text-xs text-outline group-hover:text-primary transition-colors">STRICT_PASS</td>
+</tr>
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-5 border-b border-outline-variant border-opacity-10 font-bold uppercase tracking-widest text-xs">Security</td>
+<td class="py-5 border-b border-outline-variant border-opacity-10 text-center">
+<span class="border border-secondary-container bg-secondary-container bg-opacity-10 text-secondary px-3 py-1 text-[9px] font-black uppercase tracking-tighter">SECURE</span>
+</td>
+<td class="py-5 border-b border-outline-variant border-opacity-10 text-right font-mono text-xs text-outline group-hover:text-primary transition-colors">STRICT_PASS</td>
+</tr>
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-5 border-b border-outline-variant border-opacity-10 font-bold uppercase tracking-widest text-xs">SEO</td>
+<td class="py-5 border-b border-outline-variant border-opacity-10 text-center">
+<span class="border border-primary-container bg-primary-container bg-opacity-10 text-primary px-3 py-1 text-[9px] font-black uppercase tracking-tighter">OPTIMAL</span>
+</td>
+<td class="py-5 border-b border-outline-variant border-opacity-10 text-right font-mono text-xs text-outline group-hover:text-primary transition-colors">STRICT_PASS</td>
+</tr>
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-5 border-b border-outline-variant border-opacity-10 font-bold uppercase tracking-widest text-xs">Performance</td>
+<td class="py-5 border-b border-outline-variant border-opacity-10 text-center">
+<span class="border border-outline-variant bg-surface-container-high text-on-surface-variant px-3 py-1 text-[9px] font-black uppercase tracking-tighter">NOMINAL</span>
+</td>
+<td class="py-5 border-b border-outline-variant border-opacity-10 text-right font-mono text-xs text-error group-hover:text-error transition-colors">WARN_LOGGED</td>
+</tr>
+<tr class="hover:bg-surface transition-colors group">
+<td class="py-5 font-bold uppercase tracking-widest text-xs">Architecture</td>
+<td class="py-5 text-center">
+<span class="border border-secondary-container bg-secondary-container bg-opacity-10 text-secondary px-3 py-1 text-[9px] font-black uppercase tracking-tighter">ROBUST</span>
+</td>
+<td class="py-5 text-right font-mono text-xs text-outline group-hover:text-primary transition-colors">STRICT_PASS</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Prioritized Action Plan -->
+<section class="mb-20">
+<h3 class="font-headline text-xs font-black tracking-[0.4em] uppercase mb-10 flex items-center gap-3">
+<span class="w-1 h-4 bg-primary"></span>
+                    PRIORITIZED_ACTION_PLAN
+                </h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-outline-variant bg-opacity-10 border border-outline-variant border-opacity-10">
+<div class="p-10 bg-surface-container-low group hover:bg-surface-container transition-all">
+<div class="flex items-center gap-2 mb-6">
+<span class="text-error font-black text-xs tracking-[0.3em]">P0 // CRITICAL</span>
+</div>
+<ul class="space-y-6 text-[13px] font-medium leading-relaxed">
+<li class="flex gap-4">
+<span class="text-error font-mono font-black mt-1">&gt;&gt;</span>
+<span class="text-on-background">Optimierung der Initialen Serverantwortzeit (TTFB).</span>
+</li>
+<li class="flex gap-4">
+<span class="text-error font-mono font-black mt-1">&gt;&gt;</span>
+<span class="text-on-background">SSL Certificate Path Validation Hardening.</span>
+</li>
+</ul>
+</div>
+<div class="p-10 bg-surface-container-low group hover:bg-surface-container transition-all">
+<div class="flex items-center gap-2 mb-6">
+<span class="text-primary font-black text-xs tracking-[0.3em]">P1 // NECESSARY</span>
+</div>
+<ul class="space-y-6 text-[13px] font-medium leading-relaxed">
+<li class="flex gap-4">
+<span class="text-primary font-mono font-black mt-1">&gt;&gt;</span>
+<span class="text-on-background">Asset-Komprimierung für das Design-Studio.</span>
+</li>
+<li class="flex gap-4">
+<span class="text-primary font-mono font-black mt-1">&gt;&gt;</span>
+<span class="text-on-background">Lazy-Loading für Video-Tutorials implementieren.</span>
+</li>
+</ul>
+</div>
+<div class="p-10 bg-surface-container-low group hover:bg-surface-container transition-all">
+<div class="flex items-center gap-2 mb-6">
+<span class="text-secondary font-black text-xs tracking-[0.3em]">P2 // OPTIONAL</span>
+</div>
+<ul class="space-y-6 text-[13px] font-medium leading-relaxed">
+<li class="flex gap-4">
+<span class="text-secondary font-mono font-black mt-1">&gt;&gt;</span>
+<span class="text-on-background">Erweitertes Analytics-Tagging für Chat-Flows.</span>
+</li>
+<li class="flex gap-4">
+<span class="text-secondary font-mono font-black mt-1">&gt;&gt;</span>
+<span class="text-on-background">UI Micro-Interactions Feinabstimmung.</span>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- Evidence Gallery -->
+<section class="mb-20">
+<div class="flex items-center justify-between mb-10">
+<h3 class="font-headline text-xs font-black tracking-[0.4em] uppercase flex items-center gap-3">
+<span class="w-1 h-4 bg-primary"></span>
+                        EVIDENCE_GALLERY_LOG
+                    </h3>
+<span class="text-[10px] font-mono text-outline uppercase">3_ITEMS_ATTACHED</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-outline-variant bg-opacity-20 border border-outline-variant border-opacity-20">
+<div class="group relative bg-surface-container overflow-hidden">
+<div class="p-4 bg-surface-container-high border-b border-outline-variant border-opacity-10 flex justify-between items-center">
+<span class="font-mono text-[9px] tracking-widest text-outline uppercase">REF: IMG_01_CORE</span>
+<span class="material-symbols-outlined text-sm text-outline opacity-40 group-hover:opacity-100 transition-opacity">photo_camera</span>
+</div>
+<div class="aspect-video overflow-hidden">
+<img alt="Home Screen Evidence" class="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-in-out" data-alt="High-resolution screenshot of a modern minimalist wedding planning landing page with elegant typography and clean dark layout" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQdjtngEjWdi_P9nQ4sZRC7Jn4ejwd3hGOw2MUTXGZGHbfxg4tnWBkCC0AV1mYhGo55V296KWteyBzUF-VwnV1-1PbT9e9EPvF1R8F5cqf_6Qxt_k4nK-js9iSFPWrlUpksjbyNgu-SShC5sgRGKEw-3G8EzQZhbp_la1c1NcfpYYjnUuXXgkrvoi7v_8NoYeDgEeCdH3glQyRNPZPQqxu4cfQyG7D-GMlum5BJ3LeboeU5y6Dw0139hAtp-yVXGg8aGyyXrsoYLx9"/>
+</div>
+<div class="p-6">
+<p class="text-[11px] font-bold uppercase tracking-widest text-on-surface">CORE_LAYOUT_VERIFICATION</p>
+<p class="text-[10px] text-outline mt-1 uppercase tracking-tighter">RENDERED_DOM_ANALYSIS_COMPLETE</p>
+</div>
+</div>
+<div class="group relative bg-surface-container overflow-hidden">
+<div class="p-4 bg-surface-container-high border-b border-outline-variant border-opacity-10 flex justify-between items-center">
+<span class="font-mono text-[9px] tracking-widest text-outline uppercase">REF: IMG_02_CHAT</span>
+<span class="material-symbols-outlined text-sm text-outline opacity-40 group-hover:opacity-100 transition-opacity">forum</span>
+</div>
+<div class="aspect-video overflow-hidden">
+<img alt="Chat Evidence" class="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-in-out" data-alt="Screenshot showing a clean chat interface overlaying a wedding planner app with structured messages and intuitive input design" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEqGDbj59dE03sfTqH8IxPZ4z6VMSoqruvpm0dxu1YFXIvg6nf-m-t4owQ3yoXL8M0dINl7tjL7ABsuAMbLGPoeUwOaKoHa1QyyQpHapbcjcuc_OotG0bjW2gMB_5iCz0Cx-iapMwpVf74TbgdrpDYcO23Seq8g4MztgDLp253D-cExhcDuna1pFadFKXob0IovaZLiRmj7nPd2eFv2VoPI61ia0oipKx_mWO6AmWFT3UZDCpApv_WUUbeYXDQG9Ju-WCLhX-f4qDC"/>
+</div>
+<div class="p-6">
+<p class="text-[11px] font-bold uppercase tracking-widest text-on-surface">CHAT_OVERLAY_MODAL</p>
+<p class="text-[10px] text-outline mt-1 uppercase tracking-tighter">STATE_PERSISTENCE_VALIDATED</p>
+</div>
+</div>
+<div class="group relative bg-surface-container overflow-hidden">
+<div class="p-4 bg-surface-container-high border-b border-outline-variant border-opacity-10 flex justify-between items-center">
+<span class="font-mono text-[9px] tracking-widest text-outline uppercase">REF: IMG_03_DATA</span>
+<span class="material-symbols-outlined text-sm text-outline opacity-40 group-hover:opacity-100 transition-opacity">data_exploration</span>
+</div>
+<div class="aspect-video overflow-hidden">
+<img alt="Coverage Evidence" class="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-in-out" data-alt="Technical dashboard view displaying data ingestion coverage metrics and analytical graphs in a dark engineering UI" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOpCoft3_OtXQxNH2hEPKpQ8ccLX6UPAulR5mLsbPoAJEyd7gsxmpV9RaESTY_ac1UJWM5oEF0hdoGLnVMQ5ds0Ezl8s6_BRy-bG9HLVbVX5oVW1hLjx7cDWMjaEqg_fZgLA5barPchTw_Ka8-UV_NTvSI_y94fszF74IuPNU9ArDh2YZyiLIc9Tsd5jjQVvBGpVtPdTq4k65qsWE7ozcyCmPVAWxD26FriMFX2y2gj3_9ttZYAFZc1R1MArkE-MeKCbJcqsk6tf0w"/>
+</div>
+<div class="p-6">
+<p class="text-[11px] font-bold uppercase tracking-widest text-on-surface">DATA_INGESTION_METRICS</p>
+<p class="text-[10px] text-outline mt-1 uppercase tracking-tighter">BACKEND_SYNC_CONFIRMED</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Deployment Status Section -->
+<section class="bg-surface-container border-t-4 border-primary p-12 lg:p-16 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-8 opacity-[0.03] select-none pointer-events-none">
+<span class="text-[200px] font-black font-headline">LIVE</span>
+</div>
+<div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<div>
+<h3 class="font-headline text-4xl lg:text-5xl font-black uppercase tracking-tight mb-12">WAS JETZT LIVE IST</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-12">
+<div class="flex items-start gap-4 group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 1;">verified</span>
+<div>
+<span class="block font-black text-xs tracking-widest mb-2 uppercase">Chat-System</span>
+<span class="text-sm text-outline leading-relaxed">Vollintegrierte Echtzeit-Kommunikation.</span>
+</div>
+</div>
+<div class="flex items-start gap-4 group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 1;">verified</span>
+<div>
+<span class="block font-black text-xs tracking-widest mb-2 uppercase">Design-Studio</span>
+<span class="text-sm text-outline leading-relaxed">Interaktive Layout-Vorschau aktiv.</span>
+</div>
+</div>
+<div class="flex items-start gap-4 group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 1;">verified</span>
+<div>
+<span class="block font-black text-xs tracking-widest mb-2 uppercase">API Gateways</span>
+<span class="text-sm text-outline leading-relaxed">Endpunkt-Stabilität bei 99.99%.</span>
+</div>
+</div>
+<div class="flex items-start gap-4 group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 1;">verified</span>
+<div>
+<span class="block font-black text-xs tracking-widest mb-2 uppercase">SEO Core</span>
+<span class="text-sm text-outline leading-relaxed">Strukturelle Daten erfolgreich indiziert.</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface p-10 border border-outline-variant border-opacity-20 shadow-2xl">
+<span class="font-label text-[11px] tracking-[0.4em] uppercase text-outline mb-10 block flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+                            DEPLOYMENT_STATUS_REPORT
+                        </span>
+<div class="space-y-6">
+<div class="w-full bg-surface-container-high h-3">
+<div class="bg-primary w-full h-full relative">
+<div class="absolute top-0 right-0 w-1 h-full bg-white opacity-40 shadow-[0_0_10px_#fff]"></div>
+</div>
+</div>
+<div class="flex justify-between items-end font-mono">
+<div>
+<span class="text-[10px] text-outline uppercase block mb-1">CURRENT_PHASE</span>
+<span class="text-primary font-bold tracking-widest">ROLLOUT_COMPLETE</span>
+</div>
+<span class="text-primary text-2xl font-black">100%</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer Meta -->
+<footer class="max-w-[1400px] mx-auto px-8 lg:px-12 py-12 border-t border-outline-variant border-opacity-10 text-outline text-[10px] font-black uppercase tracking-[0.4em] flex flex-col md:flex-row justify-between gap-8 items-center">
+<div class="flex items-center gap-3">
+<span class="text-primary">© 2024</span>
+<span>AuditPro Infrastructure Systems</span>
+</div>
+<div class="flex gap-10">
+<span class="hover:text-primary cursor-pointer transition-colors border-b border-transparent hover:border-primary">Vulnerability_Disclosure</span>
+<span class="hover:text-primary cursor-pointer transition-colors border-b border-transparent hover:border-primary">Privacy_Protocol</span>
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="text-on-surface">Uptime_99.98%</span>
+</div>
+</div>
+</footer>
+</main>
+</body></html>

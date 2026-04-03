@@ -1,0 +1,80 @@
+{
+  "entries": [
+    {
+      "id": 1,
+      "tool": "browser_navigate",
+      "status": "success",
+      "durationMs": 1441,
+      "beforeUrl": "about:blank",
+      "afterUrl": "https://h-town.duckdns.org/wedding/",
+      "line": "#1 | browser_navigate | success | 1441ms | url=\"https://h-town.duckdns.org/wedding/\" | URL changed to https://h-town.duckdns.org/wedding/; title changed to Wedding Copilot Alpha; landmarks 0→5; buttons 0→72"
+    },
+    {
+      "id": 2,
+      "tool": "browser_analyze_form",
+      "status": "success",
+      "durationMs": 6,
+      "beforeUrl": "https://h-town.duckdns.org/wedding/",
+      "afterUrl": "https://h-town.duckdns.org/wedding/",
+      "line": "#2 | browser_analyze_form | success | 6ms"
+    },
+    {
+      "id": 3,
+      "tool": "browser_type",
+      "status": "success",
+      "durationMs": 148,
+      "beforeUrl": "https://h-town.duckdns.org/wedding/",
+      "afterUrl": "https://h-town.duckdns.org/wedding/",
+      "line": "#3 | browser_type | success | 148ms | selector=\"textarea.consultant-input\", submit=true, text=\"Wir sind unsicher wegen Location Budget und wollten alle ...\" | PASS (value_contains_expected) | focus changed"
+    },
+    {
+      "id": 4,
+      "tool": "browser_navigate",
+      "status": "success",
+      "durationMs": 1067,
+      "beforeUrl": "https://h-town.duckdns.org/wedding/",
+      "afterUrl": "https://h-town.duckdns.org/wedding/",
+      "line": "#4 | browser_navigate | success | 1067ms | url=\"https://h-town.duckdns.org/wedding/\" | No meaningful browser-state change detected"
+    },
+    {
+      "id": 5,
+      "tool": "browser_find_best",
+      "status": "success",
+      "durationMs": 6,
+      "beforeUrl": "https://h-town.duckdns.org/wedding/",
+      "afterUrl": "https://h-town.duckdns.org/wedding/",
+      "line": "#5 | browser_find_best | success | 6ms | intent=\"back_navigation\""
+    },
+    {
+      "id": 6,
+      "tool": "browser_click",
+      "status": "success",
+      "durationMs": 302,
+      "beforeUrl": "https://h-town.duckdns.org/wedding/",
+      "afterUrl": "https://h-town.duckdns.org/wedding/",
+      "line": "#6 | browser_click | success | 302ms | selector=\"button.primary-button\" | SOFT-FAIL (no observable state change) | focus changed; landmarks 5→6; inputs 0→16"
+    },
+    {
+      "id": 7,
+      "tool": "browser_analyze_form",
+      "status": "success",
+      "durationMs": 7,
+      "beforeUrl": "https://h-town.duckdns.org/wedding/",
+      "afterUrl": "https://h-town.duckdns.org/wedding/",
+      "line": "#7 | browser_analyze_form | success | 7ms"
+    },
+    {
+      "id": 8,
+      "tool": "browser_fill_form",
+      "status": "error",
+      "durationMs": 2300,
+      "beforeUrl": "https://h-town.duckdns.org/wedding/",
+      "afterUrl": "https://h-town.duckdns.org/wedding/",
+      "line": "#8 | browser_fill_form | error | 2300ms | selector=\"form\", submit=true, values={...} | validationSummary.invalidFields is not iterable"
+    }
+  ],
+  "retained": 8,
+  "totalRecorded": 8,
+  "bounded": false,
+  "summary": "Timeline: 8 browser actions recorded."
+}

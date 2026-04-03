@@ -1,0 +1,113 @@
+- banner:
+  - button "Linden & Lace Wedding Co-Pilot":
+    - text: Linden & Lace
+    - strong: Wedding Co-Pilot
+  - navigation "Schnellnavigation":
+    - button "Inspiration"
+    - button "Concierge"
+    - button "Plan Your Day"
+  - text: 80331 München / 10. Oktober 2027
+  - strong: Audit Realpaar
+  - text: 0 Zusagen live im Blick
+  - button "Fristen"
+  - button "Profilbibliothek"
+- complementary:
+  - paragraph: Aktives Profil
+  - strong: Audit Realpaar
+  - text: 80331 München / 10. Oktober 2027 42.000 EUR
+  - article:
+    - paragraph: Heute wichtig
+    - strong: Location-Shortlist
+    - paragraph: Die Location ist der groesste Hebel fuer Stil, Kapazitaet, Ablauf und Folgekosten.
+    - button "Zum aktiven Schritt"
+  - navigation "Hauptnavigation":
+    - button "Dashboard Start":
+      - strong: Dashboard
+      - text: Start
+    - button "Timeline Plan":
+      - strong: Timeline
+      - text: Plan
+    - button "Vendors Vendoren":
+      - strong: Vendors
+      - text: Vendoren
+    - button "Budget Budget":
+      - strong: Budget
+      - text: Budget
+    - button "Gaeste Gaeste":
+      - strong: Gaeste
+      - text: Gaeste
+    - button "Admin Admin":
+      - strong: Admin
+      - text: Admin
+  - button "Vendoren priorisieren"
+- main:
+  - button "Profilfundament Erledigt"
+  - button "Location-Shortlist Jetzt dran"
+  - button "Kern-Vendoren Spaeter"
+  - button "Gaesteliste & RSVP Spaeter"
+  - button "Standesamt & Admin Spaeter"
+  - button "Control Room Spaeter"
+  - paragraph: Aktives Beratungsprofil
+  - heading "Audit Realpaar" [level=1]
+  - paragraph: 80331 München / 10. Oktober 2027 / 95 Gaeste / 42.000 EUR
+  - paragraph: Euer naechster Hebel ist jetzt die Location in 80331 München.
+  - button "Location-Shortlist oeffnen"
+  - button "Concierge oeffnen"
+  - img "Editorial wedding atmosphere"
+  - paragraph: Aktueller Schritt
+  - strong: Location-Shortlist
+  - text: Die Location ist der groesste Hebel fuer Stil, Kapazitaet, Ablauf und Folgekosten.
+  - article:
+    - paragraph: Budget verbucht
+    - strong: 0 EUR
+    - text: 0 % des gesetzten Rahmens
+  - article:
+    - paragraph: Gaeste beantwortet
+    - strong: 0 %
+    - text: 0 Zusagen / 0 offen
+  - article:
+    - paragraph: Vendoren in Bewegung
+    - strong: "0"
+    - text: kontaktiert, quoted oder gebucht
+  - article:
+    - paragraph: Tasks erledigt
+    - strong: 0/5
+    - text: 0 % Fortschritt
+  - paragraph: Naechste Meilensteine
+  - heading "Die drei Dinge, die gerade wirklich zaehlen" [level=2]
+  - article:
+    - img "Location shortlist"
+    - paragraph: Fokus
+    - strong: Location shortlist
+    - paragraph: Venue, Stil und Preisbild in einem ruhigen Vergleich zusammenziehen.
+    - button "Venue-Desk oeffnen"
+  - article:
+    - img "Standesamt & Fristen"
+    - paragraph: Fokus
+    - strong: Standesamt & Fristen
+    - paragraph: Fuer Deutschland sollten Ausweise, Geburtsregister und moegliche Sonderunterlagen frueh geklaert sein.
+    - button "Admin-Fokus oeffnen"
+  - article:
+    - img "Foto & Stil"
+    - paragraph: Fokus
+    - strong: Foto & Stil
+    - paragraph: Stilpraeferenzen, Portfolio-Links und Fit-Scores bleiben direkt an den Vendoren.
+    - button "Fotografie filtern"
+  - paragraph: Budget-Orientierung
+  - heading "Verbrauch gegen Zielbudget" [level=2]
+  - text: 0 % verplant
+  - strong: 42.000 EUR
+  - paragraph: Gesetztes Gesamtbudget
+  - button "Budget-Desk oeffnen"
+  - paragraph: Rechtliches & Kontrolle
+  - heading "Fristen, die nicht untergehen duerfen" [level=2]
+  - button "Admin oeffnen"
+  - article:
+    - text: 2027-02-10
+    - strong: Standesamt-Unterlagen vorpruefen
+    - paragraph: Fuer Deutschland sollten Ausweise, Geburtsregister und moegliche Sonderunterlagen frueh geklaert sein.
+  - article:
+    - text: 2027-04-10
+    - strong: Eheschliessung beim Standesamt anmelden
+    - paragraph: Die Anmeldung ist in Deutschland typischerweise fruehestens sechs Monate vor dem Termin moeglich.
+  - button "Ask Co-Pilot fuer Fristen"

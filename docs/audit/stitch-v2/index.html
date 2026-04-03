@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WeddingPlanner Live Vollaudit | Sovereign Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#86948a",
+                        "primary-container": "#10b981",
+                        "on-tertiary": "#650911",
+                        "surface-variant": "#353436",
+                        "tertiary-fixed": "#ffdad7",
+                        "secondary-fixed": "#d8e2ff",
+                        "primary-fixed-dim": "#4edea3",
+                        "tertiary-container": "#fc7c78",
+                        "on-tertiary-container": "#711419",
+                        "on-primary-fixed": "#002113",
+                        "on-secondary-fixed": "#001a42",
+                        "on-tertiary-fixed-variant": "#842225",
+                        "on-tertiary-fixed": "#410005",
+                        "secondary-container": "#0566d9",
+                        "on-primary-fixed-variant": "#005236",
+                        "on-surface": "#e5e2e3",
+                        "inverse-primary": "#006c49",
+                        "background": "#131314",
+                        "surface-container-lowest": "#0e0e0f",
+                        "primary": "#4edea3",
+                        "surface-bright": "#3a393a",
+                        "error-container": "#93000a",
+                        "on-error": "#690005",
+                        "surface": "#131314",
+                        "on-secondary-container": "#e6ecff",
+                        "on-secondary-fixed-variant": "#004395",
+                        "surface-tint": "#4edea3",
+                        "surface-container": "#201f20",
+                        "inverse-on-surface": "#313031",
+                        "tertiary-fixed-dim": "#ffb3af",
+                        "on-primary-container": "#00422b",
+                        "inverse-surface": "#e5e2e3",
+                        "surface-dim": "#131314",
+                        "surface-container-low": "#1c1b1c",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "error": "#ffb4ab",
+                        "on-background": "#e5e2e3",
+                        "on-secondary": "#002e6a",
+                        "secondary": "#adc6ff",
+                        "surface-container-highest": "#353436",
+                        "outline-variant": "#3c4a42",
+                        "tertiary": "#ffb3af",
+                        "primary-fixed": "#6ffbbe",
+                        "on-primary": "#003824",
+                        "on-surface-variant": "#bbcabf",
+                        "surface-container-high": "#2a2a2b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .glass-card {
+            background: rgba(32, 31, 32, 0.6);
+            backdrop-filter: blur(20px);
+        }
+        .glow-pulse {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="bg-[#131314] flex justify-between items-center w-full px-6 py-4 max-w-full fixed top-0 z-50 transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#4edea3] text-2xl" data-icon="shield_with_heart">shield_with_heart</span>
+<h1 class="text-xl font-black text-[#e5e2e3] tracking-tighter uppercase font-headline">Vollaudit &gt; WeddingPlanner</h1>
+</div>
+<div class="hidden md:flex gap-8 items-center">
+<nav class="flex gap-6">
+<a class="text-[#4edea3] font-bold font-label text-xs uppercase tracking-widest transition-all" href="#">Overview</a>
+<a class="text-[#bbcabf] font-label text-xs uppercase tracking-widest hover:text-[#4edea3] transition-all" href="#">Vitals</a>
+<a class="text-[#bbcabf] font-label text-xs uppercase tracking-widest hover:text-[#4edea3] transition-all" href="#">Ledger</a>
+<a class="text-[#bbcabf] font-label text-xs uppercase tracking-widest hover:text-[#4edea3] transition-all" href="#">Settings</a>
+</nav>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center border border-outline-variant/20 overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2KgNYlGRoPXW8MsOt-7fNsLXBc7YJTwlZMhAx2D9oXiP0YIkxGe9FkxB0eDx5pgfp4MX5gmSQoSrAYoay-QyJRD43J1nw9coztVnvd2RPutROdYGVPRe2Wmd1p9PXOum4T7iX-D7auSAOgYEGQEhVvozCLwjRhuPX3MWUGcJ4Xx1yPYQxwfKtxUBBPCn2JuKCVfXoU9HdHCrvbv_Vs76hpVemSrTq847pAqO_-epS8f8c6iMEOmYNdgafayFGTdNWZyay60EeeIg"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 md:px-12 max-w-7xl mx-auto space-y-12">
+<!-- Hero Section -->
+<section class="relative py-12 flex flex-col items-center text-center space-y-6">
+<div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent -z-10 pointer-events-none"></div>
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-container/10 border border-primary-container/20 glow-pulse">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="text-primary font-label text-xs font-bold tracking-widest uppercase">LIVE VERIFIZIERT</span>
+</div>
+<h2 class="text-4xl md:text-6xl font-black tracking-tight font-headline text-on-surface leading-tight">
+                WeddingPlanner Live Vollaudit<br/>
+<span class="text-on-surface-variant font-medium">(Chat + Design Studio)</span>
+</h2>
+<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-lg px-4 py-2 font-label text-on-surface-variant text-sm flex items-center gap-3">
+<span class="text-primary/60">HASH:</span>
+<span class="text-on-surface font-mono tracking-wider">0x7a8c9e...f2414f2</span>
+<span class="material-symbols-outlined text-xs cursor-pointer hover:text-primary transition-colors" data-icon="content_copy">content_copy</span>
+</div>
+</section>
+<!-- KPI Bento Grid -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="glass-card p-6 rounded-xl border border-outline-variant/5 space-y-4">
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-on-surface-variant uppercase tracking-tighter">Performance</span>
+<span class="material-symbols-outlined text-primary" data-icon="speed">speed</span>
+</div>
+<div class="text-5xl font-black font-headline text-on-surface">87</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[87%]"></div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl border border-outline-variant/5 space-y-4">
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-on-surface-variant uppercase tracking-tighter">Accessibility</span>
+<span class="material-symbols-outlined text-primary" data-icon="visibility">visibility</span>
+</div>
+<div class="text-5xl font-black font-headline text-primary">100</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-full"></div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl border border-outline-variant/5 space-y-4">
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-on-surface-variant uppercase tracking-tighter">Best Practices</span>
+<span class="material-symbols-outlined text-primary" data-icon="verified_user">verified_user</span>
+</div>
+<div class="text-5xl font-black font-headline text-primary">100</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-full"></div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl border border-outline-variant/5 space-y-4">
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-on-surface-variant uppercase tracking-tighter">SEO</span>
+<span class="material-symbols-outlined text-primary" data-icon="search">search</span>
+</div>
+<div class="text-5xl font-black font-headline text-on-surface">91</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[91%]"></div>
+</div>
+</div>
+</section>
+<!-- Core Web Vitals Strip -->
+<section class="bg-surface-container-low rounded-xl p-8 border border-outline-variant/10">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+<div class="space-y-1">
+<div class="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">First Contentful Paint</div>
+<div class="text-2xl font-bold text-on-surface font-headline">3.0s</div>
+<div class="text-[10px] text-primary/80 font-label">OPTIMAL</div>
+</div>
+<div class="space-y-1">
+<div class="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">Largest Contentful Paint</div>
+<div class="text-2xl font-bold text-on-surface font-headline">3.2s</div>
+<div class="text-[10px] text-primary/80 font-label">OPTIMAL</div>
+</div>
+<div class="space-y-1">
+<div class="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">Cum. Layout Shift</div>
+<div class="text-2xl font-bold text-on-surface font-headline">0</div>
+<div class="text-[10px] text-primary/80 font-label">STABLE</div>
+</div>
+<div class="space-y-1">
+<div class="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">Total Blocking Time</div>
+<div class="text-2xl font-bold text-on-surface font-headline">0ms</div>
+<div class="text-[10px] text-primary/80 font-label">INSTANT</div>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+<!-- Left Column: Health & Security -->
+<div class="lg:col-span-2 space-y-12">
+<!-- Live Verification Section -->
+<section class="space-y-6">
+<h3 class="text-2xl font-bold tracking-tight text-on-surface">Live-Verifikation</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="bg-surface-container rounded-xl p-6 border border-outline-variant/10 flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="monitor_heart">monitor_heart</span>
+</div>
+<div>
+<div class="font-bold text-on-surface">Web Health</div>
+<div class="text-sm text-on-surface-variant font-label">System-Status: Aktiv</div>
+</div>
+<span class="ml-auto material-symbols-outlined text-primary" data-icon="check_circle" data-weight="fill">check_circle</span>
+</div>
+<div class="bg-surface-container rounded-xl p-6 border border-outline-variant/10 flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="api">api</span>
+</div>
+<div>
+<div class="font-bold text-on-surface">API Health</div>
+<div class="text-sm text-on-surface-variant font-label">Endpunkte Erreichbar</div>
+</div>
+<span class="ml-auto material-symbols-outlined text-primary" data-icon="check_circle" data-weight="fill">check_circle</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-lg border-l-2 border-primary">
+<p class="text-sm font-label text-on-surface">
+<span class="text-primary">INFO:</span> Consultant Endpunkte und Ingestion Coverage erfolgreich getestet. Alle Datenströme stabil.
+                        </p>
+</div>
+</section>
+<!-- Action Plan -->
+<section class="space-y-6">
+<h3 class="text-2xl font-bold tracking-tight text-on-surface">Prioritized Action Plan</h3>
+<div class="space-y-4">
+<div class="group bg-surface-container hover:bg-surface-container-high transition-all p-6 rounded-xl border border-outline-variant/5 flex items-start gap-6">
+<div class="bg-error-container/20 text-error px-3 py-1 rounded font-label font-bold text-xs">P0</div>
+<div class="space-y-1">
+<h4 class="font-bold text-on-surface">Chat Robustness</h4>
+<p class="text-sm text-on-surface-variant">Vollständiger Stabilitäts-Check der WebSocket-Verbindung unter Last erforderlich.</p>
+</div>
+<span class="ml-auto material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="arrow_forward">arrow_forward</span>
+</div>
+<div class="group bg-surface-container hover:bg-surface-container-high transition-all p-6 rounded-xl border border-outline-variant/5 flex items-start gap-6">
+<div class="bg-tertiary-container/20 text-tertiary px-3 py-1 rounded font-label font-bold text-xs">P1</div>
+<div class="space-y-1">
+<h4 class="font-bold text-on-surface">SEO Snippet &amp; Header Parity</h4>
+<p class="text-sm text-on-surface-variant">Sync von API (HSTS/CSP) zu Home Header notwendig. Snippet Optimierung für Rich-Results.</p>
+</div>
+<span class="ml-auto material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="arrow_forward">arrow_forward</span>
+</div>
+<div class="group bg-surface-container hover:bg-surface-container-high transition-all p-6 rounded-xl border border-outline-variant/5 flex items-start gap-6">
+<div class="bg-secondary-container/20 text-secondary px-3 py-1 rounded font-label font-bold text-xs">P2</div>
+<div class="space-y-1">
+<h4 class="font-bold text-on-surface">CLS Guardrails</h4>
+<p class="text-sm text-on-surface-variant">Implementierung von Layout-Constraints zur Absicherung des CLS: 0 Scores.</p>
+</div>
+<span class="ml-auto material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</section>
+<!-- Security Snapshot -->
+<section class="space-y-6">
+<h3 class="text-2xl font-bold tracking-tight text-on-surface">Security Header Snapshot</h3>
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 overflow-hidden">
+<div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-outline-variant/10">
+<div class="p-6 space-y-4">
+<div class="flex justify-between items-center">
+<span class="font-label text-xs uppercase tracking-widest text-primary">API Headers (Robust)</span>
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+</div>
+<div class="bg-background/50 p-4 rounded font-mono text-xs text-secondary-fixed leading-relaxed">
+                                    content-security-policy: default-src 'self';...<br/>
+                                    strict-transport-security: max-age=31536000<br/>
+                                    x-frame-options: DENY
+                                </div>
+</div>
+<div class="p-6 space-y-4">
+<div class="flex justify-between items-center">
+<span class="font-label text-xs uppercase tracking-widest text-tertiary">Home Headers (Minimal)</span>
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+</div>
+<div class="bg-background/50 p-4 rounded font-mono text-xs text-on-surface-variant leading-relaxed">
+                                    x-powered-by: Next.js<br/>
+                                    cache-control: public, max-age=0<br/>
+                                    content-type: text/html
+                                </div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Skills & Features -->
+<div class="space-y-12">
+<!-- Audit Pässe -->
+<section class="space-y-6">
+<h3 class="text-2xl font-bold tracking-tight text-on-surface">Audit-Pässe</h3>
+<div class="flex flex-wrap gap-2">
+<span class="bg-surface-container-high px-3 py-1.5 rounded-md font-label text-[10px] text-on-surface border border-outline-variant/20">audit-website</span>
+<span class="bg-primary/10 px-3 py-1.5 rounded-md font-label text-[10px] text-primary border border-primary/20">performance</span>
+<span class="bg-primary/10 px-3 py-1.5 rounded-md font-label text-[10px] text-primary border border-primary/20">seo</span>
+<span class="bg-primary/10 px-3 py-1.5 rounded-md font-label text-[10px] text-primary border border-primary/20">accessibility</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-md font-label text-[10px] text-on-surface border border-outline-variant/20">webapp-testing</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-md font-label text-[10px] text-on-surface border border-outline-variant/20">security-review</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-md font-label text-[10px] text-on-surface border border-outline-variant/20">code-review-excellence</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-md font-label text-[10px] text-on-surface border border-outline-variant/20">architecture-patterns</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-md font-label text-[10px] text-on-surface border border-outline-variant/20">ui-ux-pro-max</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-md font-label text-[10px] text-on-surface border border-outline-variant/20">web-design-guidelines</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-md font-label text-[10px] text-on-surface border border-outline-variant/20">browser-use</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-md font-label text-[10px] text-on-surface border border-outline-variant/20">stitch-design</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-md font-label text-[10px] text-on-surface border border-outline-variant/20">stitch-loop</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-md font-label text-[10px] text-on-surface border border-outline-variant/20">design-md</span>
+</div>
+</section>
+<!-- Now Live -->
+<section class="space-y-6">
+<h3 class="text-2xl font-bold tracking-tight text-on-surface">Was jetzt Live ist</h3>
+<div class="space-y-4">
+<div class="bg-gradient-to-br from-surface-container to-surface-container-high p-6 rounded-xl border border-primary/20 relative overflow-hidden">
+<div class="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl"></div>
+<div class="flex items-center gap-4 mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="terminal">terminal</span>
+<span class="font-label text-xs uppercase tracking-widest text-primary font-bold">Merged Branches</span>
+</div>
+<ul class="space-y-3">
+<li class="flex items-center gap-3 text-sm font-medium text-on-surface">
+<span class="material-symbols-outlined text-xs text-primary" data-icon="merge">merge</span>
+                                    feat/chat-engine
+                                </li>
+<li class="flex items-center gap-3 text-sm font-medium text-on-surface">
+<span class="material-symbols-outlined text-xs text-primary" data-icon="merge">merge</span>
+                                    feat/design-studio-v2
+                                </li>
+<li class="flex items-center gap-3 text-sm font-medium text-on-surface">
+<span class="material-symbols-outlined text-xs text-primary" data-icon="merge">merge</span>
+                                    fix/ingestion-buffer
+                                </li>
+</ul>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- Evidence Gallery -->
+<section class="space-y-8 pt-12">
+<h3 class="text-2xl font-bold tracking-tight text-on-surface">Evidence Gallery</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="space-y-3 group">
+<div class="aspect-video rounded-xl overflow-hidden border border-outline-variant/10 bg-surface-container-lowest">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Screenshot of the Wedding Audit Pro home page showing a clean, modern interface with obsidian dark mode and emerald green accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCmGHwEIngCqr6LGxxhmvrj8sQsmePuOw-hVli48sbDC7OJT-_lGGLFb77227brSyyvdyYZwmLywqR3rmBGsxvFpucwbznqdP-B4nwGd6Ey9M8xD47ODwp8tf39R0uDe1wJhDu1YhoIXD_rx8bRIYFExxpYliWWXxHO17vPAyiU6_7YDC3BezCUs5k0SFtsVwHYLtNOgftp_d-PWxyeLdl_aGLkbNZFaHEp70XvaISw9SW5ZmdFOk1t72ycK_XHyDmefRXP6055jM"/>
+</div>
+<div class="flex justify-between items-center px-2">
+<span class="font-label text-xs uppercase tracking-widest text-on-surface-variant">View: Home</span>
+<span class="material-symbols-outlined text-xs text-on-surface-variant" data-icon="open_in_new">open_in_new</span>
+</div>
+</div>
+<div class="space-y-3 group">
+<div class="aspect-video rounded-xl overflow-hidden border border-outline-variant/10 bg-surface-container-lowest">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Interface snapshot showing the active chat component open with real-time verification indicators and glassmorphic UI elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZqguIkV_m6QWH0FeWuDYQTln6pVmD9tFNxAD0v3bhATE5lOvjxJqim1fzrJB7dlRnhl2v1kcHxtZY8kaiKLcgKcaKUbHBl0TqHtZcFYab3VTZhDB_hqdjKKQWZOoREoone-hswOGGn9iNvExwza73kSbuvYMl0pG1zh1P5FnJml1UogBzL4joiuefpG1DnzFBhbyISf8YyDmH5X7eA9F3ZdcIrCud3Z4DTx1dqI8UGtAbVsfdHeRD3uSqbIpS-4oLooGx_6NF4hY"/>
+</div>
+<div class="flex justify-between items-center px-2">
+<span class="font-label text-xs uppercase tracking-widest text-on-surface-variant">View: Chat Active</span>
+<span class="material-symbols-outlined text-xs text-on-surface-variant" data-icon="open_in_new">open_in_new</span>
+</div>
+</div>
+<div class="space-y-3 group">
+<div class="aspect-video rounded-xl overflow-hidden border border-outline-variant/10 bg-surface-container-lowest">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Technical dashboard showing code coverage metrics and successful ingestion audit results with monospaced data tables." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDb6QRiHaCtAg-94Ioh-ea87m8xbe2fotazTWExm3hlqZG5rcm4epPFL8VpmvJyLpbPNNFKUs1f119MDzB4XWY_oWV3Zdjp_qPKmns3Yc5eTT8ev2FfmsNdxzzr3G2Am9fmcd1fafKWaWdR2RjMhpWN-GPaeQeh7QE07Cl5AVTkn4PPgNL0FtOxCmIy_W4sDd0gJh7u4ekyiYHZ7QA9vN2J6cEEOxb_hQcmKAoMeCdppphKw5QXkME-4AHQP1SLyTYw2iySew6mk-k"/>
+</div>
+<div class="flex justify-between items-center px-2">
+<span class="font-label text-xs uppercase tracking-widest text-on-surface-variant">View: Coverage</span>
+<span class="material-symbols-outlined text-xs text-on-surface-variant" data-icon="open_in_new">open_in_new</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 h-20 bg-[#131314]/80 backdrop-blur-xl border-t border-[#3c4a42]/15 shadow-[0_-4px_24px_rgba(16,185,129,0.04)]">
+<a class="flex flex-col items-center justify-center text-[#4edea3] bg-[#10b981]/10 rounded-xl p-2 scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-mono text-[10px] uppercase tracking-widest mt-1">Overview</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#bbcabf] p-2 hover:text-[#4edea3] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="speed">speed</span>
+<span class="font-mono text-[10px] uppercase tracking-widest mt-1">Vitals</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#bbcabf] p-2 hover:text-[#4edea3] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
+<span class="font-mono text-[10px] uppercase tracking-widest mt-1">Ledger</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#bbcabf] p-2 hover:text-[#4edea3] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-mono text-[10px] uppercase tracking-widest mt-1">Settings</span>
+</a>
+</nav>
+</body></html>

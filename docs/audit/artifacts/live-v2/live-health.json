@@ -1,0 +1,7 @@
+{
+  "health": {
+    "web": "{\"status\":\"ok\"}",
+    "api": "{\"status\":\"ok\"}"
+  },
+  "routes": {}
+}

@@ -1,0 +1,1964 @@
+[
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/",
+    "status": 200,
+    "resourceType": "document",
+    "timestamp": 1775240140446,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/assets/index-DY2H3Ma9.css",
+    "status": 200,
+    "resourceType": "stylesheet",
+    "timestamp": 1775240140580,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/assets/index-BQMYL0EM.js",
+    "status": 200,
+    "resourceType": "script",
+    "timestamp": 1775240140580,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif:wght@500;600;700&display=swap",
+    "status": 200,
+    "resourceType": "stylesheet",
+    "timestamp": 1775240140685,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/favicon.svg",
+    "status": 200,
+    "resourceType": "other",
+    "timestamp": 1775240140765,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240140778,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+    "status": 200,
+    "resourceType": "font",
+    "timestamp": 1775240140860,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://fonts.gstatic.com/s/notoserif/v33/ga6daw1J5X9T9RW6j9bNVls-hfgvz8JcMofYTYf6D30.woff2",
+    "status": 200,
+    "resourceType": "font",
+    "timestamp": 1775240140929,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240162535,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240162590,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240162625,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2098&auto=format&fit=crop",
+    "status": 200,
+    "resourceType": "image",
+    "timestamp": 1775240162741,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=2070&auto=format&fit=crop",
+    "status": 200,
+    "resourceType": "image",
+    "timestamp": 1775240162748,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=2070&auto=format&fit=crop",
+    "status": 200,
+    "resourceType": "image",
+    "timestamp": 1775240162791,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2069&auto=format&fit=crop",
+    "status": 200,
+    "resourceType": "image",
+    "timestamp": 1775240162791,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240164180,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240164192,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240164237,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240165705,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240165708,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240165751,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240167164,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240167191,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240167205,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240168678,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240168696,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240168704,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240170162,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240170178,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240170227,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240171673,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240171687,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240171698,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240173179,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240173191,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240173198,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240174689,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240174694,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240174717,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240176172,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240176191,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240176233,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240177676,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240177688,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240177733,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240179179,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240179185,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240179230,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240180663,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240180714,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240180715,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240182184,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240182190,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240182203,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240183667,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240183676,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240183720,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240185180,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240185199,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240185199,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240186655,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240186689,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240186700,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240188169,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240188192,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240188247,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240189672,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240189709,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240189715,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240191191,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240191229,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240191242,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240192726,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240192726,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240192726,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240194164,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240194185,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240194229,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240195680,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240195708,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240195745,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240197172,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240197192,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240197239,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240198681,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240198691,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240198708,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240200188,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240200197,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240200209,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240201668,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240201706,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240201709,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240203162,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240203179,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240203245,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240204693,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240204701,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240204708,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240206170,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240206178,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240206187,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240207701,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240207713,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240207716,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240209164,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240209197,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240209207,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240210673,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240210690,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240210744,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240212160,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240212185,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240212220,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240213673,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240213678,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240213723,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240215185,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240215186,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240215200,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240216698,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240216698,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240216704,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240218168,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240218201,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240218213,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240219673,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240219708,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240219722,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240221182,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240221194,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240221247,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/assets/index-BQMYL0EM.js",
+    "status": 200,
+    "resourceType": "script",
+    "timestamp": 1775240222354,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/assets/index-DY2H3Ma9.css",
+    "status": 200,
+    "resourceType": "stylesheet",
+    "timestamp": 1775240222354,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif:wght@500;600;700&display=swap",
+    "status": 200,
+    "resourceType": "stylesheet",
+    "timestamp": 1775240222355,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/",
+    "status": 200,
+    "resourceType": "document",
+    "timestamp": 1775240222355,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
+    "status": 200,
+    "resourceType": "font",
+    "timestamp": 1775240222355,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://fonts.gstatic.com/s/notoserif/v33/ga6daw1J5X9T9RW6j9bNVls-hfgvz8JcMofYTYf6D30.woff2",
+    "status": 200,
+    "resourceType": "font",
+    "timestamp": 1775240222355,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/favicon.svg",
+    "status": 200,
+    "resourceType": "other",
+    "timestamp": 1775240222386,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240222430,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240222476,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=2070&auto=format&fit=crop",
+    "status": 200,
+    "resourceType": "image",
+    "timestamp": 1775240222484,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2098&auto=format&fit=crop",
+    "status": 200,
+    "resourceType": "image",
+    "timestamp": 1775240222484,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=2070&auto=format&fit=crop",
+    "status": 200,
+    "resourceType": "image",
+    "timestamp": 1775240222484,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2069&auto=format&fit=crop",
+    "status": 200,
+    "resourceType": "image",
+    "timestamp": 1775240222484,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240222548,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240224081,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240224095,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240224099,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240225578,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240225583,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240225599,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240227082,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240227093,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240227101,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240228557,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240228595,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240228605,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240230073,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240230086,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240230133,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240231557,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240231595,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240231605,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240233073,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240233102,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240233120,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240234560,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240234571,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240234617,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240236056,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240236088,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240236113,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240237555,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240237571,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240237625,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240239048,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240239072,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240239117,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240240556,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240240595,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240240601,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240242066,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240242078,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240242088,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240243582,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240243595,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240243609,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240245062,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240245074,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240245081,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240246569,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240246584,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240246584,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240248053,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240248109,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240248114,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240249557,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240249598,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240249601,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240251077,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240251136,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240251139,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240252592,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240252593,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240252596,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240254064,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240254085,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240254099,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240255560,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240255572,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240255583,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240257049,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240257088,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240257107,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/consultant/sessions/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240258574,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces/27d5e590-94bb-4eb9-ad8d-9cfd706c0a72",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240258582,
+    "failed": false,
+    "pageId": 1
+  },
+  {
+    "method": "GET",
+    "url": "https://h-town.duckdns.org/wedding/api/prototype/workspaces",
+    "status": 200,
+    "resourceType": "fetch",
+    "timestamp": 1775240258592,
+    "failed": false,
+    "pageId": 1
+  }
+]
