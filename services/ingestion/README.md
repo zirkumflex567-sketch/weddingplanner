@@ -106,6 +106,11 @@ Outputs:
 - einzelne Run-Reports `output/ingestion/batch-run-*.json`
 - Gesamtsummary `output/ingestion/batch-summary-*.json`
 
+Produktions-Scheduler-Helfer:
+
+- `services/ingestion/scripts/run-batch-rotating.sh`
+- berechnet taeglich den Offset per `date +%j` und rotiert so Regionen/Kategorien automatisch
+
 ## Datenregel
 
 Directory-Sources wie Portale oder Rankings sind nur fuer Discovery erlaubt.

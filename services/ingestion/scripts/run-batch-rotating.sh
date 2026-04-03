@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+cd "$ROOT_DIR"
+
+DAY_OF_YEAR="$(date +%j)"
+
+export BROWSER_USE_CLI_COMMAND="${BROWSER_USE_CLI_COMMAND:-$ROOT_DIR/services/ingestion/scripts/browser-use-adapter.mjs}"
+export VENDOR_PIPELINE_FORCE="${VENDOR_PIPELINE_FORCE:-true}"
+export VENDOR_BATCH_REGION_SIZE="${VENDOR_BATCH_REGION_SIZE:-1}"
+export VENDOR_BATCH_CATEGORY_SIZE="${VENDOR_BATCH_CATEGORY_SIZE:-2}"
+export VENDOR_BATCH_REGION_LIMIT="${VENDOR_BATCH_REGION_LIMIT:-4}"
+export VENDOR_BATCH_CATEGORY_LIMIT="${VENDOR_BATCH_CATEGORY_LIMIT:-6}"
+export VENDOR_BATCH_REGION_OFFSET="${VENDOR_BATCH_REGION_OFFSET:-$DAY_OF_YEAR}"
+export VENDOR_BATCH_CATEGORY_OFFSET="${VENDOR_BATCH_CATEGORY_OFFSET:-$DAY_OF_YEAR}"
+
+npm run pipeline:batch --workspace @wedding/ingestion
