@@ -77,6 +77,10 @@ export function IngestionCoveragePage() {
           <span>Datensaetze gesamt</span>
         </article>
         <article className="coverage-card">
+          <strong>{snapshot?.coverage.quarantinedTotal ?? 0}</strong>
+          <span>Quarantaene (Review)</span>
+        </article>
+        <article className="coverage-card">
           <strong>
             {snapshot?.coverage.regionsCovered ?? 0}/{snapshot?.coverage.regionsTotal ?? 0}
           </strong>

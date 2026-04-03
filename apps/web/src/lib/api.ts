@@ -169,6 +169,7 @@ export interface IngestionCoverageSnapshot {
     categoriesCovered: number;
     categoriesCoveragePercent: number;
     recordsTotal: number;
+    quarantinedTotal?: number;
   };
   regions: Array<{
     name: string;

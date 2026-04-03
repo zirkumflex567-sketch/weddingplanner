@@ -586,12 +586,17 @@ interface IngestionCoverageRecord {
 async function buildIngestionCoverageSnapshot() {
   const ingestionOutputRoot = path.resolve(process.cwd(), "../ingestion/output/ingestion");
   const dbPath = path.resolve(ingestionOutputRoot, "vendor-discovery-db.json");
+  const quarantinePath = path.resolve(
+    ingestionOutputRoot,
+    "vendor-discovery-quarantine.json"
+  );
   const continuousStatePath = path.resolve(
     ingestionOutputRoot,
     "continuous-runner-state.json"
   );
 
   const records = await readJsonFile<IngestionCoverageRecord[]>(dbPath, []);
+  const quarantined = await readJsonFile<IngestionCoverageRecord[]>(quarantinePath, []);
   const continuousState = await readJsonFile<Record<string, unknown>>(
     continuousStatePath,
     {}
@@ -679,7 +684,8 @@ async function buildIngestionCoverageSnapshot() {
         categories.length > 0
           ? Math.round((coveredCategories / categories.length) * 100)
           : 0,
-      recordsTotal: records.length
+      recordsTotal: records.length,
+      quarantinedTotal: quarantined.length
     },
     regions,
     categories,
