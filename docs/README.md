@@ -11,8 +11,8 @@ Diese Doku ist der gemeinsame Startpunkt fuer Produkt-, Architektur- und Recherc
 5. [architecture/tech-stack.md](architecture/tech-stack.md)
 6. [architecture/domain-model.md](architecture/domain-model.md)
 7. [architecture/system-overview.md](architecture/system-overview.md)
-8. [architecture/vendor-refresh-pipeline.md](architecture/vendor-refresh-pipeline.md)
-9. [research/vendor-data-strategy.md](research/vendor-data-strategy.md)
+8. [research/vendor-data-strategy.md](research/vendor-data-strategy.md)
+9. [research/vendor-source-network-2026-04-03.md](research/vendor-source-network-2026-04-03.md)
 10. [roadmap/initial-roadmap.md](roadmap/initial-roadmap.md)
 11. [questions/open-questions.md](questions/open-questions.md)
 
@@ -35,3 +35,4 @@ Die vier urspruenglichen Recherchedateien liegen aktuell noch im Projekt-Root:
 - `grok.txt`
 
 Ich habe sie bewusst noch nicht verschoben, damit nichts ueberraschend umorganisiert wird.
+
