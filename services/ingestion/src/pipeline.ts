@@ -731,8 +731,26 @@ function categoryFit(record: DiscoveryDbRecord) {
   if (keywords.length === 0) return true;
 
   const hasPositive = keywords.some((keyword) => corpus.includes(keyword));
-  if (record.category === "venue" && /(hochzeit|wedding|eventlocation|hochzeitslocation)/.test(corpus)) {
-    return true;
+  if (record.category === "venue") {
+    const venueNegative = [
+      "brautmode",
+      "kleid",
+      "anzug",
+      "fashion",
+      "papeterie",
+      "einladung",
+      "karten",
+      "fotograf",
+      "dj",
+      "trauring"
+    ];
+    if (venueNegative.some((token) => corpus.includes(token))) {
+      return false;
+    }
+    const strongVenueSignal = /(eventlocation|hochzeitslocation|feierlocation|schloss|saal|gutshof|villa)/.test(
+      corpus
+    );
+    return hasPositive || strongVenueSignal;
   }
   if (!hasPositive) return false;
 
