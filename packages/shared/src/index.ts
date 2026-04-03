@@ -26,6 +26,7 @@ export interface WeddingBootstrapInput {
   stylePreferences: string[];
   noGoPreferences: string[];
   plannedEvents: PlannedEventId[];
+  disabledVendorCategories?: string[];
 }
 
 export interface WeddingProfile {

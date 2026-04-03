@@ -8,6 +8,42 @@ import {
 export * from "./connectors";
 export * from "./runtime";
 
+export const germanSweepRegions = [
+  "Baden-Württemberg",
+  "Bayern",
+  "Berlin",
+  "Brandenburg",
+  "Bremen",
+  "Hamburg",
+  "Hessen",
+  "Mecklenburg-Vorpommern",
+  "Niedersachsen",
+  "Nordrhein-Westfalen",
+  "Rheinland-Pfalz",
+  "Saarland",
+  "Sachsen",
+  "Sachsen-Anhalt",
+  "Schleswig-Holstein",
+  "Thüringen"
+] as const;
+
+export const germanSweepCategories: VendorSearchCategory[] = [
+  "venue",
+  "photography",
+  "catering",
+  "music",
+  "florals",
+  "attire",
+  "planner",
+  "officiant",
+  "videography",
+  "photobooth",
+  "cake",
+  "transport",
+  "lodging",
+  "rentals"
+];
+
 export type VendorRefreshStageId =
   | "discovery"
   | "facts"

@@ -1175,9 +1175,10 @@ function parseOnboardingUpdates(
   }
 
   const dateMatch = message.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
-  if (dateMatch) {
-    patch.targetDate = dateMatch[1];
-    notes.push(`Datum auf ${dateMatch[1]} gesetzt`);
+  const extractedDate = dateMatch?.[1];
+  if (extractedDate) {
+    patch.targetDate = extractedDate;
+    notes.push(`Datum auf ${extractedDate} gesetzt`);
   }
 
   const regionMatch = message.match(/\b(?:ort|region)\b\s*(?:ist|auf)?\s*[:\-]?\s*([^,.\n]{3,80})/i);
