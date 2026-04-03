@@ -1,13 +1,23 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import cors from "@fastify/cors";
 import Fastify from "fastify";
 import {
   createBootstrapPlan,
+  createGuidedPlanningSession,
+  createWeddingConsultantOpening,
+  continueWeddingConsultantConversation,
+  type GuidedPlanningStepId,
+  type PrototypeWorkspace,
+  type WeddingConsultantTurn,
   isWeddingBootstrapInput,
   type VendorSearchCategory
 } from "@wedding/shared";
 import {
   createVendorConnectorPreview,
   createVendorRefreshExecutor,
+  germanSweepCategories,
+  germanSweepRegions,
   type DirectoryDiscoveryResultInput,
   type GooglePlacesResultInput,
   type VendorRefreshExecutor,
@@ -34,6 +44,76 @@ interface BuildAppOptions {
   vendorRefreshExecutor?: VendorRefreshExecutor;
 }
 
+type ConsultationAssistantMode = "consultant" | "operator";
+type ConsultationAssistantTier = "free" | "premium";
+
+interface ConsultantRuntimeMessage {
+  id: string;
+  role: "assistant" | "user";
+  content: string;
+  createdAt: string;
+  assistantMode: ConsultationAssistantMode;
+}
+
+interface ConsultantWorkspaceContext {
+  workspaceId: string;
+  updatedAt: string;
+  profile: {
+    coupleName: string;
+    targetDate: string;
+    region: string;
+    budgetTotal: number;
+    guestCountTarget: number;
+    plannedEvents: string[];
+    disabledVendorCategories: string[];
+  };
+  planning: {
+    openTaskTitles: string[];
+    activeVenueNames: string[];
+    trackedVendorCount: number;
+    guestCountActual: number;
+    budgetRemaining: number;
+  };
+  conversation: {
+    lastUserMessages: string[];
+    recentPriorities: string[];
+    recentFacts: string[];
+    extractedDrafts: string[];
+  };
+}
+
+interface ConsultantSession {
+  workspaceId: string;
+  createdAt: string;
+  updatedAt: string;
+  currentTurn: WeddingConsultantTurn | null;
+  messages: ConsultantRuntimeMessage[];
+  context: ConsultantWorkspaceContext;
+  jobs: Array<{
+    id: string;
+    workspaceId: string;
+    status: "pending" | "processing" | "completed" | "failed";
+    createdAt: string;
+    updatedAt: string;
+    triggerMessageId: string;
+    requestedMode: ConsultationAssistantMode;
+    kind: "reply";
+    request: {
+      userMessage: string;
+    };
+  }>;
+}
+
+interface ConsultantReplyRequest {
+  workspace?: PrototypeWorkspace;
+  workspaceId?: string;
+  currentTurn?: WeddingConsultantTurn;
+  messages?: Array<{ id?: string; role?: "assistant" | "user"; content?: string }>;
+  userMessage?: string;
+  assistantMode?: ConsultationAssistantMode;
+  assistantTier?: ConsultationAssistantTier;
+}
+
 export function buildApp(options: BuildAppOptions = {}) {
   const app = Fastify({ logger: false });
   const workspaceStore =
@@ -42,6 +122,7 @@ export function buildApp(options: BuildAppOptions = {}) {
     options.vendorRefreshStore ?? new InMemoryVendorRefreshStore();
   const vendorRefreshExecutor =
     options.vendorRefreshExecutor ?? createVendorRefreshExecutor();
+  const consultantSessions = new Map<string, ConsultantSession>();
 
   app.register(cors, {
     origin: true
@@ -50,6 +131,11 @@ export function buildApp(options: BuildAppOptions = {}) {
   app.get("/health", async () => ({
     status: "ok"
   }));
+
+  app.get("/prototype/ingestion/coverage", async () => {
+    const coverage = await buildIngestionCoverageSnapshot();
+    return coverage;
+  });
 
   app.post("/planning/bootstrap", async (request, reply) => {
     if (!isWeddingBootstrapInput(request.body)) {
@@ -349,6 +435,141 @@ export function buildApp(options: BuildAppOptions = {}) {
     return session;
   });
 
+  app.get("/prototype/consultant/sessions/:workspaceId", async (request, reply) => {
+    const params = request.params as { workspaceId: string };
+    const workspace = await workspaceStore.getWorkspace(params.workspaceId);
+
+    if (!workspace) {
+      return reply.code(404).send({ error: "Workspace not found" });
+    }
+
+    const session = ensureConsultantSession(consultantSessions, workspace);
+    return { session };
+  });
+
+  app.get("/prototype/consultant/jobs", async () => {
+    const jobs = [...consultantSessions.values()].flatMap((session) => session.jobs);
+    return { jobs };
+  });
+
+  app.post("/prototype/consultant/reply", async (request, reply) => {
+    if (!isConsultantReplyRequest(request.body)) {
+      return reply.code(400).send({ error: "Invalid consultant payload" });
+    }
+
+    const workspaceId = request.body.workspaceId ?? request.body.workspace?.id;
+
+    if (!workspaceId) {
+      return reply.code(400).send({ error: "Workspace id is required" });
+    }
+
+    let workspace = await workspaceStore.getWorkspace(workspaceId);
+
+    if (!workspace) {
+      return reply.code(404).send({ error: "Workspace not found" });
+    }
+
+    const assistantMode = request.body.assistantMode ?? "consultant";
+    const assistantTier = request.body.assistantTier ?? "free";
+    const userMessage = (request.body.userMessage ?? "").trim();
+    if (!userMessage) {
+      return reply.code(400).send({ error: "User message is required" });
+    }
+
+    const session = ensureConsultantSession(consultantSessions, workspace);
+    const now = new Date().toISOString();
+
+    const currentStepId = normalizeStepId(
+      request.body.currentTurn?.stepId ?? session.currentTurn?.stepId,
+      workspace
+    );
+
+    session.messages.push({
+      id: crypto.randomUUID(),
+      role: "user",
+      content: userMessage,
+      createdAt: now,
+      assistantMode
+    });
+
+    let operatorActionNote = "";
+    if (assistantMode === "operator") {
+      const operatorResult = await applyOperatorMessageToWorkspace(
+        workspaceStore,
+        workspace,
+        userMessage
+      );
+      workspace = operatorResult.workspace;
+      operatorActionNote = operatorResult.note;
+    }
+
+    const turn = continueWeddingConsultantConversation(workspace, currentStepId, {
+      text: userMessage
+    });
+    const assistantMessageRaw = operatorActionNote
+      ? `${turn.assistantMessage}\n\n${operatorActionNote}`
+      : turn.assistantMessage;
+    const normalizedTurn = normalizeConsultantTurnText({
+      ...turn,
+      assistantMessage: assistantMessageRaw
+    });
+    const assistantMessage = normalizedTurn.assistantMessage;
+
+    session.messages.push({
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content: assistantMessage,
+      createdAt: now,
+      assistantMode
+    });
+    session.currentTurn = normalizedTurn;
+    session.updatedAt = now;
+    session.context = buildConsultantWorkspaceContext(workspace, session.messages);
+
+    const provider = assistantTier === "premium" ? "openclaw" : "deterministic";
+    const model =
+      assistantTier === "premium" ? "openclaw-consultant-runtime" : "rule-based-consultant";
+
+    return {
+      turn: normalizedTurn,
+      provider,
+      model,
+      workspace,
+      session
+    };
+  });
+
+  app.post("/prototype/consultant/transcribe", async (request, reply) => {
+    if (!isConsultantTranscribeRequest(request.body)) {
+      return reply.code(400).send({ error: "Invalid transcription payload" });
+    }
+
+    const hasAudio = request.body.audioBase64.trim().length > 0;
+    return {
+      text: hasAudio
+        ? "Ich habe eure Sprachnachricht erhalten. Sagt mir kurz, womit wir weitermachen sollen."
+        : "",
+      language: request.body.languageHint ?? "de",
+      durationSeconds: null
+    };
+  });
+
+  app.post("/prototype/consultant/speak", async (request, reply) => {
+    if (!isConsultantSpeakRequest(request.body)) {
+      return reply.code(400).send({ error: "Invalid speech payload" });
+    }
+
+    // Tiny valid WAV (mono, PCM 16-bit, 8kHz, short silence) to keep UI voice flow stable.
+    const silentWavBase64 =
+      "UklGRlQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+
+    return {
+      audioBase64: silentWavBase64,
+      mimeType: "audio/wav",
+      sampleRate: 8000
+    };
+  });
+
   app.post("/prototype/workspaces/:id/expenses", async (request, reply) => {
     const params = request.params as { id: string };
 
@@ -431,6 +652,277 @@ const vendorSearchCategories: VendorSearchCategory[] = [
 
 function isVendorSearchCategory(value: unknown): value is VendorSearchCategory {
   return typeof value === "string" && vendorSearchCategories.includes(value as VendorSearchCategory);
+}
+
+function isConsultantReplyRequest(value: unknown): value is ConsultantReplyRequest {
+  if (!isPlainObject(value)) {
+    return false;
+  }
+
+  if (
+    value.workspaceId !== undefined &&
+    typeof value.workspaceId !== "string"
+  ) {
+    return false;
+  }
+
+  if (value.workspace !== undefined && !isPlainObject(value.workspace)) {
+    return false;
+  }
+
+  if (value.userMessage !== undefined && typeof value.userMessage !== "string") {
+    return false;
+  }
+
+  if (
+    value.assistantMode !== undefined &&
+    value.assistantMode !== "consultant" &&
+    value.assistantMode !== "operator"
+  ) {
+    return false;
+  }
+
+  if (
+    value.assistantTier !== undefined &&
+    value.assistantTier !== "free" &&
+    value.assistantTier !== "premium"
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function isConsultantTranscribeRequest(
+  value: unknown
+): value is { audioBase64: string; languageHint?: string } {
+  return (
+    isPlainObject(value) &&
+    typeof value.audioBase64 === "string" &&
+    (value.languageHint === undefined || typeof value.languageHint === "string")
+  );
+}
+
+function isConsultantSpeakRequest(value: unknown): value is { text: string } {
+  return isPlainObject(value) && typeof value.text === "string";
+}
+
+function normalizeStepId(
+  stepId: string | undefined,
+  workspace: PrototypeWorkspace
+): GuidedPlanningStepId {
+  const knownSteps = new Set<GuidedPlanningStepId>(
+    createGuidedPlanningSession(workspace).steps.map((step) => step.id)
+  );
+
+  if (stepId && knownSteps.has(stepId as GuidedPlanningStepId)) {
+    return stepId as GuidedPlanningStepId;
+  }
+
+  return createGuidedPlanningSession(workspace).currentStepId;
+}
+
+function normalizeConsultantTurnText<T extends { assistantMessage: string; suggestedReplies?: Array<{ id: string; label: string }> }>(
+  turn: T
+): T {
+  return {
+    ...turn,
+    assistantMessage: replaceCommonGermanUmlauts(turn.assistantMessage),
+    suggestedReplies: turn.suggestedReplies?.map((entry) => ({
+      ...entry,
+      label: replaceCommonGermanUmlauts(entry.label)
+    }))
+  };
+}
+
+function replaceCommonGermanUmlauts(input: string): string {
+  const replacements: Array<[RegExp, string]> = [
+    [/\bGaeste\b/g, "Gäste"],
+    [/\bgaeste\b/g, "gäste"],
+    [/\bGaesteliste\b/g, "Gästeliste"],
+    [/\bRueckmeldungen\b/g, "Rückmeldungen"],
+    [/\bfrueh\b/g, "früh"],
+    [/\bfuer\b/g, "für"],
+    [/\bkoennen\b/g, "können"],
+    [/\bkoennt\b/g, "könnt"],
+    [/\bwoechentlich\b/g, "wöchentlich"],
+    [/\boeffnen\b/g, "öffnen"],
+    [/\bschliessen\b/g, "schließen"],
+    [/\bnaechste\b/g, "nächste"],
+    [/\bnaechster\b/g, "nächster"],
+    [/\bnaechstes\b/g, "nächstes"],
+    [/\bnaechsten\b/g, "nächsten"],
+    [/\bueber\b/g, "über"],
+    [/\bmoeglich\b/g, "möglich"],
+    [/\bAenderung\b/g, "Änderung"],
+    [/\baenderung\b/g, "änderung"],
+    [/\bvernuenftig\b/g, "vernünftig"],
+    [/\bwaere\b/g, "wäre"],
+    [/\bWaere\b/g, "Wäre"],
+    [/\bgrossen\b/g, "großen"],
+    [/\bgroesste\b/g, "größte"],
+    [/\bGroesste\b/g, "Größte"]
+  ];
+
+  let text = input;
+  for (const [pattern, replacement] of replacements) {
+    text = text.replace(pattern as RegExp, replacement as string);
+  }
+  return text;
+}
+
+function ensureConsultantSession(
+  sessionMap: Map<string, ConsultantSession>,
+  workspace: PrototypeWorkspace
+) {
+  const existing = sessionMap.get(workspace.id);
+  if (existing) {
+    return existing;
+  }
+
+  const now = new Date().toISOString();
+  const opening = normalizeConsultantTurnText(createWeddingConsultantOpening(workspace));
+  const session: ConsultantSession = {
+    workspaceId: workspace.id,
+    createdAt: now,
+    updatedAt: now,
+    currentTurn: opening,
+    messages: [
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: opening.assistantMessage,
+        createdAt: now,
+        assistantMode: "consultant"
+      }
+    ],
+    context: buildConsultantWorkspaceContext(workspace, []),
+    jobs: []
+  };
+  sessionMap.set(workspace.id, session);
+  return session;
+}
+
+function buildConsultantWorkspaceContext(
+  workspace: PrototypeWorkspace,
+  messages: ConsultantRuntimeMessage[]
+): ConsultantWorkspaceContext {
+  const budgetSpent = workspace.expenses.reduce((sum, item) => sum + item.amount, 0);
+  const recentUserMessages = messages
+    .filter((message) => message.role === "user")
+    .slice(-6)
+    .map((message) => message.content);
+
+  return {
+    workspaceId: workspace.id,
+    updatedAt: new Date().toISOString(),
+    profile: {
+      coupleName: workspace.onboarding.coupleName,
+      targetDate: workspace.onboarding.targetDate,
+      region: workspace.onboarding.region,
+      budgetTotal: workspace.onboarding.budgetTotal,
+      guestCountTarget: workspace.onboarding.guestCountTarget,
+      plannedEvents: [...workspace.onboarding.plannedEvents],
+      disabledVendorCategories: [...(workspace.onboarding.disabledVendorCategories ?? [])]
+    },
+    planning: {
+      openTaskTitles: workspace.tasks.filter((task) => !task.completed).map((task) => task.title),
+      activeVenueNames: workspace.plan.vendorMatches
+        .filter((vendor) => vendor.category === "venue")
+        .map((vendor) => vendor.name),
+      trackedVendorCount: workspace.vendorTracker.filter(
+        (entry) => entry.stage !== "suggested" && entry.stage !== "rejected"
+      ).length,
+      guestCountActual: workspace.guests.length,
+      budgetRemaining: Math.max(workspace.onboarding.budgetTotal - budgetSpent, 0)
+    },
+    conversation: {
+      lastUserMessages: recentUserMessages,
+      recentPriorities: workspace.tasks.filter((task) => !task.completed).slice(0, 3).map((task) => task.title),
+      recentFacts: [
+        `${workspace.onboarding.guestCountTarget} Gäste geplant`,
+        `Budgetziel ${workspace.onboarding.budgetTotal} EUR`,
+        `Region ${workspace.onboarding.region}`
+      ],
+      extractedDrafts: []
+    }
+  };
+}
+
+async function applyOperatorMessageToWorkspace(
+  workspaceStore: PrototypeWorkspaceStore,
+  workspace: PrototypeWorkspace,
+  userMessage: string
+) {
+  const text = userMessage.toLowerCase();
+  const wantsDeactivate =
+    /\bdeaktivier(?:e|en|t)?\b/.test(text) ||
+    /\bausschlie(?:ss|ß)e(?:n)?\b/.test(text) ||
+    /\bentfern(?:e|en)\b/.test(text);
+  const wantsActivate =
+    !wantsDeactivate &&
+    (/\baktivier(?:e|en|t)?\b/.test(text) ||
+      /\breaktivier(?:e|en|t)?\b/.test(text) ||
+      text.includes("wieder rein") ||
+      text.includes("wieder aktiv"));
+  const nextDisabled = new Set(workspace.onboarding.disabledVendorCategories ?? []);
+  const changed: string[] = [];
+
+  const rules: Array<{
+    category: "photography" | "catering" | "music" | "florals" | "attire";
+    aliases: string[];
+    label: string;
+  }> = [
+    { category: "photography", aliases: ["foto", "fotografie"], label: "Fotografie" },
+    { category: "catering", aliases: ["catering", "essen", "menue"], label: "Catering" },
+    { category: "music", aliases: ["musik", "dj", "band"], label: "Musik" },
+    { category: "florals", aliases: ["floristik", "blumen", "deko"], label: "Floristik" },
+    { category: "attire", aliases: ["styling", "outfit", "kleid", "anzug"], label: "Styling & Outfit" }
+  ];
+
+  for (const rule of rules) {
+    const mentionsCategory = rule.aliases.some((alias) => text.includes(alias));
+    if (!mentionsCategory) {
+      continue;
+    }
+
+    if (wantsDeactivate) {
+      if (!nextDisabled.has(rule.category)) {
+        nextDisabled.add(rule.category);
+        changed.push(`${rule.label} deaktiviert`);
+      }
+    }
+
+    if (wantsActivate) {
+      if (nextDisabled.delete(rule.category)) {
+        changed.push(`${rule.label} aktiviert`);
+      }
+    }
+  }
+
+  if (changed.length === 0) {
+    return {
+      workspace,
+      note: "Operator-Hinweis: Ich habe keine konkrete Profiländerung erkannt, aber eure Priorisierung aufgenommen."
+    };
+  }
+
+  const updated = await workspaceStore.updateWorkspace(workspace.id, {
+    ...workspace.onboarding,
+    disabledVendorCategories: [...nextDisabled]
+  });
+
+  if (!updated) {
+    return {
+      workspace,
+      note: "Operator-Hinweis: Ich konnte die Änderung gerade nicht speichern."
+    };
+  }
+
+  return {
+    workspace: updated,
+    note: `Operator-Update: ${changed.join(", ")}.`
+  };
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -556,4 +1048,144 @@ function isVendorWebsitePageInputArray(
         typeof entry.fetchedAt === "string"
     )
   );
+}
+
+interface IngestionCoverageRecord {
+  id?: string;
+  name?: string;
+  category?: string;
+  region?: string;
+  websiteUrl?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  address?: string;
+  sourcePortalId?: string;
+  ratingValue?: number;
+  ratingCount?: number;
+  sourceQualityScore?: number;
+  quarantineReason?: string;
+  freshnessTimestamp?: string;
+}
+
+async function buildIngestionCoverageSnapshot() {
+  const ingestionOutputRoot = path.resolve(process.cwd(), "../ingestion/output/ingestion");
+  const dbPath = path.resolve(ingestionOutputRoot, "vendor-discovery-db.json");
+  const quarantinePath = path.resolve(
+    ingestionOutputRoot,
+    "vendor-discovery-quarantine.json"
+  );
+  const continuousStatePath = path.resolve(
+    ingestionOutputRoot,
+    "continuous-runner-state.json"
+  );
+
+  const records = await readJsonFile<IngestionCoverageRecord[]>(dbPath, []);
+  const quarantined = await readJsonFile<IngestionCoverageRecord[]>(quarantinePath, []);
+  const continuousState = await readJsonFile<Record<string, unknown>>(
+    continuousStatePath,
+    {}
+  );
+
+  const observedRecords = [...records, ...quarantined];
+
+  const regions = germanSweepRegions.map((region) => {
+    const matching = observedRecords.filter((record) => record.region === region);
+    const freshest = matching
+      .map((record) => record.freshnessTimestamp ?? "")
+      .sort()
+      .at(-1);
+
+    return {
+      name: region,
+      covered: matching.length > 0,
+      recordCount: matching.length,
+      ...(freshest ? { lastUpdatedAt: freshest } : {})
+    };
+  });
+
+  const categories = germanSweepCategories.map((category) => {
+    const matching = observedRecords.filter((record) => record.category === category);
+    return {
+      name: category,
+      covered: matching.length > 0,
+      recordCount: matching.length
+    };
+  });
+
+  const recentSamples = (records.length > 0 ? records : quarantined)
+    .slice()
+    .sort((a, b) =>
+      (b.freshnessTimestamp ?? "").localeCompare(a.freshnessTimestamp ?? "")
+    )
+    .slice(0, 25)
+    .map((record) => ({
+      name: record.name ?? "Unbekannt",
+      category: record.category ?? "unknown",
+      region: record.region ?? "unknown",
+      sourcePortalId: record.sourcePortalId ?? "unknown",
+      ...(record.contactEmail ? { contactEmail: record.contactEmail } : {}),
+      ...(record.contactPhone ? { contactPhone: record.contactPhone } : {}),
+      ...(record.address ? { address: record.address } : {}),
+      ...(record.websiteUrl ? { websiteUrl: record.websiteUrl } : {}),
+      ...(record.quarantineReason ? { quarantineReason: record.quarantineReason } : {}),
+      ...(typeof record.ratingValue === "number" ? { ratingValue: record.ratingValue } : {}),
+      ...(typeof record.ratingCount === "number" ? { ratingCount: record.ratingCount } : {}),
+      ...(typeof record.sourceQualityScore === "number"
+        ? { sourceQualityScore: record.sourceQualityScore }
+        : {}),
+      ...(record.freshnessTimestamp ? { freshnessTimestamp: record.freshnessTimestamp } : {})
+    }));
+
+  const coveredRegions = regions.filter((entry) => entry.covered).length;
+  const coveredCategories = categories.filter((entry) => entry.covered).length;
+
+  return {
+    generatedAt: new Date().toISOString(),
+    runner: {
+      active: Boolean(continuousState.active),
+      ...(typeof continuousState.pid === "number" ? { pid: continuousState.pid } : {}),
+      ...(typeof continuousState.cycles === "number"
+        ? { cycles: continuousState.cycles }
+        : {}),
+      ...(typeof continuousState.lastHeartbeatAt === "string"
+        ? { lastHeartbeatAt: continuousState.lastHeartbeatAt }
+        : {}),
+      ...(typeof continuousState.lastCycleStartedAt === "string"
+        ? { lastCycleStartedAt: continuousState.lastCycleStartedAt }
+        : {}),
+      ...(typeof continuousState.lastCycleCompletedAt === "string"
+        ? { lastCycleCompletedAt: continuousState.lastCycleCompletedAt }
+        : {}),
+      ...(typeof continuousState.lastError === "string" && continuousState.lastError.length > 0
+        ? { lastError: continuousState.lastError }
+        : {})
+    },
+    coverage: {
+      regionsTotal: regions.length,
+      regionsCovered: coveredRegions,
+      regionsCoveragePercent:
+        regions.length > 0 ? Math.round((coveredRegions / regions.length) * 100) : 0,
+      categoriesTotal: categories.length,
+      categoriesCovered: coveredCategories,
+      categoriesCoveragePercent:
+        categories.length > 0
+          ? Math.round((coveredCategories / categories.length) * 100)
+          : 0,
+      recordsTotal: records.length,
+      quarantinedTotal: quarantined.length,
+      observedTotal: observedRecords.length
+    },
+    regions,
+    categories,
+    samples: recentSamples
+  };
+}
+
+async function readJsonFile<T>(filePath: string, fallback: T): Promise<T> {
+  try {
+    const content = await readFile(filePath, "utf-8");
+    return JSON.parse(content) as T;
+  } catch {
+    return fallback;
+  }
 }
