@@ -273,6 +273,11 @@ export interface PrototypePublicRsvpContext {
     tableShape: PrototypeTableShape;
   };
   routePlanningLink?: string;
+  staySuggestions?: Array<{
+    name: string;
+    note: string;
+    url?: string;
+  }>;
 }
 
 export interface PrototypePublicRsvpSession {

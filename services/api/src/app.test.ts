@@ -1686,6 +1686,13 @@ describe("prototype workspace flow", () => {
       tableShape: "round"
     });
     expect(publicResponse.json().context.routePlanningLink).toContain("google.com/maps");
+    expect(publicResponse.json().context.staySuggestions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: expect.stringMatching(/Gut Rehbach|Hotel Schloss Edesheim|Deidesheimer Hof/)
+        })
+      ])
+    );
   });
 
   it("updates a guest through the public rsvp route and persists dietary details", async () => {

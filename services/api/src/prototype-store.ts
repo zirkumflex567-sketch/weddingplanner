@@ -207,6 +207,22 @@ function createPublicRsvpSession(
     .filter((value): value is string => typeof value === "string" && value.length > 0)
     .join(", ");
   const destination = primaryVenue?.addressLine ?? fallbackDestination;
+  const staySuggestions = workspace.plan.vendorMatches
+    .filter((vendor) => {
+      const haystack = [vendor.name, vendor.serviceLabel, vendor.reasonSummary]
+        .filter(Boolean)
+        .join(" ");
+      return /hotel|uebernacht|ubernacht|schlosshotel|guesthouse|hof/i.test(haystack);
+    })
+    .slice(0, 3)
+    .map((vendor) => ({
+      name: vendor.name,
+      note:
+        vendor.serviceLabel ??
+        vendor.reasonSummary ??
+        "Moegliche Uebernachtung in der Naehe der Feier.",
+      ...(vendor.websiteUrl ? { url: vendor.websiteUrl } : {})
+    }));
 
   return {
     guest: structuredClone(guest),
@@ -232,7 +248,8 @@ function createPublicRsvpSession(
               primaryVenue?.mapsUrl ??
               `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
           }
-        : {})
+        : {}),
+      ...(staySuggestions.length > 0 ? { staySuggestions } : {})
     }
   };
 }

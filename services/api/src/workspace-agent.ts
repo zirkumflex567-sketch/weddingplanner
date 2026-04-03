@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import type {
   PlannedEventId,
   PrototypeGuest,
+  PrototypeTableShape,
   PrototypeVendorStage,
   PrototypeWorkspace,
   WeddingBootstrapInput
@@ -10,7 +11,9 @@ import type {
 import type {
   CreateExpenseInput,
   CreateGuestInput,
+  CreateSeatTableInput,
   PrototypeWorkspaceStore,
+  UpdateSeatTableInput,
   UpdateGuestInput,
   UpdateVendorInput
 } from "./prototype-store";
@@ -22,6 +25,7 @@ export interface WorkspaceAgentReply {
   workspace: PrototypeWorkspace;
   provider: "openclaw" | "openrouter" | "gemini" | "fallback";
   model: string;
+  appliedCount: number;
 }
 
 export interface WorkspaceAgentCommandTarget {
@@ -66,6 +70,30 @@ type WorkspaceAgentOperation =
         title?: string;
       };
       completed: boolean;
+    }
+  | {
+      type: "add_seat_table";
+      table: CreateSeatTableInput;
+    }
+  | {
+      type: "update_seat_table";
+      selector: {
+        tableId?: string;
+        name?: string;
+      };
+      patch: UpdateSeatTableInput;
+    }
+  | {
+      type: "assign_guest_seat";
+      guestSelector: {
+        guestId?: string;
+        name?: string;
+        email?: string;
+      };
+      tableSelector: {
+        tableId?: string;
+        name?: string;
+      } | null;
     };
 
 interface WorkspaceAgentPlan {
@@ -220,6 +248,26 @@ function findTask(
   return null;
 }
 
+function findSeatTable(
+  workspace: PrototypeWorkspace,
+  selector: { tableId?: string; name?: string }
+) {
+  if (selector.tableId) {
+    return workspace.seatingPlan.tables.find((table) => table.id === selector.tableId) ?? null;
+  }
+
+  if (selector.name) {
+    const normalizedName = normalizeText(selector.name);
+    return (
+      workspace.seatingPlan.tables.find((table) => normalizeText(table.name) === normalizedName) ??
+      workspace.seatingPlan.tables.find((table) => normalizeText(table.name).includes(normalizedName)) ??
+      null
+    );
+  }
+
+  return null;
+}
+
 function buildWorkspaceSnapshot(workspace: PrototypeWorkspace) {
   return {
     workspaceId: workspace.id,
@@ -246,6 +294,13 @@ function buildWorkspaceSnapshot(workspace: PrototypeWorkspace) {
     })),
     vendorTracker: workspace.vendorTracker,
     expenses: workspace.expenses,
+    seatingPlan: workspace.seatingPlan.tables.map((table) => ({
+      id: table.id,
+      name: table.name,
+      shape: table.shape,
+      capacity: table.capacity,
+      guestIds: table.guestIds
+    })),
     budgetRemaining: workspace.budgetOverview.overall.remaining
   };
 }
@@ -263,9 +318,12 @@ function buildPlannerPrompt(
     tier === "free"
       ? "FREE tier rule: do not create any mutation operations. Explain what to do, but operations must be an empty array."
       : "PREMIUM tier rule: you may propose mutation operations only inside the workspace schema below.",
-    "Allowed operation types: update_profile, add_guest, update_guest, add_expense, update_vendor, set_task_completion.",
+    "Allowed operation types: update_profile, add_guest, update_guest, add_expense, update_vendor, set_task_completion, add_seat_table, update_seat_table, assign_guest_seat.",
     "For update_guest, patch may include name, household, email, eventIds, rsvpStatus, mealPreference, dietaryNotes, message.",
     "For update_vendor, patch may include stage, quoteAmount, note.",
+    "For add_seat_table, table may include name, shape (round|rect), capacity.",
+    "For update_seat_table, selector may include tableId or name; patch may include name, shape (round|rect), capacity.",
+    "For assign_guest_seat, guestSelector targets the guest and tableSelector targets the table. Use tableSelector null to unassign.",
     "For update_profile, patch may include onboarding fields only: coupleName, targetDate, region, guestCountTarget, budgetTotal, stylePreferences, noGoPreferences, plannedEvents, disabledVendorCategories, invitationCopy.",
     "If you are unsure, prefer no operation and explain the ambiguity.",
     "Return exactly one JSON object with this shape:",
@@ -497,6 +555,71 @@ export async function applyWorkspaceAgentPlan(
         );
       }
     }
+
+    if (operation.type === "add_seat_table") {
+      const table = operation.table;
+      const updatedWorkspace = await workspaceStore.addSeatTable(nextWorkspace.id, {
+        name: table.name.trim(),
+        shape: table.shape,
+        capacity: table.capacity
+      });
+
+      if (updatedWorkspace) {
+        nextWorkspace = updatedWorkspace;
+        appliedSummaries.push(`Tisch ${table.name.trim()} angelegt`);
+      }
+      continue;
+    }
+
+    if (operation.type === "update_seat_table") {
+      const table = findSeatTable(nextWorkspace, operation.selector);
+
+      if (!table) {
+        continue;
+      }
+
+      const updatedWorkspace = await workspaceStore.updateSeatTable(nextWorkspace.id, table.id, {
+        ...(typeof operation.patch.name === "string" ? { name: operation.patch.name.trim() } : {}),
+        ...(operation.patch.shape === "round" || operation.patch.shape === "rect"
+          ? { shape: operation.patch.shape as PrototypeTableShape }
+          : {}),
+        ...(typeof operation.patch.capacity === "number" &&
+        Number.isFinite(operation.patch.capacity) &&
+        operation.patch.capacity > 0
+          ? { capacity: operation.patch.capacity }
+          : {})
+      });
+
+      if (updatedWorkspace) {
+        nextWorkspace = updatedWorkspace;
+        appliedSummaries.push(`Tisch ${table.name} aktualisiert`);
+      }
+      continue;
+    }
+
+    if (operation.type === "assign_guest_seat") {
+      const guest = findGuest(nextWorkspace, operation.guestSelector);
+
+      if (!guest) {
+        continue;
+      }
+
+      const table = operation.tableSelector
+        ? findSeatTable(nextWorkspace, operation.tableSelector)
+        : null;
+      const updatedWorkspace = await workspaceStore.assignGuestToSeatTable(
+        nextWorkspace.id,
+        guest.id,
+        table?.id ?? null
+      );
+
+      if (updatedWorkspace) {
+        nextWorkspace = updatedWorkspace;
+        appliedSummaries.push(
+          table ? `${guest.name} an ${table.name} gesetzt` : `${guest.name} vom Tisch geloest`
+        );
+      }
+    }
   }
 
   return {
@@ -539,7 +662,8 @@ export async function runWorkspaceAgent(input: {
         assistantMessage: `${plan.userFacingReply}${appliedSuffix}`.trim(),
         workspace: execution.workspace,
         provider: target.provider,
-        model: `${target.provider}-${input.tier}-workspace-agent-v1-${randomUUID().slice(0, 8)}`
+        model: `${target.provider}-${input.tier}-workspace-agent-v1-${randomUUID().slice(0, 8)}`,
+        appliedCount: execution.appliedSummaries.length
       } satisfies WorkspaceAgentReply;
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));

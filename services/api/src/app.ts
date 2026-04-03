@@ -479,13 +479,24 @@ async function maybeHandleGuestUpdate(
   const emailMatch = payload.userMessage.match(
     /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i
   );
-  const householdMatch =
-    payload.userMessage.match(/(?:haushalt|familie)\s*:\s*([^\n]+)/i) ??
-    payload.userMessage.match(/familie\s+([A-Za-z??????????????][^\n,]+)/i);
+  const householdMatch = payload.userMessage.match(/(?:haushalt|familie)\s*:\s*([^\n]+)/i);
+    payload.userMessage.match(/familie\s+([A-Za-z????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????][^\n,]+)/i);
   const dietaryNotesMatch = payload.userMessage.match(
     /(?:allergie|allergien|unvertraeglich|unvertraeglichkeit|diary notes|hinweis|notiz)\s*:?\s*([^\n]+)/i
   );
   const messageMatch = payload.userMessage.match(/(?:nachricht|message)\s*:\s*([^\n]+)/i);
+  const hasGuestMutation =
+    Boolean(rsvpStatus) ||
+    Boolean(mealPreference) ||
+    Boolean(emailMatch?.[0]) ||
+    Boolean(householdMatch?.[1]?.trim()) ||
+    Boolean(dietaryNotesMatch?.[1]?.trim()) ||
+    Boolean(messageMatch?.[1]?.trim());
+
+  if (!hasGuestMutation) {
+    return null;
+  }
+
   const updatedWorkspace = await workspaceStore.updateGuest(payload.workspace.id, guest.id, {
     ...(rsvpStatus ? { rsvpStatus } : {}),
     ...(mealPreference ? { mealPreference } : {}),
@@ -555,7 +566,7 @@ async function maybeHandleExpenseCreate(
   const vendor = findVendorFromMessage(payload.workspace, payload.userMessage);
   const labelMatch =
     payload.userMessage.match(/(?:budgetposten|eintrag|label|titel)\s*:\s*([^\n]+)/i) ??
-    payload.userMessage.match(/(?:fuer|f??r)\s+([^\n,]+)/i);
+    payload.userMessage.match(/(?:fuer|fur)\s+([^\n,]+)/i);
   const label = labelMatch?.[1]?.trim() || vendor?.name || "Neuer Budgeteintrag";
   const vendorName = vendor?.name ?? label;
   const updatedWorkspace = await workspaceStore.addExpense(payload.workspace.id, {
@@ -692,6 +703,133 @@ async function maybeHandleTaskCompletion(
       completed
         ? `Ich habe die Aufgabe "${task.title}" als erledigt markiert.`
         : `Ich habe die Aufgabe "${task.title}" wieder geoeffnet.`
+    ),
+    provider: "deterministic" as const,
+    model: "operator-v1",
+    workspace: updatedWorkspace
+  };
+}
+
+async function maybeHandleSeatingTableCreate(
+  workspaceStore: PrototypeWorkspaceStore,
+  payload: WeddingConsultantReplyPayload
+) {
+  const normalizedMessage = normalizeConsultantText(payload.userMessage);
+
+  if (!/(tisch|tafel|seating|sitzplan|saalplan)/.test(normalizedMessage)) {
+    return null;
+  }
+
+  if (!/(anlegen|anleg|lege|erstell|hinzu|neu|create)/.test(normalizedMessage)) {
+    return null;
+  }
+
+  const capacity = extractFirstNumber(payload.userMessage);
+
+  if (!capacity || capacity < 2) {
+    return null;
+  }
+
+  const shape = /(eckig|rechteck|rect)/.test(normalizedMessage) ? "rect" : "round";
+  const nameMatch =
+    payload.userMessage.match(/(?:tisch|tafel)\s*[:\-]\s*([^\n]+)/i) ??
+    payload.userMessage.match(/(?:namens|name)\s*[:\-]\s*([^\n]+)/i) ??
+    payload.userMessage.match(/(?:anlegen|erstellen)\s+([^\n]+?)\s+(?:mit|fuer|fur|\d)/i);
+  const normalizedTableName = nameMatch?.[1]
+    ?.replace(/\s+mit\s+\d+.*$/i, "")
+    .replace(/\s+fuer\s+\d+.*$/i, "")
+    .replace(/\s+fur\s+\d+.*$/i, "")
+    .trim();
+  const tableName =
+    normalizedTableName ??
+    `${shape === "round" ? "Runder" : "Eckiger"} Tisch ${payload.workspace.seatingPlan.tables.length + 1}`;
+  const updatedWorkspace = await workspaceStore.addSeatTable(payload.workspace.id, {
+    name: tableName,
+    shape,
+    capacity
+  });
+
+  if (!updatedWorkspace) {
+    return null;
+  }
+
+  return {
+    turn: buildOperatorTurn(
+      updatedWorkspace,
+      "guest-experience",
+      "guests",
+      `Ich habe den Tisch "${tableName}" direkt angelegt: ${shape === "round" ? "rund" : "eckig"} mit ${capacity} Plaetzen.`
+    ),
+    provider: "deterministic" as const,
+    model: "operator-v1",
+    workspace: updatedWorkspace
+  };
+}
+
+async function maybeHandleSeatingAssignment(
+  workspaceStore: PrototypeWorkspaceStore,
+  payload: WeddingConsultantReplyPayload
+) {
+  const normalizedMessage = normalizeConsultantText(payload.userMessage);
+
+  if (!/(tisch|sitzplatz|setz|zuweisen|platzieren|seat)/.test(normalizedMessage)) {
+    return null;
+  }
+
+  const guest = findGuestFromMessage(payload.workspace, payload.userMessage);
+
+  if (!guest) {
+    return null;
+  }
+
+  if (/(loese|entfern|ohne tisch|unassign|vom tisch)/.test(normalizedMessage)) {
+    const updatedWorkspace = await workspaceStore.assignGuestToSeatTable(
+      payload.workspace.id,
+      guest.id,
+      null
+    );
+
+    if (!updatedWorkspace) {
+      return null;
+    }
+
+    return {
+      turn: buildOperatorTurn(
+        updatedWorkspace,
+        "guest-experience",
+        "guests",
+        `Ich habe ${guest.name} aus der aktuellen Tischzuweisung geloest.`
+      ),
+      provider: "deterministic" as const,
+      model: "operator-v1",
+      workspace: updatedWorkspace
+    };
+  }
+
+  const table = [...payload.workspace.seatingPlan.tables]
+    .sort((left, right) => right.name.length - left.name.length)
+    .find((entry) => normalizedMessage.includes(normalizeConsultantText(entry.name)));
+
+  if (!table) {
+    return null;
+  }
+
+  const updatedWorkspace = await workspaceStore.assignGuestToSeatTable(
+    payload.workspace.id,
+    guest.id,
+    table.id
+  );
+
+  if (!updatedWorkspace) {
+    return null;
+  }
+
+  return {
+    turn: buildOperatorTurn(
+      updatedWorkspace,
+      "guest-experience",
+      "guests",
+      `Ich habe ${guest.name} an ${table.name} gesetzt. Aktuell sind dort ${Math.min(table.guestIds.length + 1, table.capacity)}/${table.capacity} Plaetze belegt.`
     ),
     provider: "deterministic" as const,
     model: "operator-v1",
@@ -1093,6 +1231,8 @@ async function resolveOperatorIntent(
     (await maybeHandleExpenseCreate(workspaceStore, payload)) ??
     (await maybeHandleVendorUpdate(workspaceStore, payload)) ??
     (await maybeHandleTaskCompletion(workspaceStore, payload)) ??
+    (await maybeHandleSeatingTableCreate(workspaceStore, payload)) ??
+    (await maybeHandleSeatingAssignment(workspaceStore, payload)) ??
     (await maybeHandleVendorCategoryToggle(workspaceStore, payload)) ??
     (await maybeHandleInvitationCopyUpdate(workspaceStore, payload)) ??
     (await maybeHandleGuestImport(workspaceStore, payload)) ??
@@ -1235,6 +1375,21 @@ class DeterministicWeddingConsultantResponder implements WeddingConsultantRespon
           commands: commandChain
         });
 
+        if (
+          normalizedPayload.assistantTier === "premium" &&
+          normalizedPayload.assistantMode === "operator" &&
+          agentReply.appliedCount === 0
+        ) {
+          const deterministicOperatorResult = await resolveOperatorIntent(
+            this.workspaceStore,
+            normalizedPayload
+          );
+
+          if (deterministicOperatorResult) {
+            return deterministicOperatorResult;
+          }
+        }
+
         return {
           turn:
             normalizedPayload.assistantMode === "operator" &&
@@ -1301,6 +1456,17 @@ class AiWeddingConsultantResponder implements WeddingConsultantResponder {
           tier: "premium",
           commands: commandChain
         });
+
+        if (agentReply.appliedCount === 0) {
+          const deterministicOperatorResult = await resolveOperatorIntent(
+            this.workspaceStore,
+            normalizedPayload
+          );
+
+          if (deterministicOperatorResult) {
+            return deterministicOperatorResult;
+          }
+        }
 
         return {
           turn: buildAgentWorkspaceTurn(normalizedPayload, agentReply),

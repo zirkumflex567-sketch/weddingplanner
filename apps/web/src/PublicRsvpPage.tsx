@@ -204,6 +204,39 @@ export function PublicRsvpPage({ token }: PublicRsvpPageProps) {
               </div>
             ) : null}
 
+            {session.context.staySuggestions?.length ? (
+              <div className="experience-panel">
+                <div className="section-headline">
+                  <div>
+                    <p className="eyebrow">Uebernachtung</p>
+                    <h2>Nahe Optionen fuer euren Aufenthalt</h2>
+                  </div>
+                </div>
+                <div className="guided-card-stack guided-card-stack--vendors">
+                  {session.context.staySuggestions.map((suggestion) => (
+                    <article key={suggestion.name} className="guided-vendor-card">
+                      <div className="guided-vendor-head">
+                        <div>
+                          <strong>{suggestion.name}</strong>
+                          <p>{suggestion.note}</p>
+                        </div>
+                      </div>
+                      {suggestion.url ? (
+                        <a
+                          className="secondary-button"
+                          href={suggestion.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Unterkunft ansehen
+                        </a>
+                      ) : null}
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             <form className="portal-form" onSubmit={handleSubmit}>
               <div className="portal-section">
                 <p className="portal-label">Antwort</p>
