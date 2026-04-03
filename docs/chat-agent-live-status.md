@@ -62,3 +62,13 @@ Stand: 2026-04-03
   - Änderungen ausschließlich auf dem aktuell übergebenen `workspaceId`
   - Keine systemfremden Aktionen, keine Datei-/Shell-Aktionen aus Chat
   - Whitelist-basierte Felder und Statuswerte
+
+## Update 2026-04-03 (Confirm-Guard + Chaos-Tests)
+
+- Riskante Operator-Änderungen (aktuell: Anbieter auf `rejected`) laufen jetzt über einen Bestätigungs-Flow:
+  - Schritt 1: Bot fordert explizit `bestätigen` oder `abbrechen`
+  - Schritt 2: Erst nach Bestätigung wird die Änderung gespeichert
+- Zufalls-/Chaos-Tests durchgeführt (inkl. unsinniger Eingaben):
+  - sinnvolle, aber freie Sprache -> wird korrekt interpretiert
+  - unklare/unsinnige Nachrichten -> sichere, nicht-destruktive Rückmeldung
+- Kontextspeicherung bleibt pro Workspace-Session erhalten (`consultantSessions` via `workspaceId`), inklusive Verlauf und nächster Schritte.

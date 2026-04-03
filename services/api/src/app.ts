@@ -8,6 +8,7 @@ import {
   createWeddingConsultantOpening,
   continueWeddingConsultantConversation,
   type GuidedPlanningStepId,
+  type WeddingBootstrapInput,
   type PrototypeWorkspace,
   type WeddingConsultantTurn,
   isWeddingBootstrapInput,
@@ -102,6 +103,17 @@ interface ConsultantSession {
       userMessage: string;
     };
   }>;
+  pendingConfirmation?: {
+    type: "vendor-stage";
+    payload: {
+      vendorId: string;
+      stage: "suggested" | "contacted" | "quoted" | "booked" | "rejected";
+      quoteAmount: number | null;
+      note: string;
+      summary: string;
+    };
+    createdAt: string;
+  };
 }
 
 interface ConsultantReplyRequest {
@@ -496,6 +508,7 @@ export function buildApp(options: BuildAppOptions = {}) {
     if (assistantMode === "operator") {
       const operatorResult = await applyOperatorMessageToWorkspace(
         workspaceStore,
+        session,
         workspace,
         userMessage
       );
@@ -873,10 +886,56 @@ function buildConsultantWorkspaceContext(
 
 async function applyOperatorMessageToWorkspace(
   workspaceStore: PrototypeWorkspaceStore,
+  session: ConsultantSession,
   workspace: PrototypeWorkspace,
   userMessage: string
 ) {
   const text = userMessage.toLowerCase();
+  const now = new Date().toISOString();
+
+  if (session.pendingConfirmation) {
+    if (isCancelMessage(text)) {
+      delete session.pendingConfirmation;
+      return {
+        workspace,
+        note: "Operator-Update: Alles gut, ich habe die ausstehende Änderung verworfen."
+      };
+    }
+
+    if (!isConfirmationMessage(text)) {
+      return {
+        workspace,
+        note:
+          "Operator-Hinweis: Für die ausstehende riskantere Änderung brauche ich eine klare Bestätigung. " +
+          "Antwortet mit `bestätigen` oder `abbrechen`."
+      };
+    }
+
+    const pending = session.pendingConfirmation;
+    delete session.pendingConfirmation;
+    if (pending.type === "vendor-stage") {
+      const updatedWorkspace = await workspaceStore.updateVendor(
+        workspace.id,
+        pending.payload.vendorId,
+        {
+          stage: pending.payload.stage,
+          quoteAmount: pending.payload.quoteAmount,
+          note: pending.payload.note
+        }
+      );
+      if (updatedWorkspace) {
+        return {
+          workspace: updatedWorkspace,
+          note: `Operator-Update: Bestätigt. ${pending.payload.summary}.`
+        };
+      }
+
+      return {
+        workspace,
+        note: "Operator-Hinweis: Die bestätigte Änderung konnte gerade nicht gespeichert werden."
+      };
+    }
+  }
   const wantsDeactivate =
     /\bdeaktivier(?:e|en|t)?\b/.test(text) ||
     /\bausschlie(?:ss|ß)e(?:n)?\b/.test(text) ||
@@ -996,6 +1055,20 @@ async function applyOperatorMessageToWorkspace(
 
   const vendorStageUpdate = findVendorStageIntent(userMessage, workspace);
   if (vendorStageUpdate) {
+    if (vendorStageUpdate.stage === "rejected") {
+      session.pendingConfirmation = {
+        type: "vendor-stage",
+        payload: vendorStageUpdate,
+        createdAt: now
+      };
+      return {
+        workspace,
+        note:
+          `Operator-Hinweis: Das Ablehnen von ${vendorStageUpdate.vendorName} ` +
+          "ist eine riskantere Änderung. Bitte mit `bestätigen` freigeben oder mit `abbrechen` verwerfen."
+      };
+    }
+
     const updatedWorkspace = await workspaceStore.updateVendor(
       workspace.id,
       vendorStageUpdate.vendorId,
@@ -1037,7 +1110,7 @@ async function applyOperatorMessageToWorkspace(
       name: guestIntent.name,
       email: guestIntent.email,
       household: guestIntent.household ?? "Haushalt",
-      eventIds: guestIntent.eventIds
+      eventIds: workspace.plan.eventBlueprints.map((event) => event.id)
     });
     if (updatedWorkspace) {
       workspace = updatedWorkspace;
@@ -1074,19 +1147,9 @@ async function applyOperatorMessageToWorkspace(
 
 function parseOnboardingUpdates(
   message: string,
-  onboarding: {
-    coupleName: string;
-    targetDate: string;
-    region: string;
-    guestCountTarget: number;
-    budgetTotal: number;
-    stylePreferences: string[];
-    noGoPreferences: string[];
-    plannedEvents: string[];
-    disabledVendorCategories?: string[];
-  }
+  onboarding: WeddingBootstrapInput
 ): {
-  patch: Partial<typeof onboarding>;
+  patch: Partial<WeddingBootstrapInput>;
   notes: string[];
 } | null {
   const lower = message.toLowerCase();
@@ -1165,7 +1228,7 @@ function findTaskIntent(
 function findVendorStageIntent(
   message: string,
   workspace: PrototypeWorkspace
-): { vendorId: string; stage: "suggested" | "contacted" | "quoted" | "booked" | "rejected"; quoteAmount: number | null; note: string; summary: string } | null {
+): { vendorName: string; vendorId: string; stage: "suggested" | "contacted" | "quoted" | "booked" | "rejected"; quoteAmount: number | null; note: string; summary: string } | null {
   const lower = message.toLowerCase();
   const vendor =
     workspace.plan.vendorMatches.find((entry) => lower.includes(entry.name.toLowerCase())) ??
@@ -1198,7 +1261,7 @@ function findVendorStageIntent(
     stage = "quoted";
   } else if (/\b(gebucht|fix|beauftragt)\b/.test(lower)) {
     stage = "booked";
-  } else if (/\b(absagen|ablehnen|raus|streichen)\b/.test(lower)) {
+  } else if (/\b(absagen|ablehnen|raus|streichen|streich)\b/.test(lower) || lower.includes("aus unserer liste")) {
     stage = "rejected";
   }
   if (!stage) {
@@ -1209,6 +1272,7 @@ function findVendorStageIntent(
   const quoteAmount = quoteMatch ? Number(quoteMatch[1]) : null;
 
   return {
+    vendorName: finalVendor.name,
     vendorId: finalVendor.id,
     stage,
     quoteAmount: Number.isFinite(quoteAmount as number) ? quoteAmount : null,
@@ -1257,7 +1321,6 @@ function parseGuestCreateIntent(message: string): {
   name?: string;
   email?: string;
   household?: string;
-  eventIds: Array<"civil-ceremony" | "wedding-ceremony" | "reception">;
 } {
   const lower = message.toLowerCase();
   const intentDetected =
@@ -1270,24 +1333,23 @@ function parseGuestCreateIntent(message: string): {
   const email = cleanExtract(extractByLabel(message, /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i));
   const household = cleanExtract(extractByLabel(message, /(?:haushalt|familie)\s*[:\-]?\s*([^,.\n]{2,80})/i));
 
-  const eventIds: Array<"civil-ceremony" | "wedding-ceremony" | "reception"> = [];
-  if (/\bstandesamt\b/.test(lower)) {
-    eventIds.push("civil-ceremony");
+  const result: {
+    intentDetected: boolean;
+    name?: string;
+    email?: string;
+    household?: string;
+  } = { intentDetected };
+  const cleanedName = name?.replace(/\s+email\s+\S+$/i, "").trim();
+  if (cleanedName) {
+    result.name = cleanedName;
   }
-  if (/\btrauung\b/.test(lower)) {
-    eventIds.push("wedding-ceremony");
+  if (email) {
+    result.email = email;
   }
-  if (/\bfeier|party|empfang\b/.test(lower)) {
-    eventIds.push("reception");
+  if (household) {
+    result.household = household;
   }
-
-  return {
-    intentDetected,
-    name: name?.replace(/\s+email\s+\S+$/i, "").trim(),
-    email,
-    household,
-    eventIds: eventIds.length > 0 ? eventIds : ["wedding-ceremony", "reception"]
-  };
+  return result;
 }
 
 function mapCategoryToLabel(
@@ -1358,14 +1420,34 @@ function parseManualVendorIntent(userMessage: string): {
     .replace(/,\s*(?:telefon|tel\.?|mobil|phone)\b.*$/i, "")
     .trim();
 
-  return {
-    intentDetected,
-    category,
-    name: cleanExtract(name),
-    phone: cleanExtract(phone),
-    email: cleanExtract(email),
-    address: cleanExtract(address)
-  };
+  const result: {
+    intentDetected: boolean;
+    category?: "venue" | "catering" | "photography" | "music" | "attire" | "florals" | "stationery-admin";
+    name?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+  } = { intentDetected };
+  const cleanName = cleanExtract(name);
+  const cleanPhone = cleanExtract(phone);
+  const cleanEmail = cleanExtract(email);
+  const cleanAddress = cleanExtract(address);
+  if (category) {
+    result.category = category;
+  }
+  if (cleanName) {
+    result.name = cleanName;
+  }
+  if (cleanPhone) {
+    result.phone = cleanPhone;
+  }
+  if (cleanEmail) {
+    result.email = cleanEmail;
+  }
+  if (cleanAddress) {
+    result.address = cleanAddress;
+  }
+  return result;
 }
 
 function detectVendorCategory(
@@ -1426,6 +1508,14 @@ function cleanExtract(value: string | undefined): string | undefined {
   }
   const next = value.replace(/\s+/g, " ").trim();
   return next.length > 0 ? next : undefined;
+}
+
+function isConfirmationMessage(lowerText: string) {
+  return /\b(bestätigen|bestaetigen|ja mach|ja bitte|ok mach|freigeben)\b/.test(lowerText);
+}
+
+function isCancelMessage(lowerText: string) {
+  return /\b(abbrechen|stop|nein|verwerfen|doch nicht)\b/.test(lowerText);
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
