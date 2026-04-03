@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { buildApp } from "./app";
+import { FileConsultantRuntimeStore } from "./consultant-runtime-store";
 import { FilePrototypeWorkspaceStore } from "./prototype-store";
 import { FileVendorRefreshStore } from "./vendor-refresh-store";
 
@@ -11,7 +12,10 @@ async function start() {
   const vendorRefreshStore = new FileVendorRefreshStore(
     fileURLToPath(new URL("vendor-refresh-jobs.json", runtimeDataUrl))
   );
-  const app = buildApp({ workspaceStore, vendorRefreshStore });
+  const consultantRuntimeStore = new FileConsultantRuntimeStore(
+    fileURLToPath(new URL("consultant-runtime.json", runtimeDataUrl))
+  );
+  const app = buildApp({ workspaceStore, vendorRefreshStore, consultantRuntimeStore });
   const port = Number(process.env.PORT ?? "3001");
   const host = process.env.HOST ?? "127.0.0.1";
 

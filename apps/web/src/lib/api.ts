@@ -177,10 +177,74 @@ interface UpdatePublicRsvpInput {
   message?: string;
 }
 
+export type ConsultationAssistantMode = "consultant" | "operator";
+export type ConsultationAssistantTier = "free" | "premium";
+
+export interface ConsultantRuntimeMessage {
+  id: string;
+  role: "assistant" | "user";
+  content: string;
+  createdAt: string;
+  assistantMode: ConsultationAssistantMode;
+}
+
+export interface ConsultantWorkspaceContext {
+  workspaceId: string;
+  updatedAt: string;
+  profile: {
+    coupleName: string;
+    targetDate: string;
+    region: string;
+    budgetTotal: number;
+    guestCountTarget: number;
+    plannedEvents: string[];
+    disabledVendorCategories: string[];
+  };
+  planning: {
+    openTaskTitles: string[];
+    activeVenueNames: string[];
+    trackedVendorCount: number;
+    guestCountActual: number;
+    budgetRemaining: number;
+  };
+  conversation: {
+    lastUserMessages: string[];
+    recentPriorities: string[];
+    recentFacts: string[];
+    extractedDrafts: string[];
+  };
+}
+
+export interface ConsultantAgentJob {
+  id: string;
+  workspaceId: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  createdAt: string;
+  updatedAt: string;
+  triggerMessageId: string;
+  requestedMode: ConsultationAssistantMode;
+  kind: "reply";
+  request: {
+    userMessage: string;
+  };
+}
+
+export interface ConsultantSession {
+  workspaceId: string;
+  createdAt: string;
+  updatedAt: string;
+  currentTurn: WeddingConsultantTurn | null;
+  messages: ConsultantRuntimeMessage[];
+  context: ConsultantWorkspaceContext;
+  jobs: ConsultantAgentJob[];
+}
+
 interface ConsultantReplyResponse {
   turn: WeddingConsultantTurn;
-  provider: "deterministic" | "ollama" | "fallback";
+  provider: "deterministic" | "ollama" | "fallback" | "openclaw";
   model: string;
+  workspace?: PrototypeWorkspace;
+  session?: ConsultantSession;
 }
 
 export interface ConsultantVoiceTranscriptionResponse {
@@ -416,6 +480,8 @@ export function replyWithWeddingConsultant(input: {
   currentTurn: WeddingConsultantTurn;
   messages: ConsultationMessage[];
   userMessage: string;
+  assistantMode?: ConsultationAssistantMode;
+  assistantTier?: ConsultationAssistantTier;
 }) {
   return requestJson<ConsultantReplyResponse>("/prototype/consultant/reply", {
     method: "POST",
@@ -426,10 +492,22 @@ export function replyWithWeddingConsultant(input: {
   });
 }
 
+export function getWeddingConsultantSession(workspaceId: string) {
+  return requestJson<{ session: ConsultantSession | null }>(
+    `/prototype/consultant/sessions/${workspaceId}`
+  );
+}
+
+export function listWeddingConsultantJobs(status?: ConsultantAgentJob["status"]) {
+  const query = status ? `?status=${encodeURIComponent(status)}` : "";
+  return requestJson<{ jobs: ConsultantAgentJob[] }>(`/prototype/consultant/jobs${query}`);
+}
+
 export function transcribeWeddingConsultantVoice(input: {
   audioBase64: string;
   mimeType?: string;
   languageHint?: string;
+  assistantTier?: ConsultationAssistantTier;
 }) {
   return requestJson<ConsultantVoiceTranscriptionResponse>("/prototype/consultant/transcribe", {
     method: "POST",
@@ -449,3 +527,4 @@ export function synthesizeWeddingConsultantVoice(input: { text: string }) {
     body: JSON.stringify(input)
   });
 }
+

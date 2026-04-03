@@ -20,7 +20,12 @@ const input: WeddingBootstrapInput = {
   budgetTotal: 24000,
   stylePreferences: ["natural", "romantic"],
   noGoPreferences: ["ballroom"],
-  plannedEvents: ["civil-ceremony", "celebration"]
+  plannedEvents: ["civil-ceremony", "celebration"],
+  invitationCopy: {
+    headline: "{paar} freut sich auf eure Rueckmeldung",
+    body: "{gast}, bitte gebt uns kurz Bescheid.",
+    footer: "Wir freuen uns auf euch."
+  }
 };
 
 function createWorkspace(): PrototypeWorkspace {

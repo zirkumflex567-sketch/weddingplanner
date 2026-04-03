@@ -9,6 +9,7 @@ import {
   createPrototypeTasks,
   createPrototypeVendorTracker,
   mergePrototypeVendorTracker,
+  normalizeWeddingBootstrapInput,
   summarizeGuests,
   type PlannedEventId,
   type PrototypeExpense,
@@ -30,6 +31,10 @@ export interface CreateGuestInput {
 }
 
 export interface UpdateGuestInput {
+  name?: string;
+  household?: string;
+  email?: string;
+  eventIds?: PlannedEventId[];
   rsvpStatus?: PrototypeGuest["rsvpStatus"];
   mealPreference?: PrototypeGuest["mealPreference"];
   dietaryNotes?: string;
@@ -121,6 +126,22 @@ function createGuestRecord(input: CreateGuestInput): PrototypeGuest {
 }
 
 function applyGuestUpdate(guest: PrototypeGuest, input: UpdateGuestInput) {
+  if (typeof input.name !== "undefined") {
+    guest.name = input.name;
+  }
+
+  if (typeof input.household !== "undefined") {
+    guest.household = input.household;
+  }
+
+  if (typeof input.email !== "undefined") {
+    guest.email = input.email;
+  }
+
+  if (typeof input.eventIds !== "undefined") {
+    guest.eventIds = input.eventIds;
+  }
+
   if (typeof input.rsvpStatus !== "undefined") {
     guest.rsvpStatus = input.rsvpStatus;
   }
@@ -150,20 +171,23 @@ function createPublicRsvpSession(
       region: workspace.onboarding.region,
       invitedEvents: workspace.plan.eventBlueprints.filter((event) =>
         guest.eventIds.includes(event.id)
-      )
+      ),
+      invitationCopy: workspace.onboarding.invitationCopy
     }
   };
 }
 
 function normalizeWorkspace(workspace: PrototypeWorkspace): PrototypeWorkspace {
-  const plan = createBootstrapPlan(workspace.onboarding);
+  const onboarding = normalizeWeddingBootstrapInput(workspace.onboarding);
+  const plan = createBootstrapPlan(onboarding);
   const tasks = mergeTasks(workspace.tasks ?? [], createPrototypeTasks(plan));
   const guests = (workspace.guests ?? []).map((guest) => normalizeGuest(guest));
   const expenses = workspace.expenses ?? [];
 
   return {
     ...workspace,
-    coupleName: workspace.onboarding.coupleName,
+    coupleName: onboarding.coupleName,
+    onboarding,
     plan,
     tasks,
     guests,
@@ -183,15 +207,16 @@ function normalizeWorkspace(workspace: PrototypeWorkspace): PrototypeWorkspace {
 
 function createWorkspaceRecord(input: WeddingBootstrapInput): PrototypeWorkspace {
   const now = new Date().toISOString();
-  const plan = createBootstrapPlan(input);
+  const onboarding = normalizeWeddingBootstrapInput(input);
+  const plan = createBootstrapPlan(onboarding);
   const tasks = createPrototypeTasks(plan);
 
   return {
     id: randomUUID(),
     createdAt: now,
     updatedAt: now,
-    coupleName: input.coupleName,
-    onboarding: structuredClone(input),
+    coupleName: onboarding.coupleName,
+    onboarding: structuredClone(onboarding),
     plan,
     tasks,
     guests: [],
@@ -264,12 +289,13 @@ export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore 
       return null;
     }
 
-    const plan = createBootstrapPlan(input);
+    const onboarding = normalizeWeddingBootstrapInput(input);
+    const plan = createBootstrapPlan(onboarding);
     const tasks = mergeTasks(workspace.tasks, createPrototypeTasks(plan));
 
     workspace.updatedAt = new Date().toISOString();
-    workspace.coupleName = input.coupleName;
-    workspace.onboarding = structuredClone(input);
+    workspace.coupleName = onboarding.coupleName;
+    workspace.onboarding = structuredClone(onboarding);
     workspace.plan = plan;
     workspace.tasks = tasks;
     workspace.progress = calculateProgress(tasks);
@@ -487,12 +513,13 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
       return null;
     }
 
-    const plan = createBootstrapPlan(input);
+    const onboarding = normalizeWeddingBootstrapInput(input);
+    const plan = createBootstrapPlan(onboarding);
     const tasks = mergeTasks(workspace.tasks, createPrototypeTasks(plan));
 
     workspace.updatedAt = new Date().toISOString();
-    workspace.coupleName = input.coupleName;
-    workspace.onboarding = structuredClone(input);
+    workspace.coupleName = onboarding.coupleName;
+    workspace.onboarding = structuredClone(onboarding);
     workspace.plan = plan;
     workspace.tasks = tasks;
     workspace.progress = calculateProgress(tasks);
@@ -692,6 +719,10 @@ export function isUpdateGuestInput(value: unknown): value is UpdateGuestInput {
   const status = candidate.rsvpStatus;
   const mealPreference = candidate.mealPreference;
   const hasKnownField =
+    typeof candidate.name !== "undefined" ||
+    typeof candidate.household !== "undefined" ||
+    typeof candidate.email !== "undefined" ||
+    typeof candidate.eventIds !== "undefined" ||
     typeof status !== "undefined" ||
     typeof mealPreference !== "undefined" ||
     typeof candidate.dietaryNotes !== "undefined" ||
@@ -699,6 +730,13 @@ export function isUpdateGuestInput(value: unknown): value is UpdateGuestInput {
 
   return (
     hasKnownField &&
+    (typeof candidate.name === "undefined" || typeof candidate.name === "string") &&
+    (typeof candidate.household === "undefined" ||
+      typeof candidate.household === "string") &&
+    (typeof candidate.email === "undefined" || typeof candidate.email === "string") &&
+    (typeof candidate.eventIds === "undefined" ||
+      (Array.isArray(candidate.eventIds) &&
+        candidate.eventIds.every((entry) => typeof entry === "string"))) &&
     (typeof status === "undefined" ||
       status === "pending" ||
       status === "attending" ||

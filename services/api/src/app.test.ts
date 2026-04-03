@@ -9,18 +9,28 @@ const onboardingPayload = {
   budgetTotal: 18000,
   stylePreferences: ["modern", "natural"],
   noGoPreferences: ["ballroom"],
-  plannedEvents: ["civil-ceremony", "celebration", "brunch"]
+  plannedEvents: ["civil-ceremony", "celebration", "brunch"],
+  invitationCopy: {
+    headline: "{paar} freut sich auf eure Rueckmeldung",
+    body: "{gast}, bitte gebt uns kurz Bescheid.",
+    footer: "Wir freuen uns auf euch."
+  }
 };
 
 const hasslochOnboardingPayload = {
   coupleName: "Alina & Jonas",
   targetDate: "2027-08-21",
-  region: "67454 Haßloch",
+  region: "67454 Ha??loch",
   guestCountTarget: 70,
   budgetTotal: 24000,
   stylePreferences: ["natural", "romantic"],
   noGoPreferences: ["ballroom"],
-  plannedEvents: ["civil-ceremony", "celebration"]
+  plannedEvents: ["civil-ceremony", "celebration"],
+  invitationCopy: {
+    headline: "{paar} freut sich auf eure Rueckmeldung",
+    body: "{gast}, bitte gebt uns kurz Bescheid.",
+    footer: "Wir freuen uns auf euch."
+  }
 };
 
 const openApps: ReturnType<typeof buildApp>[] = [];
@@ -186,7 +196,7 @@ describe("POST /planning/bootstrap", () => {
 
     const body = response.json();
     expect(body.plan.vendorMatches).toEqual([
-      {
+      expect.objectContaining({
         id: "berlin-kranich-catering",
         name: "Kranich Catering",
         category: "catering",
@@ -194,8 +204,8 @@ describe("POST /planning/bootstrap", () => {
         fitScore: 95,
         priceBandLabel: "ca. 3.200-4.100 EUR",
         reasonSummary: "Skaliert gut auf 80 Gaeste, bleibt nah am Catering-Rahmen und passt zu moderner saisonaler Planung."
-      },
-      {
+      }),
+      expect.objectContaining({
         id: "berlin-spree-loft",
         name: "Spree Loft Atelier",
         category: "venue",
@@ -203,8 +213,8 @@ describe("POST /planning/bootstrap", () => {
         fitScore: 95,
         priceBandLabel: "5.500-8.500 EUR",
         reasonSummary: "Passt zu Berlin, 80 Gaesten und einem modernen naturnahen Stil."
-      },
-      {
+      }),
+      expect.objectContaining({
         id: "berlin-nordlicht-photo",
         name: "Studio Nordlicht",
         category: "photography",
@@ -212,7 +222,7 @@ describe("POST /planning/bootstrap", () => {
         fitScore: 95,
         priceBandLabel: "ca. 1.800-2.600 EUR",
         reasonSummary: "Trifft den Stil, liegt im Foto-Budget und ist auf urbane Feiern im Berliner Raum ausgerichtet."
-      }
+      })
     ]);
     expect(body.plan.runtimeTopology).toEqual({
       aiExecution: "shadow-workstation",
@@ -544,6 +554,435 @@ describe("POST /prototype/consultant/reply", () => {
         stepId: "venue-and-date",
         assistantMessage: expect.stringContaining("Venue-Auswahl")
       }
+    });
+  });
+
+  it("can import guests directly from a pasted contact list", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: created.workspace,
+        currentTurn: {
+          stepId: "guest-experience",
+          focusArea: "guests",
+          assistantMessage: "Wir koennen jetzt direkt Gaeste anlegen.",
+          suggestedReplies: []
+        },
+        messages: [
+          {
+            role: "assistant",
+            content: "Wir koennen jetzt direkt Gaeste anlegen."
+          }
+        ],
+        userMessage: [
+          "Bitte uebernimm diese Gaeste direkt in die Liste:",
+          "Lena Beispiel, Familie Beispiel, lena@example.com",
+          "Tom Beispiel, Familie Beispiel, tom@example.com"
+        ].join("\n")
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      provider: "deterministic",
+      model: "operator-v1",
+      turn: {
+        stepId: "guest-experience",
+        assistantMessage: expect.stringContaining("Lena Beispiel")
+      },
+      workspace: {
+        guests: expect.arrayContaining([
+          expect.objectContaining({ email: "lena@example.com" }),
+          expect.objectContaining({ email: "tom@example.com" })
+        ])
+      }
+    });
+
+    const workspaceResponse = await app.inject({
+      method: "GET",
+      url: `/prototype/workspaces/${created.workspace.id}`
+    });
+
+    expect(workspaceResponse.statusCode).toBe(200);
+    expect(workspaceResponse.json().workspace.guests).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ email: "lena@example.com" }),
+        expect.objectContaining({ email: "tom@example.com" })
+      ])
+    );
+  });
+
+  it("can estimate a rough total for a venue from adult and child counts", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: created.workspace,
+        currentTurn: {
+          stepId: "venue-and-date",
+          focusArea: "vendors",
+          assistantMessage: "Wir schauen auf eure Venue-Auswahl.",
+          suggestedReplies: []
+        },
+        messages: [
+          {
+            role: "assistant",
+            content: "Wir schauen auf eure Venue-Auswahl."
+          }
+        ],
+        userMessage:
+          "Wenn 50 Erwachsene und 20 Kinder zum Hambacher Schloss gehen, was kostet das ca?"
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      provider: "deterministic",
+      model: "operator-v1",
+      turn: {
+        stepId: "venue-and-date",
+        assistantMessage: expect.stringContaining("Hambacher Schloss")
+      }
+    });
+    expect(response.json().turn.assistantMessage).toContain("EUR");
+  });
+
+  it("can disable an optional vendor category directly through operator chat", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: created.workspace,
+        currentTurn: {
+          stepId: "core-vendors",
+          focusArea: "vendors",
+          assistantMessage: "Wir arbeiten jetzt an den Vendoren.",
+          suggestedReplies: []
+        },
+        messages: [
+          {
+            role: "assistant",
+            content: "Wir arbeiten jetzt an den Vendoren."
+          }
+        ],
+        assistantMode: "operator",
+        assistantTier: "premium",
+        userMessage: "Bitte deaktiviere Catering, das Venue uebernimmt Essen und Getraenke."
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      provider: "deterministic",
+      model: "operator-v1",
+      workspace: {
+        onboarding: {
+          disabledVendorCategories: expect.arrayContaining(["catering"])
+        }
+      }
+    });
+    expect(
+      response.json().workspace.plan.vendorMatches.some(
+        (vendor: { category: string }) => vendor.category === "catering"
+      )
+    ).toBe(false);
+  });
+
+  it("can update invitation copy directly through operator chat", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: created.workspace,
+        currentTurn: {
+          stepId: "guest-experience",
+          focusArea: "guests",
+          assistantMessage: "Wir koennen jetzt an euren Einladungen arbeiten.",
+          suggestedReplies: []
+        },
+        messages: [
+          {
+            role: "assistant",
+            content: "Wir koennen jetzt an euren Einladungen arbeiten."
+          }
+        ],
+        assistantMode: "operator",
+        assistantTier: "premium",
+        userMessage: [
+          "Bitte passe die Einladung direkt an:",
+          "Headline: Alina & Jonas freuen sich auf eure Zusage",
+          "Text: {gast}, wir feiern am {datum} in {ort}. Bitte gebt uns bis Ende Mai Bescheid.",
+          "Fusszeile: Wir freuen uns riesig auf euch."
+        ].join("\n")
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      provider: "deterministic",
+      model: "operator-v1",
+      workspace: {
+        onboarding: {
+          invitationCopy: {
+            headline: "Alina & Jonas freuen sich auf eure Zusage",
+            body:
+              "{gast}, wir feiern am {datum} in {ort}. Bitte gebt uns bis Ende Mai Bescheid.",
+            footer: "Wir freuen uns riesig auf euch."
+          }
+        }
+      }
+    });
+  });
+
+  it("returns a workspace-aware fallback summary in operator mode", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: created.workspace,
+        currentTurn: {
+          stepId: "venue-and-date",
+          focusArea: "vendors",
+          assistantMessage: "Wir schauen auf die naechsten Schritte.",
+          suggestedReplies: []
+        },
+        messages: [
+          {
+            role: "assistant",
+            content: "Wir schauen auf die naechsten Schritte."
+          }
+        ],
+        assistantMode: "operator",
+        assistantTier: "premium",
+        userMessage: "Arbeite bitte aktiv mit mir und priorisiere die naechsten Schritte."
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      provider: "fallback",
+      model: "operator-fallback-v1",
+      turn: {
+        assistantMessage: expect.stringContaining("direkt auf eurem Workspace")
+      }
+    });
+    expect(response.json().turn.assistantMessage).toContain("Restspielraum");
+  });
+
+  it("keeps free tier in advisor-only mode even when operator is requested", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: created.workspace,
+        currentTurn: {
+          stepId: "core-vendors",
+          focusArea: "vendors",
+          assistantMessage: "Wir schauen auf die Vendoren.",
+          suggestedReplies: []
+        },
+        messages: [],
+        assistantMode: "operator",
+        assistantTier: "free",
+        userMessage: "Deaktiviere Catering bitte direkt fuer mich."
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      provider: "fallback",
+      model: "free-consultant-guardrail-v1"
+    });
+    expect(response.json().turn.assistantMessage).toContain("Free-Modus");
+    expect(response.json().workspace).toBeUndefined();
+  });
+
+  it("persists the consultant session with user and assistant messages", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+
+    const replyResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: created.workspace,
+        currentTurn: {
+          stepId: "venue-and-date",
+          focusArea: "vendors",
+          assistantMessage: "Wir starten mit der Location.",
+          suggestedReplies: []
+        },
+        messages: [
+          {
+            role: "assistant",
+            content: "Wir starten mit der Location."
+          }
+        ],
+        assistantMode: "consultant",
+        userMessage: "Wir sind vor allem bei Budget und Gaestezahl unsicher."
+      }
+    });
+
+    expect(replyResponse.statusCode).toBe(200);
+    expect(replyResponse.json().session.messages).toHaveLength(2);
+    expect(replyResponse.json().session.messages[0]).toMatchObject({
+      role: "user",
+      content: "Wir sind vor allem bei Budget und Gaestezahl unsicher."
+    });
+    expect(replyResponse.json().session.messages[1]).toMatchObject({
+      role: "assistant"
+    });
+
+    const sessionResponse = await app.inject({
+      method: "GET",
+      url: `/prototype/consultant/sessions/${created.workspace.id}`
+    });
+
+    expect(sessionResponse.statusCode).toBe(200);
+    expect(sessionResponse.json().session.context.profile.coupleName).toBe("Alina & Jonas");
+    expect(sessionResponse.json().session.context.conversation.recentPriorities).toEqual(
+      expect.arrayContaining(["Budget und Kostenklarheit", "Gaeste, RSVPs und Seating"])
+    );
+  });
+
+  it("tracks consultant jobs for OpenClaw-style polling", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+
+    await app.inject({
+      method: "POST",
+      url: "/prototype/consultant/reply",
+      payload: {
+        workspace: created.workspace,
+        currentTurn: {
+          stepId: "core-vendors",
+          focusArea: "vendors",
+          assistantMessage: "Lasst uns auf die Vendoren schauen.",
+          suggestedReplies: []
+        },
+        messages: [
+          {
+            role: "assistant",
+            content: "Lasst uns auf die Vendoren schauen."
+          }
+        ],
+        assistantMode: "operator",
+        userMessage: "Bitte deaktiviere Catering."
+      }
+    });
+
+    const jobsResponse = await app.inject({
+      method: "GET",
+      url: "/prototype/consultant/jobs?status=completed"
+    });
+
+    expect(jobsResponse.statusCode).toBe(200);
+    expect(jobsResponse.json().jobs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          workspaceId: created.workspace.id,
+          status: "completed",
+          requestedMode: "operator",
+          kind: "reply"
+        })
+      ])
+    );
+  });
+
+  it("returns a null consultant session before the first chat message", async () => {
+    const app = buildApp();
+    openApps.push(app);
+
+    const createResponse = await app.inject({
+      method: "POST",
+      url: "/prototype/workspaces",
+      payload: hasslochOnboardingPayload
+    });
+    const created = createResponse.json();
+
+    const sessionResponse = await app.inject({
+      method: "GET",
+      url: `/prototype/consultant/sessions/${created.workspace.id}`
+    });
+
+    expect(sessionResponse.statusCode).toBe(200);
+    expect(sessionResponse.json()).toEqual({
+      session: null
     });
   });
 
@@ -982,7 +1421,8 @@ describe("prototype workspace flow", () => {
       context: {
         coupleName: "Mira & Leon",
         targetDate: "2027-09-15",
-        region: "Berlin"
+        region: "Berlin",
+        invitationCopy: onboardingPayload.invitationCopy
       }
     });
     expect(publicResponse.json().context.invitedEvents).toEqual([
@@ -1203,3 +1643,4 @@ describe("prototype workspace flow", () => {
     );
   });
 });
+

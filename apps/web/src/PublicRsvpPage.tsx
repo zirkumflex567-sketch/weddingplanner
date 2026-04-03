@@ -27,6 +27,34 @@ type PublicRsvpForm = {
   message: string;
 };
 
+function formatInvitationDate(value: string) {
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  }).format(parsed);
+}
+
+function renderInvitationTemplate(
+  template: string,
+  session: PrototypePublicRsvpSession
+) {
+  const invitedEvents = session.context.invitedEvents.map((event) => event.label).join(", ");
+
+  return template
+    .replaceAll("{paar}", session.context.coupleName)
+    .replaceAll("{gast}", session.guest.name)
+    .replaceAll("{datum}", formatInvitationDate(session.context.targetDate))
+    .replaceAll("{ort}", session.context.region)
+    .replaceAll("{events}", invitedEvents);
+}
+
 function createForm(session: PrototypePublicRsvpSession): PublicRsvpForm {
   return {
     rsvpStatus: session.guest.rsvpStatus,
@@ -109,7 +137,7 @@ export function PublicRsvpPage({ token }: PublicRsvpPageProps) {
             <p className="eyebrow">RSVP</p>
             <h1>
               {session
-                ? `${session.context.coupleName} freut sich auf eure Rueckmeldung`
+                ? renderInvitationTemplate(session.context.invitationCopy.headline, session)
                 : "RSVP wird geladen"}
             </h1>
           </div>
@@ -121,9 +149,7 @@ export function PublicRsvpPage({ token }: PublicRsvpPageProps) {
         {session ? (
           <>
             <p className="portal-copy">
-              {session.guest.name}, ihr seid eingeladen fuer {session.context.targetDate} in{" "}
-              {session.context.region}. Bitte gebt kurz Bescheid, ob ihr dabei seid und ob es
-              Essenshinweise gibt.
+              {renderInvitationTemplate(session.context.invitationCopy.body, session)}
             </p>
 
             <div className="summary-row">
@@ -237,6 +263,11 @@ export function PublicRsvpPage({ token }: PublicRsvpPageProps) {
 
         {savedMessage ? <p className="success-text">{savedMessage}</p> : null}
         {error ? <p className="error-text">{error}</p> : null}
+        {session ? (
+          <p className="portal-footnote">
+            {renderInvitationTemplate(session.context.invitationCopy.footer, session)}
+          </p>
+        ) : null}
         <p className="portal-footnote">
           Wedding Copilot laeuft hier als privacy-first Prototyp. KI-Arbeit bleibt auf Shadow,
           Hosting und API laufen separat.
