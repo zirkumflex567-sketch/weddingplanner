@@ -490,6 +490,30 @@ function classifyDiscoveryRecord(record: DiscoveryDbRecord): {
 
   const hasContactSignal = Boolean(record.contactEmail || record.contactPhone || record.address);
   const qualityScore = record.sourceQualityScore ?? 0;
+  const relevanceScore = computeWeddingRelevanceScore(record);
+  const hasCategoryFit = categoryFit(record);
+  const minRelevance = Number.parseInt(
+    process.env.DISCOVERY_MIN_WEDDING_RELEVANCE ?? "45",
+    10
+  );
+
+  if (
+    relevanceScore < (Number.isFinite(minRelevance) ? minRelevance : 45) &&
+    !isClearlyWeddingHost(record.websiteUrl ?? record.sourceUrl)
+  ) {
+    return {
+      accepted: false,
+      reason: `low-wedding-relevance:${relevanceScore}`
+    };
+  }
+
+  if (!hasCategoryFit) {
+    return {
+      accepted: false,
+      reason: "category-mismatch"
+    };
+  }
+
   if (hasContactSignal || qualityScore >= 60) {
     return { accepted: true };
   }
@@ -505,6 +529,133 @@ function extractHost(url?: string) {
   } catch {
     return "";
   }
+}
+
+function isClearlyWeddingHost(url?: string) {
+  const host = extractHost(url);
+  if (!host) return false;
+  return /(wedding|hochzeit|braut|wedd)/i.test(host);
+}
+
+function computeWeddingRelevanceScore(record: DiscoveryDbRecord) {
+  const corpus = [
+    record.name ?? "",
+    record.websiteUrl ?? "",
+    record.sourceUrl ?? "",
+    record.note ?? "",
+    record.address ?? ""
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  let score = 0;
+
+  const weddingSignals = [
+    "hochzeit",
+    "wedding",
+    "braut",
+    "trauung",
+    "eventlocation",
+    "hochzeitslocation",
+    "hochzeitsfotograf",
+    "hochzeitsplaner",
+    "trauredner",
+    "hochzeitsdeko",
+    "hochzeitsband",
+    "dj",
+    "catering"
+  ];
+  for (const signal of weddingSignals) {
+    if (corpus.includes(signal)) {
+      score += 10;
+    }
+  }
+
+  const categorySignals = categoryKeywords(record.category);
+  for (const signal of categorySignals) {
+    if (corpus.includes(signal)) {
+      score += 6;
+    }
+  }
+
+  const negativeSignals = [
+    "versicher",
+    "steuer",
+    "kanzlei",
+    "anwalt",
+    "software",
+    "hosting",
+    "recruiting",
+    "consulting",
+    "agentur fuer startups",
+    "business register",
+    "register",
+    "impressum"
+  ];
+  for (const signal of negativeSignals) {
+    if (corpus.includes(signal)) {
+      score -= 12;
+    }
+  }
+
+  if (isClearlyWeddingHost(record.websiteUrl ?? record.sourceUrl)) {
+    score += 20;
+  }
+  if (record.contactEmail && /(info|kontakt|booking|hello|anfrage)@/i.test(record.contactEmail)) {
+    score += 4;
+  }
+
+  return Math.max(0, Math.min(100, score));
+}
+
+function categoryKeywords(category: VendorSearchCategory) {
+  const map: Record<VendorSearchCategory, string[]> = {
+    venue: ["location", "saal", "schloss", "villa", "hotel", "event"],
+    photography: ["foto", "fotograf", "photography", "portrait"],
+    catering: ["catering", "buffet", "menu", "menue", "fingerfood"],
+    music: ["dj", "musik", "band", "live"],
+    florals: ["flor", "blumen", "deko"],
+    attire: ["brautmode", "kleid", "anzug", "fashion"],
+    stationery: ["papeterie", "einladung", "karten", "print"],
+    cake: ["torte", "konditor", "patisserie", "cake"],
+    transport: ["shuttle", "limo", "bus", "chauffeur"],
+    lodging: ["hotel", "unterkunft", "uebernachtung", "zimmer"],
+    planner: ["planer", "wedding planner", "koordination"],
+    officiant: ["trauredner", "freier redner", "officiant"],
+    videography: ["video", "filmer", "videograf"],
+    photobooth: ["fotobox", "photo booth", "mirror booth"],
+    magician: ["zauber", "magier", "illusion"],
+    "live-artist": ["kuenstler", "live painter", "illustrator"],
+    childcare: ["kinder", "kids", "betreuung", "nanny"],
+    rentals: ["verleih", "miete", "rental", "equipment"]
+  };
+  return map[category] ?? [];
+}
+
+function categoryFit(record: DiscoveryDbRecord) {
+  const corpus = `${record.name ?? ""} ${record.websiteUrl ?? ""} ${record.sourceUrl ?? ""}`.toLowerCase();
+  const keywords = categoryKeywords(record.category);
+  if (keywords.length === 0) return true;
+
+  const hasPositive = keywords.some((keyword) => corpus.includes(keyword));
+  if (record.category === "venue" && /(hochzeit|wedding|eventlocation|hochzeitslocation)/.test(corpus)) {
+    return true;
+  }
+  if (!hasPositive) return false;
+
+  const categoryNegative: Partial<Record<VendorSearchCategory, string[]>> = {
+    catering: ["trauring", "brautkleid", "anzug", "fotobox"],
+    music: ["catering", "trauring", "brautkleid"],
+    photography: ["catering", "trauring", "brautkleid", "dj"],
+    florals: ["dj", "catering", "trauring"],
+    cake: ["dj", "trauring", "brautkleid"],
+    attire: ["dj", "catering", "trauring"],
+    transport: ["trauring", "brautkleid", "catering"],
+    planner: ["trauring", "brautkleid"],
+    videography: ["catering", "trauring", "brautkleid"]
+  };
+  const negatives = categoryNegative[record.category] ?? [];
+  return !negatives.some((token) => corpus.includes(token));
 }
 
 function normalizeModeArg(value?: string | null): PipelineMode | null {
