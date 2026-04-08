@@ -386,7 +386,7 @@ img {
   display: grid;
   grid-template-columns: 312px minmax(0, 1fr);
   min-height: 100vh;
-  padding: 12.2rem 1.2rem 1.4rem;
+  padding: 11.6rem 1.2rem 1.4rem;
   gap: 1rem;
 }
 
@@ -395,19 +395,19 @@ img {
   align-self: start;
   justify-self: stretch;
   position: fixed;
-  inset: 0.75rem 1.2rem auto 1.2rem;
+  inset: 0 0 auto 0;
   min-height: 5rem;
   display: flex;
   align-items: flex-start;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.95rem 1.2rem;
-  background: rgba(255, 250, 244, 0.72);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 28px;
-  box-shadow: var(--atelier-shadow-soft);
+  padding: 0.95rem 1.2rem 1rem;
+  background: #f6efea;
+  backdrop-filter: none;
+  border-bottom: 1px solid rgba(212, 197, 185, 0.72);
+  border-radius: 0;
+  box-shadow: 0 8px 20px rgba(84, 68, 58, 0.08);
   z-index: 40;
 }
 
