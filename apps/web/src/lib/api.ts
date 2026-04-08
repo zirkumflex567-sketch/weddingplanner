@@ -354,10 +354,22 @@ function createApiPath(path: string) {
 }
 
 async function requestJson<T>(path: string, init?: RequestInit) {
-  const response = await fetch(createApiPath(path), {
+  let response = await fetch(createApiPath(path), {
     ...withAuthHeaders(init),
     cache: "no-store"
   });
+
+  if (response.status === 401 && !authToken) {
+    const storedToken = window.localStorage.getItem("wedding.idToken");
+
+    if (storedToken) {
+      setApiAuthToken(storedToken);
+      response = await fetch(createApiPath(path), {
+        ...withAuthHeaders(init),
+        cache: "no-store"
+      });
+    }
+  }
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -482,11 +494,24 @@ export function getWorkspace(id: string) {
 }
 
 export async function deleteWorkspace(id: string) {
-  const response = await fetch(createApiPath(`/prototype/workspaces/${id}`), {
+  let response = await fetch(createApiPath(`/prototype/workspaces/${id}`), {
     ...withAuthHeaders(),
     method: "DELETE",
     cache: "no-store"
   });
+
+  if (response.status === 401 && !authToken) {
+    const storedToken = window.localStorage.getItem("wedding.idToken");
+
+    if (storedToken) {
+      setApiAuthToken(storedToken);
+      response = await fetch(createApiPath(`/prototype/workspaces/${id}`), {
+        ...withAuthHeaders(),
+        method: "DELETE",
+        cache: "no-store"
+      });
+    }
+  }
 
   if (!response.ok) {
     if (response.status === 401) {
