@@ -672,6 +672,17 @@ img {
   align-items: start;
 }
 
+.page-hero--single h1 {
+  max-width: none;
+  font-size: clamp(2.1rem, 3vw, 3.8rem);
+  line-height: 1.03;
+  text-wrap: pretty;
+}
+
+.page-hero--single .page-copy {
+  max-width: 72ch;
+}
+
 .page-hero--single .primary-button,
 .page-hero--single .secondary-button {
   justify-self: start;
