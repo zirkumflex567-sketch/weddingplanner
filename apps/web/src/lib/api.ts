@@ -330,6 +330,24 @@ export interface ConsultantVoiceSynthesisResponse {
 
 const appBasePath = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 const apiBasePath = `${appBasePath}/api`;
+let authToken: string | null = null;
+
+export function setApiAuthToken(token: string | null) {
+  authToken = token;
+}
+
+function withAuthHeaders(init?: RequestInit): RequestInit {
+  const headers = new Headers(init?.headers);
+
+  if (authToken) {
+    headers.set("Authorization", `Bearer ${authToken}`);
+  }
+
+  return {
+    ...init,
+    headers
+  };
+}
 
 function createApiPath(path: string) {
   return `${apiBasePath}${path}`;
@@ -337,7 +355,7 @@ function createApiPath(path: string) {
 
 async function requestJson<T>(path: string, init?: RequestInit) {
   const response = await fetch(createApiPath(path), {
-    ...init,
+    ...withAuthHeaders(init),
     cache: "no-store"
   });
 
@@ -444,6 +462,7 @@ export function getWorkspace(id: string) {
 
 export async function deleteWorkspace(id: string) {
   const response = await fetch(createApiPath(`/prototype/workspaces/${id}`), {
+    ...withAuthHeaders(),
     method: "DELETE",
     cache: "no-store"
   });

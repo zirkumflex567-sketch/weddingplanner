@@ -44,6 +44,24 @@ export interface CreateExpenseInput {
   vendorName: string;
 }
 
+const expenseCategories = new Set<PrototypeExpense["category"]>([
+  "venue",
+  "photography",
+  "catering",
+  "music",
+  "florals",
+  "attire",
+  "stationery-admin"
+]);
+
+function normalizeExpenseInput(input: CreateExpenseInput): CreateExpenseInput {
+  return {
+    ...input,
+    label: input.label.trim(),
+    vendorName: input.vendorName.trim()
+  };
+}
+
 export interface UpdateVendorInput {
   stage: PrototypeVendorStage;
   quoteAmount: number | null;
@@ -51,16 +69,18 @@ export interface UpdateVendorInput {
 }
 
 export interface PrototypeWorkspaceStore {
-  listWorkspaces(): Promise<PrototypeWorkspaceProfile[]>;
-  createWorkspace(input: WeddingBootstrapInput): Promise<PrototypeWorkspace>;
-  getWorkspace(id: string): Promise<PrototypeWorkspace | null>;
-  deleteWorkspace(id: string): Promise<boolean>;
+  listWorkspaces(ownerId: string): Promise<PrototypeWorkspaceProfile[]>;
+  createWorkspace(ownerId: string, input: WeddingBootstrapInput): Promise<PrototypeWorkspace>;
+  getWorkspace(ownerId: string, id: string): Promise<PrototypeWorkspace | null>;
+  deleteWorkspace(ownerId: string, id: string): Promise<boolean>;
   updateWorkspace(
+    ownerId: string,
     id: string,
     input: WeddingBootstrapInput
   ): Promise<PrototypeWorkspace | null>;
-  addGuest(id: string, input: CreateGuestInput): Promise<PrototypeWorkspace | null>;
+  addGuest(ownerId: string, id: string, input: CreateGuestInput): Promise<PrototypeWorkspace | null>;
   updateGuest(
+    ownerId: string,
     workspaceId: string,
     guestId: string,
     input: UpdateGuestInput
@@ -71,15 +91,18 @@ export interface PrototypeWorkspaceStore {
     input: UpdateGuestInput
   ): Promise<PrototypePublicRsvpSession | null>;
   updateVendor(
+    ownerId: string,
     workspaceId: string,
     vendorId: string,
     input: UpdateVendorInput
   ): Promise<PrototypeWorkspace | null>;
   addExpense(
+    ownerId: string,
     workspaceId: string,
     input: CreateExpenseInput
   ): Promise<PrototypeWorkspace | null>;
   setTaskCompletion(
+    ownerId: string,
     workspaceId: string,
     taskId: string,
     completed: boolean
@@ -308,31 +331,48 @@ function projectWorkspaceProfiles(
 
 export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore {
   private readonly workspaces = new Map<string, PrototypeWorkspace>();
+  private readonly workspaceOwners = new Map<string, string>();
 
-  async listWorkspaces() {
+  async listWorkspaces(ownerId: string) {
     return projectWorkspaceProfiles(
-      [...this.workspaces.values()].map((workspace) =>
+      [...this.workspaces.values()]
+        .filter((workspace) => this.workspaceOwners.get(workspace.id) === ownerId)
+        .map((workspace) =>
         createPrototypeWorkspaceProfile(workspace)
-      )
+        )
     );
   }
 
-  async createWorkspace(input: WeddingBootstrapInput) {
+  async createWorkspace(ownerId: string, input: WeddingBootstrapInput) {
     const workspace = createWorkspaceRecord(input);
     this.workspaces.set(workspace.id, workspace);
+    this.workspaceOwners.set(workspace.id, ownerId);
     return cloneWorkspace(workspace);
   }
 
-  async getWorkspace(id: string) {
+  async getWorkspace(ownerId: string, id: string) {
+    if (this.workspaceOwners.get(id) !== ownerId) {
+      return null;
+    }
+
     const workspace = this.workspaces.get(id);
     return workspace ? cloneWorkspace(workspace) : null;
   }
 
-  async deleteWorkspace(id: string) {
+  async deleteWorkspace(ownerId: string, id: string) {
+    if (this.workspaceOwners.get(id) !== ownerId) {
+      return false;
+    }
+
+    this.workspaceOwners.delete(id);
     return this.workspaces.delete(id);
   }
 
-  async updateWorkspace(id: string, input: WeddingBootstrapInput) {
+  async updateWorkspace(ownerId: string, id: string, input: WeddingBootstrapInput) {
+    if (this.workspaceOwners.get(id) !== ownerId) {
+      return null;
+    }
+
     const workspace = this.workspaces.get(id);
 
     if (!workspace) {
@@ -358,7 +398,11 @@ export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore 
     return cloneWorkspace(workspace);
   }
 
-  async addGuest(id: string, input: CreateGuestInput) {
+  async addGuest(ownerId: string, id: string, input: CreateGuestInput) {
+    if (this.workspaceOwners.get(id) !== ownerId) {
+      return null;
+    }
+
     const workspace = this.workspaces.get(id);
 
     if (!workspace) {
@@ -374,7 +418,11 @@ export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore 
     return cloneWorkspace(workspace);
   }
 
-  async updateGuest(workspaceId: string, guestId: string, input: UpdateGuestInput) {
+  async updateGuest(ownerId: string, workspaceId: string, guestId: string, input: UpdateGuestInput) {
+    if (this.workspaceOwners.get(workspaceId) !== ownerId) {
+      return null;
+    }
+
     const workspace = this.workspaces.get(workspaceId);
 
     if (!workspace) {
@@ -424,7 +472,11 @@ export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore 
     return null;
   }
 
-  async updateVendor(workspaceId: string, vendorId: string, input: UpdateVendorInput) {
+  async updateVendor(ownerId: string, workspaceId: string, vendorId: string, input: UpdateVendorInput) {
+    if (this.workspaceOwners.get(workspaceId) !== ownerId) {
+      return null;
+    }
+
     const workspace = this.workspaces.get(workspaceId);
 
     if (!workspace) {
@@ -446,20 +498,26 @@ export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore 
     return cloneWorkspace(workspace);
   }
 
-  async addExpense(workspaceId: string, input: CreateExpenseInput) {
+  async addExpense(ownerId: string, workspaceId: string, input: CreateExpenseInput) {
+    if (this.workspaceOwners.get(workspaceId) !== ownerId) {
+      return null;
+    }
+
     const workspace = this.workspaces.get(workspaceId);
 
     if (!workspace) {
       return null;
     }
 
+    const normalizedInput = normalizeExpenseInput(input);
+
     const expense: PrototypeExpense = {
       id: randomUUID(),
-      label: input.label,
-      category: input.category,
-      amount: input.amount,
-      status: input.status,
-      vendorName: input.vendorName
+      label: normalizedInput.label,
+      category: normalizedInput.category,
+      amount: normalizedInput.amount,
+      status: normalizedInput.status,
+      vendorName: normalizedInput.vendorName
     };
 
     workspace.expenses.push(expense);
@@ -472,7 +530,11 @@ export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore 
     return cloneWorkspace(workspace);
   }
 
-  async setTaskCompletion(workspaceId: string, taskId: string, completed: boolean) {
+  async setTaskCompletion(ownerId: string, workspaceId: string, taskId: string, completed: boolean) {
+    if (this.workspaceOwners.get(workspaceId) !== ownerId) {
+      return null;
+    }
+
     const workspace = this.workspaces.get(workspaceId);
 
     if (!workspace) {
@@ -495,6 +557,7 @@ export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore 
 
 interface PersistedPrototypeState {
   workspaces: PrototypeWorkspace[];
+  workspaceOwners: Record<string, string>;
 }
 
 export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
@@ -504,14 +567,24 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
     try {
       const raw = await readFile(this.filePath, "utf8");
       const parsed = JSON.parse(raw) as PersistedPrototypeState;
+      const normalizedWorkspaces = (parsed.workspaces ?? []).map((workspace) =>
+        normalizeWorkspace(workspace)
+      );
+      const workspaceOwners = { ...(parsed.workspaceOwners ?? {}) };
+
+      for (const workspace of normalizedWorkspaces) {
+        if (!workspaceOwners[workspace.id]) {
+          workspaceOwners[workspace.id] =
+            process.env.NODE_ENV === "test" ? "test-user" : "legacy-unassigned";
+        }
+      }
 
       return {
-        workspaces: (parsed.workspaces ?? []).map((workspace) =>
-          normalizeWorkspace(workspace)
-        )
+        workspaces: normalizedWorkspaces,
+        workspaceOwners
       };
     } catch {
-      return { workspaces: [] };
+      return { workspaces: [], workspaceOwners: {} };
     }
   }
 
@@ -520,42 +593,61 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
     await writeFile(this.filePath, JSON.stringify(state, null, 2), "utf8");
   }
 
-  async listWorkspaces() {
+  async listWorkspaces(ownerId: string) {
     const state = await this.readState();
 
     return projectWorkspaceProfiles(
-      state.workspaces.map((workspace) => createPrototypeWorkspaceProfile(workspace))
+      state.workspaces
+        .filter((workspace) => state.workspaceOwners[workspace.id] === ownerId)
+        .map((workspace) => createPrototypeWorkspaceProfile(workspace))
     );
   }
 
-  async createWorkspace(input: WeddingBootstrapInput) {
+  async createWorkspace(ownerId: string, input: WeddingBootstrapInput) {
     const state = await this.readState();
     const workspace = createWorkspaceRecord(input);
     state.workspaces.push(workspace);
+    state.workspaceOwners[workspace.id] = ownerId;
     await this.writeState(state);
     return cloneWorkspace(workspace);
   }
 
-  async getWorkspace(id: string) {
+  async getWorkspace(ownerId: string, id: string) {
     const state = await this.readState();
+
+    if (state.workspaceOwners[id] !== ownerId) {
+      return null;
+    }
+
     const workspace = state.workspaces.find((entry) => entry.id === id);
     return workspace ? cloneWorkspace(workspace) : null;
   }
 
-  async deleteWorkspace(id: string) {
+  async deleteWorkspace(ownerId: string, id: string) {
     const state = await this.readState();
+
+    if (state.workspaceOwners[id] !== ownerId) {
+      return false;
+    }
+
     const nextWorkspaces = state.workspaces.filter((entry) => entry.id !== id);
 
     if (nextWorkspaces.length === state.workspaces.length) {
       return false;
     }
 
-    await this.writeState({ workspaces: nextWorkspaces });
+    delete state.workspaceOwners[id];
+    await this.writeState({ workspaces: nextWorkspaces, workspaceOwners: state.workspaceOwners });
     return true;
   }
 
-  async updateWorkspace(id: string, input: WeddingBootstrapInput) {
+  async updateWorkspace(ownerId: string, id: string, input: WeddingBootstrapInput) {
     const state = await this.readState();
+
+    if (state.workspaceOwners[id] !== ownerId) {
+      return null;
+    }
+
     const workspace = state.workspaces.find((entry) => entry.id === id);
 
     if (!workspace) {
@@ -582,8 +674,13 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
     return cloneWorkspace(workspace);
   }
 
-  async addGuest(id: string, input: CreateGuestInput) {
+  async addGuest(ownerId: string, id: string, input: CreateGuestInput) {
     const state = await this.readState();
+
+    if (state.workspaceOwners[id] !== ownerId) {
+      return null;
+    }
+
     const workspace = state.workspaces.find((entry) => entry.id === id);
 
     if (!workspace) {
@@ -600,8 +697,13 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
     return cloneWorkspace(workspace);
   }
 
-  async updateGuest(workspaceId: string, guestId: string, input: UpdateGuestInput) {
+  async updateGuest(ownerId: string, workspaceId: string, guestId: string, input: UpdateGuestInput) {
     const state = await this.readState();
+
+    if (state.workspaceOwners[workspaceId] !== ownerId) {
+      return null;
+    }
+
     const workspace = state.workspaces.find((entry) => entry.id === workspaceId);
 
     if (!workspace) {
@@ -657,8 +759,13 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
     return null;
   }
 
-  async updateVendor(workspaceId: string, vendorId: string, input: UpdateVendorInput) {
+  async updateVendor(ownerId: string, workspaceId: string, vendorId: string, input: UpdateVendorInput) {
     const state = await this.readState();
+
+    if (state.workspaceOwners[workspaceId] !== ownerId) {
+      return null;
+    }
+
     const workspace = state.workspaces.find((entry) => entry.id === workspaceId);
 
     if (!workspace) {
@@ -681,21 +788,28 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
     return cloneWorkspace(workspace);
   }
 
-  async addExpense(workspaceId: string, input: CreateExpenseInput) {
+  async addExpense(ownerId: string, workspaceId: string, input: CreateExpenseInput) {
     const state = await this.readState();
+
+    if (state.workspaceOwners[workspaceId] !== ownerId) {
+      return null;
+    }
+
     const workspace = state.workspaces.find((entry) => entry.id === workspaceId);
 
     if (!workspace) {
       return null;
     }
 
+    const normalizedInput = normalizeExpenseInput(input);
+
     const expense: PrototypeExpense = {
       id: randomUUID(),
-      label: input.label,
-      category: input.category,
-      amount: input.amount,
-      status: input.status,
-      vendorName: input.vendorName
+      label: normalizedInput.label,
+      category: normalizedInput.category,
+      amount: normalizedInput.amount,
+      status: normalizedInput.status,
+      vendorName: normalizedInput.vendorName
     };
 
     workspace.expenses.push(expense);
@@ -709,8 +823,13 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
     return cloneWorkspace(workspace);
   }
 
-  async setTaskCompletion(workspaceId: string, taskId: string, completed: boolean) {
+  async setTaskCompletion(ownerId: string, workspaceId: string, taskId: string, completed: boolean) {
     const state = await this.readState();
+
+    if (state.workspaceOwners[workspaceId] !== ownerId) {
+      return null;
+    }
+
     const workspace = state.workspaces.find((entry) => entry.id === workspaceId);
 
     if (!workspace) {
@@ -795,8 +914,12 @@ export function isCreateExpenseInput(value: unknown): value is CreateExpenseInpu
 
   return (
     typeof candidate.label === "string" &&
+    candidate.label.trim().length > 0 &&
     typeof candidate.category === "string" &&
+    expenseCategories.has(candidate.category as PrototypeExpense["category"]) &&
     typeof candidate.amount === "number" &&
+    Number.isFinite(candidate.amount) &&
+    candidate.amount > 0 &&
     (status === "planned" || status === "booked" || status === "paid") &&
     typeof candidate.vendorName === "string"
   );

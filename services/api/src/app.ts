@@ -38,6 +38,13 @@ import {
   isVendorRefreshRequest,
   type VendorRefreshStore
 } from "./vendor-refresh-store";
+import { authenticateRequest, type AuthenticatedUser } from "./auth";
+
+declare module "fastify" {
+  interface FastifyRequest {
+    authUser?: AuthenticatedUser;
+  }
+}
 
 interface BuildAppOptions {
   workspaceStore?: PrototypeWorkspaceStore;
@@ -138,6 +145,23 @@ export function buildApp(options: BuildAppOptions = {}) {
 
   app.register(cors, {
     origin: true
+  });
+
+  app.addHook("preHandler", async (request, reply) => {
+    if (!request.url.startsWith("/prototype")) {
+      return;
+    }
+
+    const authUser = await authenticateRequest(
+      request.headers.authorization,
+      request.headers["x-test-user"] as string | undefined
+    );
+
+    if (!authUser) {
+      return reply.code(401).send({ error: "Authentication required" });
+    }
+
+    request.authUser = authUser;
   });
 
   app.get("/health", async () => ({
@@ -333,20 +357,20 @@ export function buildApp(options: BuildAppOptions = {}) {
       });
     }
 
-    const workspace = await workspaceStore.createWorkspace(request.body);
+    const workspace = await workspaceStore.createWorkspace(request.authUser!.id, request.body);
 
     return reply.code(201).send({ workspace });
   });
 
-  app.get("/prototype/workspaces", async () => {
-    const profiles = await workspaceStore.listWorkspaces();
+  app.get("/prototype/workspaces", async (request) => {
+    const profiles = await workspaceStore.listWorkspaces(request.authUser!.id);
 
     return { profiles };
   });
 
   app.get("/prototype/workspaces/:id", async (request, reply) => {
     const params = request.params as { id: string };
-    const workspace = await workspaceStore.getWorkspace(params.id);
+    const workspace = await workspaceStore.getWorkspace(request.authUser!.id, params.id);
 
     if (!workspace) {
       return reply.code(404).send({ error: "Workspace not found" });
@@ -357,7 +381,7 @@ export function buildApp(options: BuildAppOptions = {}) {
 
   app.delete("/prototype/workspaces/:id", async (request, reply) => {
     const params = request.params as { id: string };
-    const deleted = await workspaceStore.deleteWorkspace(params.id);
+    const deleted = await workspaceStore.deleteWorkspace(request.authUser!.id, params.id);
 
     if (!deleted) {
       return reply.code(404).send({ error: "Workspace not found" });
@@ -375,7 +399,11 @@ export function buildApp(options: BuildAppOptions = {}) {
       });
     }
 
-    const workspace = await workspaceStore.updateWorkspace(params.id, request.body);
+    const workspace = await workspaceStore.updateWorkspace(
+      request.authUser!.id,
+      params.id,
+      request.body
+    );
 
     if (!workspace) {
       return reply.code(404).send({ error: "Workspace not found" });
@@ -391,7 +419,7 @@ export function buildApp(options: BuildAppOptions = {}) {
       return reply.code(400).send({ error: "Invalid guest payload" });
     }
 
-    const workspace = await workspaceStore.addGuest(params.id, request.body);
+    const workspace = await workspaceStore.addGuest(request.authUser!.id, params.id, request.body);
 
     if (!workspace) {
       return reply.code(404).send({ error: "Workspace not found" });
@@ -408,6 +436,7 @@ export function buildApp(options: BuildAppOptions = {}) {
     }
 
     const workspace = await workspaceStore.updateGuest(
+      request.authUser!.id,
       params.id,
       params.guestId,
       request.body
@@ -449,7 +478,7 @@ export function buildApp(options: BuildAppOptions = {}) {
 
   app.get("/prototype/consultant/sessions/:workspaceId", async (request, reply) => {
     const params = request.params as { workspaceId: string };
-    const workspace = await workspaceStore.getWorkspace(params.workspaceId);
+    const workspace = await workspaceStore.getWorkspace(request.authUser!.id, params.workspaceId);
 
     if (!workspace) {
       return reply.code(404).send({ error: "Workspace not found" });
@@ -475,7 +504,7 @@ export function buildApp(options: BuildAppOptions = {}) {
       return reply.code(400).send({ error: "Workspace id is required" });
     }
 
-    let workspace = await workspaceStore.getWorkspace(workspaceId);
+    let workspace = await workspaceStore.getWorkspace(request.authUser!.id, workspaceId);
 
     if (!workspace) {
       return reply.code(404).send({ error: "Workspace not found" });
@@ -508,6 +537,7 @@ export function buildApp(options: BuildAppOptions = {}) {
     if (assistantMode === "operator") {
       const operatorResult = await applyOperatorMessageToWorkspace(
         workspaceStore,
+        request.authUser!.id,
         session,
         workspace,
         userMessage
@@ -593,7 +623,7 @@ export function buildApp(options: BuildAppOptions = {}) {
       return reply.code(400).send({ error: "Invalid expense payload" });
     }
 
-    const workspace = await workspaceStore.addExpense(params.id, request.body);
+    const workspace = await workspaceStore.addExpense(request.authUser!.id, params.id, request.body);
 
     if (!workspace) {
       return reply.code(404).send({ error: "Workspace not found" });
@@ -610,6 +640,7 @@ export function buildApp(options: BuildAppOptions = {}) {
     }
 
     const workspace = await workspaceStore.updateVendor(
+      request.authUser!.id,
       params.id,
       params.vendorId,
       request.body
@@ -630,6 +661,7 @@ export function buildApp(options: BuildAppOptions = {}) {
     }
 
     const workspace = await workspaceStore.setTaskCompletion(
+      request.authUser!.id,
       params.id,
       params.taskId,
       request.body.completed
@@ -886,6 +918,7 @@ function buildConsultantWorkspaceContext(
 
 async function applyOperatorMessageToWorkspace(
   workspaceStore: PrototypeWorkspaceStore,
+  ownerId: string,
   session: ConsultantSession,
   workspace: PrototypeWorkspace,
   userMessage: string
@@ -915,6 +948,7 @@ async function applyOperatorMessageToWorkspace(
     delete session.pendingConfirmation;
     if (pending.type === "vendor-stage") {
       const updatedWorkspace = await workspaceStore.updateVendor(
+        ownerId,
         workspace.id,
         pending.payload.vendorId,
         {
@@ -1005,7 +1039,7 @@ async function applyOperatorMessageToWorkspace(
     ].filter(Boolean);
     const detailText = detailParts.length > 0 ? ` (${detailParts.join(" | ")})` : "";
 
-    const withExpense = await workspaceStore.addExpense(workspace.id, {
+    const withExpense = await workspaceStore.addExpense(ownerId, workspace.id, {
       label: `Manuell ergänzt: ${manualVendorIntent.name}${detailText}`,
       category: manualVendorIntent.category,
       amount: 0,
@@ -1030,7 +1064,7 @@ async function applyOperatorMessageToWorkspace(
 
   const onboardingChanges = parseOnboardingUpdates(userMessage, workspace.onboarding);
   if (onboardingChanges) {
-    const updatedWorkspace = await workspaceStore.updateWorkspace(workspace.id, {
+    const updatedWorkspace = await workspaceStore.updateWorkspace(ownerId, workspace.id, {
       ...workspace.onboarding,
       ...onboardingChanges.patch
     });
@@ -1043,6 +1077,7 @@ async function applyOperatorMessageToWorkspace(
   const taskUpdate = findTaskIntent(userMessage, workspace.tasks);
   if (taskUpdate) {
     const updatedWorkspace = await workspaceStore.setTaskCompletion(
+      ownerId,
       workspace.id,
       taskUpdate.taskId,
       taskUpdate.completed
@@ -1070,6 +1105,7 @@ async function applyOperatorMessageToWorkspace(
     }
 
     const updatedWorkspace = await workspaceStore.updateVendor(
+      ownerId,
       workspace.id,
       vendorStageUpdate.vendorId,
       {
@@ -1086,7 +1122,7 @@ async function applyOperatorMessageToWorkspace(
 
   const expenseIntent = parseExpenseIntent(userMessage);
   if (expenseIntent) {
-    const updatedWorkspace = await workspaceStore.addExpense(workspace.id, expenseIntent);
+    const updatedWorkspace = await workspaceStore.addExpense(ownerId, workspace.id, expenseIntent);
     if (updatedWorkspace) {
       workspace = updatedWorkspace;
       changed.push(
@@ -1106,7 +1142,7 @@ async function applyOperatorMessageToWorkspace(
       };
     }
 
-    const updatedWorkspace = await workspaceStore.addGuest(workspace.id, {
+    const updatedWorkspace = await workspaceStore.addGuest(ownerId, workspace.id, {
       name: guestIntent.name,
       email: guestIntent.email,
       household: guestIntent.household ?? "Haushalt",
@@ -1127,7 +1163,7 @@ async function applyOperatorMessageToWorkspace(
     };
   }
 
-  const updated = await workspaceStore.updateWorkspace(workspace.id, {
+  const updated = await workspaceStore.updateWorkspace(ownerId, workspace.id, {
     ...workspace.onboarding,
     disabledVendorCategories: [...nextDisabled]
   });

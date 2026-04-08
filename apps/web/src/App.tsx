@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactElement } from "react";
 import type {
   BudgetCategory,
   GuidedPlanningStepId,
@@ -33,6 +33,7 @@ import {
   listWorkspaceProfiles,
   replyWithWeddingConsultant,
   setTaskCompleted,
+  setApiAuthToken,
   synthesizeWeddingConsultantVoice,
   transcribeWeddingConsultantVoice,
   updateGuestRsvp,
@@ -47,7 +48,6 @@ import { PublicRsvpPage } from "./PublicRsvpPage";
 import { IngestionCoveragePage } from "./IngestionCoveragePage";
 import "./app.css";
 import "./app-atelier.css";
-import "./app-v2.css";
 
 type FormState = {
   coupleName: string;
@@ -680,7 +680,7 @@ function ProfileForm({
   );
 }
 
-function DashboardApp({ isV2 = false }: { isV2?: boolean }) {
+function DashboardApp() {
   const [view, setView] = useState<AppView>("library");
   const [profiles, setProfiles] = useState<PrototypeWorkspaceProfile[]>([]);
   const [showCreateProfile, setShowCreateProfile] = useState(false);
@@ -1979,7 +1979,7 @@ function DashboardApp({ isV2 = false }: { isV2?: boolean }) {
     const lastProfile = profiles[0] ?? null;
 
     return (
-      <main className={`atelier-shell atelier-shell--library ${isV2 ? "atelier-shell--v2" : ""}`}>
+      <main className="atelier-shell atelier-shell--library">
         <section className="panel-surface library-hero-card">
           <div className="library-hero-copy">
             <p className="eyebrow">Wedding Consultant</p>
@@ -3663,7 +3663,7 @@ function DashboardApp({ isV2 = false }: { isV2?: boolean }) {
         <div
           className={`workspace-shell workspace-shell--${currentPage} ${
             mobileNavOpen ? "workspace-shell--mobile-nav-open" : ""
-          } ${isV2 ? "workspace-shell--v2" : ""}`}
+          }`}
         >
         <header className="workspace-topbar">
           <button
@@ -3921,9 +3921,13 @@ function DashboardApp({ isV2 = false }: { isV2?: boolean }) {
 }
 
 export default function App() {
+  if (/\/wedding\/v2\/?$/.test(window.location.pathname)) {
+    window.location.replace("/wedding/");
+    return null;
+  }
+
   const publicRsvpToken = getPublicRsvpTokenFromPath(window.location.pathname);
   const isCoveragePath = window.location.pathname.endsWith("/coverage");
-  const isV2Path = /\/wedding\/v2\/?$/.test(window.location.pathname);
   if (isCoveragePath) {
     return <IngestionCoveragePage />;
   }
@@ -3932,7 +3936,139 @@ export default function App() {
     return <PublicRsvpPage token={publicRsvpToken} />;
   }
 
-  return <DashboardApp isV2={isV2Path} />;
+  return (
+    <GoogleAuthGate>
+      <DashboardApp />
+    </GoogleAuthGate>
+  );
+}
+
+type GoogleAuthGateProps = {
+  children: ReactElement;
+};
+
+type GoogleCredentialResponse = {
+  credential?: string;
+};
+
+type GoogleAccounts = {
+  accounts: {
+    id: {
+      initialize(config: {
+        client_id: string;
+        callback: (response: GoogleCredentialResponse) => void;
+        auto_select?: boolean;
+      }): void;
+      renderButton(
+        element: HTMLElement,
+        options: {
+          theme?: "outline" | "filled_blue" | "filled_black";
+          size?: "large" | "medium" | "small";
+          text?: "signin_with" | "signup_with" | "continue_with" | "signin";
+          shape?: "rectangular" | "pill" | "circle" | "square";
+        }
+      ): void;
+    };
+  };
+};
+
+declare global {
+  interface Window {
+    google?: GoogleAccounts;
+  }
+}
+
+function GoogleAuthGate({ children }: GoogleAuthGateProps) {
+  const [idToken, setIdToken] = useState<string | null>(() =>
+    window.localStorage.getItem("wedding.idToken")
+  );
+  const [authError, setAuthError] = useState<string | null>(null);
+  const buttonHostRef = useRef<HTMLDivElement | null>(null);
+  const googleClientId =
+    import.meta.env.VITE_GOOGLE_CLIENT_ID ??
+    "669658333594-qoni0sjaj1egsa5egabjb91laie0k6fi.apps.googleusercontent.com";
+
+  useEffect(() => {
+    setApiAuthToken(idToken);
+  }, [idToken]);
+
+  useEffect(() => {
+    if (idToken || !buttonHostRef.current) {
+      return;
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://accounts.google.com/gsi/client"]'
+    );
+
+    function renderButton() {
+      if (!buttonHostRef.current || !window.google) {
+        return;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: (response: GoogleCredentialResponse) => {
+          if (!response.credential) {
+            setAuthError("Google-Login konnte nicht abgeschlossen werden.");
+            return;
+          }
+
+          window.localStorage.setItem("wedding.idToken", response.credential);
+          setIdToken(response.credential);
+          setAuthError(null);
+        },
+        auto_select: false
+      });
+
+      buttonHostRef.current.innerHTML = "";
+      window.google.accounts.id.renderButton(buttonHostRef.current, {
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "pill"
+      });
+    }
+
+    if (existingScript) {
+      if (window.google) {
+        renderButton();
+      } else {
+        existingScript.addEventListener("load", renderButton, { once: true });
+      }
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.addEventListener("load", renderButton, { once: true });
+    script.addEventListener("error", () => {
+      setAuthError("Google-Login konnte nicht geladen werden.");
+    });
+    document.head.appendChild(script);
+  }, [idToken, googleClientId]);
+
+  if (idToken) {
+    return children;
+  }
+
+  return (
+    <main className="atelier-shell atelier-shell--library">
+      <section className="panel-surface library-hero-card">
+        <div className="library-hero-copy">
+          <p className="eyebrow">Sicherer Zugang</p>
+          <h1>Login erforderlich</h1>
+          <p className="library-body-copy">
+            Melde dich mit Google an, damit du nur deine eigenen Buchungsprofile siehst.
+          </p>
+          <div ref={buttonHostRef} />
+          {authError ? <p className="error-text">{authError}</p> : null}
+        </div>
+      </section>
+    </main>
+  );
 }
 type BrowserSpeechRecognition = {
   continuous: boolean;
