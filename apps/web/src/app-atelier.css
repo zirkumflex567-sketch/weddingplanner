@@ -386,16 +386,20 @@ img {
   display: grid;
   grid-template-columns: 312px minmax(0, 1fr);
   min-height: 100vh;
-  padding: 6.4rem 1.2rem 1.4rem;
+  padding: 1.2rem 1.2rem 1.4rem;
   gap: 1rem;
 }
 
 .workspace-topbar {
-  position: fixed;
-  inset: 0.75rem 1.2rem auto 1.2rem;
+  grid-column: 1 / -1;
+  align-self: start;
+  justify-self: stretch;
+  position: sticky;
+  top: 0.75rem;
   min-height: 5rem;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 1rem;
   padding: 0.95rem 1.2rem;
@@ -499,9 +503,13 @@ img {
 }
 
 .workspace-rail {
+  grid-column: 1;
   position: sticky;
   top: 5.6rem;
   height: calc(100vh - 7rem);
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   padding: 1.2rem 1rem 1.2rem 1.1rem;
   display: grid;
   align-content: start;
@@ -511,6 +519,11 @@ img {
     linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 250, 245, 0.84)),
     rgba(255, 250, 245, 0.78);
   box-shadow: var(--atelier-shadow-soft);
+}
+
+.workspace-rail::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .rail-profile-card {
@@ -582,6 +595,7 @@ img {
 }
 
 .workspace-main {
+  grid-column: 2;
   padding: 0.2rem 0.4rem 5rem 0.2rem;
   display: grid;
   gap: 1.1rem;
@@ -595,6 +609,11 @@ img {
   border-radius: 28px;
   background: rgba(255, 250, 245, 0.56);
   box-shadow: var(--atelier-shadow-soft);
+}
+
+.step-ribbon--topbar {
+  width: 100%;
+  margin-top: 0.2rem;
 }
 
 .step-ribbon__item {
@@ -1180,7 +1199,8 @@ img {
 .consultant-drawer-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(22, 16, 14, 0.35);
+  background: rgba(16, 11, 9, 0.58);
+  backdrop-filter: blur(3px);
   display: grid;
   justify-items: end;
   padding: 1.2rem;
@@ -1457,6 +1477,7 @@ img {
   }
 
   .workspace-topbar {
+    position: fixed;
     inset: 0.5rem 0.5rem auto 0.5rem;
     padding: 0.8rem 0.9rem;
     z-index: 30;
@@ -1567,4 +1588,3 @@ img {
     transition: none !important;
   }
 }
-

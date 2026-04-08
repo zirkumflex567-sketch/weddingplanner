@@ -102,7 +102,7 @@ const pageLabelById: Record<AppPageId, string> = {
   timeline: "Timeline",
   vendors: "Vendors",
   budget: "Budget",
-  guests: "Gaeste",
+  guests: "Gäste",
   admin: "Admin"
 };
 
@@ -111,7 +111,7 @@ const pageShortLabelById: Record<AppPageId, string> = {
   timeline: "Plan",
   vendors: "Vendoren",
   budget: "Budget",
-  guests: "Gaeste",
+  guests: "Gäste",
   admin: "Admin"
 };
 
@@ -159,9 +159,9 @@ const initialInput: WeddingBootstrapInput = {
   plannedEvents: ["civil-ceremony", "celebration"],
   disabledVendorCategories: [],
   invitationCopy: {
-    headline: "{paar} freut sich auf eure Rueckmeldung",
+    headline: "{paar} freut sich auf eure Rückmeldung",
     body:
-      "{gast}, ihr seid eingeladen fuer {datum} in {ort}. Bitte gebt kurz Bescheid, ob ihr dabei seid und ob es Essenshinweise gibt.",
+      "{gast}, ihr seid eingeladen für {datum} in {ort}. Bitte gebt kurz Bescheid, ob ihr dabei seid und ob es Essenshinweise gibt.",
     footer: "Wir freuen uns sehr auf euch."
   }
 };
@@ -186,7 +186,7 @@ const optionalVendorCategoryOptions: Array<{
   {
     id: "catering",
     label: "Catering",
-    copy: "Deaktivieren, wenn Venue oder Familie das Essen uebernimmt."
+    copy: "Deaktivieren, wenn Venue oder Familie das Essen übernimmt."
   },
   {
     id: "music",
@@ -196,7 +196,7 @@ const optionalVendorCategoryOptions: Array<{
   {
     id: "florals",
     label: "Floristik",
-    copy: "Deaktivieren, wenn Deko/Blumen extern oder intern geklaert sind."
+    copy: "Deaktivieren, wenn Deko/Blumen extern oder intern geklärt sind."
   },
   {
     id: "attire",
@@ -237,7 +237,7 @@ const displayStepTitleById: Record<GuidedPlanningStepId, string> = {
   foundation: "Profilfundament",
   "venue-and-date": "Location-Shortlist",
   "core-vendors": "Kern-Vendoren",
-  "guest-experience": "Gaesteliste & RSVP",
+  "guest-experience": "Gästeliste & RSVP",
   "legal-admin": "Standesamt & Admin",
   "final-control-room": "Control Room"
 };
@@ -417,7 +417,7 @@ function resolveConsultationLane(
 }
 
 function formatProfileMeta(profile: PrototypeWorkspaceProfile) {
-  return `${profile.region} / ${profile.targetDate} / ${profile.guestCountTarget} Gaeste / ${profile.budgetTotal.toLocaleString("de-DE")} EUR`;
+  return `${profile.region} / ${profile.targetDate} / ${profile.guestCountTarget} Gäste / ${profile.budgetTotal.toLocaleString("de-DE")} EUR`;
 }
 
 function formatLongDate(value: string) {
@@ -498,9 +498,9 @@ function ProfileForm({
       </div>
       <div className="guided-two-up">
         <label>
-          Gaesteziel
+          Gästeziel
           <input
-            aria-label="Gaesteziel"
+            aria-label="Gästeziel"
             type="number"
             min="10"
             value={form.guestCountTarget}
@@ -530,9 +530,9 @@ function ProfileForm({
         </label>
       </div>
       <label>
-        Stilpraeferenzen
+        Stilpräferenzen
         <input
-          aria-label="Stilpraeferenzen"
+          aria-label="Stilpräferenzen"
           value={form.stylePreferences}
           onChange={(event) =>
             onChange((current) => ({ ...current, stylePreferences: event.target.value }))
@@ -613,7 +613,7 @@ function ProfileForm({
       </fieldset>
       {showInvitationFields ? (
         <fieldset className="guided-events guided-events--copy">
-          <legend>Einladungstext fuer RSVP</legend>
+          <legend>Einladungstext für RSVP</legend>
           <p className="guided-muted">
             Platzhalter: {"{paar}"}, {"{gast}"}, {"{datum}"}, {"{ort}"}, {"{events}"}
           </p>
@@ -729,6 +729,10 @@ function DashboardApp() {
   const activeStepId = consultationTurn?.stepId ?? guidedSession?.currentStepId ?? "foundation";
   const activeStep = guidedSession?.steps.find((step) => step.id === activeStepId) ?? null;
   const budgetCategories = workspace?.plan.budgetCategories ?? [];
+  const isExpenseDraftValid =
+    expenseDraft.label.trim().length > 0 &&
+    Number.isFinite(expenseDraft.amount) &&
+    expenseDraft.amount > 0;
   const totalBudget = workspace?.onboarding.budgetTotal ?? 0;
   const totalSpent =
     workspace?.expenses.reduce((sum, expense) => sum + expense.amount, 0) ?? 0;
@@ -913,6 +917,36 @@ function DashboardApp() {
   }, []);
 
   useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+
+    if (consultantOpen) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [consultantOpen]);
+
+  useEffect(() => {
+    if (!consultantOpen) {
+      return;
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setConsultantOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [consultantOpen]);
+
+  useEffect(() => {
     if (!workspace?.id) {
       return;
     }
@@ -1028,7 +1062,7 @@ function DashboardApp() {
       await refreshProfiles();
       setStatus("ready");
     } catch {
-      setError("Dieses Profil konnte gerade nicht geoeffnet werden.");
+      setError("Dieses Profil konnte gerade nicht geöffnet werden.");
       setStatus("ready");
     }
   }
@@ -1087,7 +1121,7 @@ function DashboardApp() {
 
   async function handleDeleteProfile(profile: PrototypeWorkspaceProfile) {
     const confirmed = window.confirm(
-      `Soll "${profile.coupleName}" wirklich geloescht werden?`
+      `Soll "${profile.coupleName}" wirklich gelöscht werden?`
     );
 
     if (!confirmed) {
@@ -1112,7 +1146,7 @@ function DashboardApp() {
       setMobileNavOpen(false);
       setStatus("ready");
     } catch {
-      setError("Das Profil konnte gerade nicht geloescht werden.");
+      setError("Das Profil konnte gerade nicht gelöscht werden.");
       setStatus("ready");
     }
   }
@@ -1184,6 +1218,11 @@ function DashboardApp() {
     event.preventDefault();
 
     if (!workspace) {
+      return;
+    }
+
+    if (!isExpenseDraftValid) {
+      setError("Bitte Budgeteintrag und Betrag größer als 0 ausfüllen.");
       return;
     }
 
@@ -1394,25 +1433,25 @@ function DashboardApp() {
       .join(", ");
     const subject = `Hochzeitsanfrage ${workspace.coupleName} - ${formatLongDate(
       workspace.onboarding.targetDate
-    )} - ca. ${workspace.onboarding.guestCountTarget} Gaeste`;
+    )} - ca. ${workspace.onboarding.guestCountTarget} Gäste`;
     const body = [
       `Liebes Team von ${vendor.name},`,
       "",
-      `wir planen unsere Hochzeit fuer den ${formatLongDate(
+      `wir planen unsere Hochzeit für den ${formatLongDate(
         workspace.onboarding.targetDate
-      )} und interessieren uns fuer ${vendor.name}.`,
+      )} und interessieren uns für ${vendor.name}.`,
       "",
       `Kurz zu unserem Rahmen:`,
       `- Paar: ${workspace.coupleName}`,
       `- Region: ${workspace.onboarding.region}`,
       `- Geplante Events: ${eventLabels}`,
-      `- Aktuelle Zielgroesse: ca. ${workspace.onboarding.guestCountTarget} Gaeste`,
+      `- Aktuelle Zielgröße: ca. ${workspace.onboarding.guestCountTarget} Gäste`,
       "",
-      `Koennt ihr uns bitte kurz Rueckmeldung geben zu:`,
-      `- Verfuegbarkeit am Wunschdatum`,
+      `Koennt ihr uns bitte kurz Rückmeldung geben zu:`,
+      `- Verfügbarkeit am Wunschdatum`,
       `- grobem Preisrahmen bzw. Angebot`,
       `- enthaltenen Leistungen`,
-      `- moeglichen naechsten Schritten fuer eine Anfrage oder Besichtigung`,
+      `- möglichen nächsten Schritten für eine Anfrage oder Besichtigung`,
       "",
       `Vielen Dank und herzliche Gruesse`,
       workspace.coupleName
@@ -1536,7 +1575,7 @@ function DashboardApp() {
           <label>
             Vendor-Status
             <select
-              aria-label={`Vendor-Status fuer ${vendor.name}`}
+              aria-label={`Vendor-Status für ${vendor.name}`}
               value={vendorDraft.stage}
               onChange={(event) =>
                 updateVendorDraft(vendor.id, {
@@ -1554,7 +1593,7 @@ function DashboardApp() {
           <label>
             Quote in EUR
             <input
-              aria-label={`Quote in EUR fuer ${vendor.name}`}
+              aria-label={`Quote in EUR für ${vendor.name}`}
               type="number"
               min="0"
               step="50"
@@ -1569,7 +1608,7 @@ function DashboardApp() {
           <label>
             Notiz
             <input
-              aria-label={`Notiz fuer ${vendor.name}`}
+              aria-label={`Notiz für ${vendor.name}`}
               value={vendorDraft.note}
               onChange={(event) =>
                 updateVendorDraft(vendor.id, {
@@ -1789,7 +1828,7 @@ function DashboardApp() {
       typeof navigator === "undefined" ||
       (!navigator.mediaDevices?.getUserMedia && typeof window === "undefined")
     ) {
-      setError("Sprachaufnahme wird in diesem Browser gerade nicht unterstuetzt.");
+      setError("Sprachaufnahme wird in diesem Browser gerade nicht unterstützt.");
       return;
     }
 
@@ -1846,7 +1885,7 @@ function DashboardApp() {
     }
 
     if (typeof MediaRecorder === "undefined" || !navigator.mediaDevices?.getUserMedia) {
-      setError("Weder Geraete-Diktat noch Mikrofonaufnahme werden hier unterstuetzt.");
+      setError("Weder Geräte-Diktat noch Mikrofonaufnahme werden hier unterstützt.");
       return;
     }
 
@@ -1909,7 +1948,7 @@ function DashboardApp() {
       recorder.start();
       setConsultationVoiceStatus("recording");
     } catch {
-      setError("Das Mikrofon konnte gerade nicht geoeffnet werden.");
+      setError("Das Mikrofon konnte gerade nicht geöffnet werden.");
       consultationShouldSpeakNextReplyRef.current = false;
     }
   }
@@ -1943,11 +1982,11 @@ function DashboardApp() {
         <section className="panel-surface library-hero-card">
           <div className="library-hero-copy">
             <p className="eyebrow">Wedding Consultant</p>
-            <h1>Eine kuratierte Planungsoberflaeche statt einer ueberschallten Checklistenwand.</h1>
+            <h1>Eine kuratierte Planungsoberfläche statt einer überschallten Checklistenwand.</h1>
             <p className="library-body-copy">
-              Ihr startet mit einem Profil, bekommt danach nur den jeweils sinnvollen naechsten
-              Schritt und behaltet Budget, Vendoren, Gaeste und RSVP in einer eleganten
-              Arbeitsoberflaeche zusammen.
+              Ihr startet mit einem Profil, bekommt danach nur den jeweils sinnvollen nächsten
+              Schritt und behaltet Budget, Vendoren, Gäste und RSVP in einer eleganten
+              Arbeitsoberfläche zusammen.
             </p>
             <div className="hero-button-row">
               <button
@@ -1968,7 +2007,7 @@ function DashboardApp() {
                   }
                 }}
               >
-                Letztes Profil oeffnen
+                Letztes Profil öffnen
               </button>
             </div>
           </div>
@@ -1982,16 +2021,16 @@ function DashboardApp() {
             <article className="library-metric-card">
               <p className="meta-label">Fortschritt</p>
               <strong>{finishedTasks}</strong>
-              <span>Tasks ueber alle Profile</span>
+              <span>Tasks über alle Profile</span>
             </article>
             <article className="library-metric-card">
-              <p className="meta-label">Gaeste im Blick</p>
+              <p className="meta-label">Gäste im Blick</p>
               <strong>{trackedGuests}</strong>
               <span>verfolgte Einladungen</span>
             </article>
             <span className={`source-pill source-pill--${status}`}>
               {status === "loading"
-                ? "Laedt"
+                ? "Lädt"
                 : status === "saving"
                   ? "Speichert"
                   : "Bereit"}
@@ -2015,7 +2054,7 @@ function DashboardApp() {
               {profiles.map((profile) => (
                 <article key={profile.id} className="library-profile-card">
                   <div className="library-profile-card__copy">
-                    <p className="meta-label">Naechster Fokus</p>
+                    <p className="meta-label">Nächster Fokus</p>
                     <strong>{profile.coupleName}</strong>
                     <p>{formatProfileMeta(profile)}</p>
                     <p className="library-profile-step">
@@ -2031,15 +2070,15 @@ function DashboardApp() {
                       className="secondary-button"
                       onClick={() => void openWorkspace(profile.id)}
                     >
-                      Profil oeffnen
+                      Profil öffnen
                     </button>
                     <button
                       type="button"
                       className="secondary-button secondary-button--danger"
-                      aria-label={`Profil loeschen ${profile.coupleName}`}
+                      aria-label={`Profil löschen ${profile.coupleName}`}
                       onClick={() => void handleDeleteProfile(profile)}
                     >
-                      Profil loeschen
+                      Profil löschen
                     </button>
                   </div>
                 </article>
@@ -2059,7 +2098,7 @@ function DashboardApp() {
                 <p className="eyebrow">Neues Profil</p>
                 <h2>Beratung vorbereiten</h2>
                 <p className="section-copy">
-                  Paarname, Datum, Region, Budget und Stilrichtungen reichen fuer einen
+                  Paarname, Datum, Region, Budget und Stilrichtungen reichen für einen
                   belastbaren Start in den Guided Flow.
                 </p>
               </div>
@@ -2079,8 +2118,8 @@ function DashboardApp() {
             ) : (
               <div className="library-briefing-card">
                 <p>
-                  Ihr koennt bestehende Profile wieder aufnehmen oder ein neues
-                  Beratungsprofil anlegen. Danach fuehrt euch der Consultant nur noch durch
+                  Ihr könnt bestehende Profile wieder aufnehmen oder ein neues
+                  Beratungsprofil anlegen. Danach führt euch der Consultant nur noch durch
                   den jeweils aktuellen Planungsschritt.
                 </p>
                 <div className="card-button-row">
@@ -2089,7 +2128,7 @@ function DashboardApp() {
                     className="secondary-button"
                     onClick={() => setShowCreateProfile(true)}
                   >
-                    Profilformular oeffnen
+                    Profilformular öffnen
                   </button>
                   <button
                     type="button"
@@ -2101,7 +2140,7 @@ function DashboardApp() {
                       }
                     }}
                   >
-                    Aktuellstes Profil oeffnen
+                    Aktuellstes Profil öffnen
                   </button>
                 </div>
               </div>
@@ -2123,7 +2162,7 @@ function DashboardApp() {
         <p className="guided-step-copy">
           Hier zieht ihr erst Venue, Stil und Budget sauber zusammen. Ihr seht die komplette
           lokale Venue-Auswahl mit Preisbild, Quellen und Freshness-Hinweisen, damit ihr
-          bewusst vergleichen koennt statt nur eine Mini-Shortlist anzustarren.
+          bewusst vergleichen könnt statt nur eine Mini-Shortlist anzustarren.
         </p>
         <p className="guided-muted">{workspace?.plan.vendorSearchStrategy.note}</p>
         <div className="guided-card-stack guided-card-stack--vendors">
@@ -2185,7 +2224,7 @@ function DashboardApp() {
                 onChange={(event) =>
                   setExpenseDraft((current) => ({
                     ...current,
-                    amount: Number(event.target.value)
+                    amount: event.target.valueAsNumber
                   }))
                 }
               />
@@ -2223,7 +2262,11 @@ function DashboardApp() {
               />
             </label>
           </div>
-          <button type="submit" className="secondary-button" disabled={status === "saving"}>
+          <button
+            type="submit"
+            className="secondary-button"
+            disabled={status === "saving" || !isExpenseDraftValid}
+          >
             Budgeteintrag speichern
           </button>
         </form>
@@ -2380,7 +2423,7 @@ function DashboardApp() {
               </div>
             ) : (
               <p className="empty-state guided-filter-empty">
-                Fuer diesen Filter ist gerade kein Anbieter sichtbar. Nimm Suche oder Sichtfilter
+                Für diesen Filter ist gerade kein Anbieter sichtbar. Nimm Suche oder Sichtfilter
                 etwas weiter auf.
               </p>
             )}
@@ -2401,9 +2444,9 @@ function DashboardApp() {
         <header className="page-hero">
           <div>
             <p className="eyebrow">Ihre Hochzeitsgesellschaft</p>
-            <h1>Gaesteliste mit RSVP, Essenswuenschen und direktem Selbstservice.</h1>
+            <h1>Gästeliste mit RSVP, Essenswünschen und direktem Selbstservice.</h1>
             <p className="page-copy">
-              Alles bleibt in einem Fluss: neue Gaeste anlegen, Status aendern, oeffentliche
+              Alles bleibt in einem Fluss: neue Gäste anlegen, Status ändern, öffentliche
               RSVP-Links versenden und Antworten ohne Reload-Chaos wieder in den Workspace holen.
             </p>
           </div>
@@ -2421,7 +2464,7 @@ function DashboardApp() {
 
         <section className="toolbar-row">
           <label className="search-field">
-            <span>Gaeste durchsuchen</span>
+            <span>Gäste durchsuchen</span>
             <input
               type="search"
               value={guestSearch}
@@ -2560,7 +2603,7 @@ function DashboardApp() {
                 <h2>RSVP-Lage in Echtzeit</h2>
               </div>
               <p className="section-copy">
-                {filteredGuests.length} von {workspace?.guestSummary.total ?? 0} Gaesten sichtbar
+                {filteredGuests.length} von {workspace?.guestSummary.total ?? 0} Gästen sichtbar
               </p>
             </div>
             <div className="guest-summary-pills">
@@ -2629,14 +2672,14 @@ function DashboardApp() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    RSVP-Link oeffnen
+                    RSVP-Link öffnen
                   </a>
                 </article>
               ))}
 
               {!filteredGuests.length ? (
                 <p className="empty-state">
-                  Fuer diesen Filter ist gerade kein Gast sichtbar.
+                  Für diesen Filter ist gerade kein Gast sichtbar.
                 </p>
               ) : null}
             </div>
@@ -2649,7 +2692,7 @@ function DashboardApp() {
                 <h2>Saalplan mit runden und eckigen Tischen</h2>
               </div>
               <p className="section-copy">
-                Tische anlegen, Kapazitaeten setzen und Gaeste direkt den Plaetzen zuordnen.
+                Tische anlegen, Kapazitaeten setzen und Gäste direkt den Plaetzen zuordnen.
               </p>
             </div>
             <form className="guided-form guided-form--compact" onSubmit={handleSeatTableSubmit}>
@@ -2726,7 +2769,7 @@ function DashboardApp() {
               {(workspace?.seatingPlan.tables ?? []).length === 0 ? (
                 <p className="empty-state guided-filter-empty">
                   Noch keine Tische angelegt. Startet mit euren Grundformen und weist danach die
-                  ersten Gaeste zu.
+                  ersten Gäste zu.
                 </p>
               ) : null}
             </div>
@@ -2874,7 +2917,7 @@ function DashboardApp() {
           "Venue, Stil und Preisbild in einem ruhigen Vergleich zusammenziehen.",
         image:
           "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2098&auto=format&fit=crop",
-        buttonLabel: "Venue-Desk oeffnen",
+        buttonLabel: "Venue-Desk öffnen",
         action: () =>
           goToPage("vendors", {
             stepId: "venue-and-date",
@@ -2889,7 +2932,7 @@ function DashboardApp() {
           "Fristen, Dokumente und Erinnerungen liegen gesammelt im Admin-Bereich.",
         image:
           "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=2070&auto=format&fit=crop",
-        buttonLabel: "Admin-Fokus oeffnen",
+        buttonLabel: "Admin-Fokus öffnen",
         action: () =>
           goToPage("admin", {
             stepId: "legal-admin",
@@ -2901,7 +2944,7 @@ function DashboardApp() {
         title: "Foto & Stil",
         copy:
           photoLead?.reasonSummary ??
-          "Stilpraeferenzen, Portfolio-Links und Fit-Scores bleiben direkt an den Vendoren.",
+          "Stilpräferenzen, Portfolio-Links und Fit-Scores bleiben direkt an den Vendoren.",
         image:
           "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2069&auto=format&fit=crop",
         buttonLabel: "Fotografie filtern",
@@ -2923,7 +2966,7 @@ function DashboardApp() {
             <p className="page-copy">
               {workspace?.onboarding.region} / {formatLongDate(workspace?.onboarding.targetDate ?? "")}
               {" / "}
-              {workspace?.onboarding.guestCountTarget ?? 0} Gaeste / {formatCurrency(totalBudget)}
+              {workspace?.onboarding.guestCountTarget ?? 0} Gäste / {formatCurrency(totalBudget)}
             </p>
             <p className="hero-stage__note">{guidedSession?.headline}</p>
             <div className="hero-button-row">
@@ -2936,7 +2979,7 @@ function DashboardApp() {
                   })
                 }
               >
-                {displayStepTitleById[activeStepId]} oeffnen
+                {displayStepTitleById[activeStepId]} öffnen
               </button>
               <button
                 type="button"
@@ -2948,7 +2991,7 @@ function DashboardApp() {
                   })
                 }
               >
-                Concierge oeffnen
+                Concierge öffnen
               </button>
             </div>
           </div>
@@ -2973,7 +3016,7 @@ function DashboardApp() {
             <span>{Math.round(budgetUsage)} % des gesetzten Rahmens</span>
           </article>
           <article className="stat-card-panel">
-            <p className="meta-label">Gaeste beantwortet</p>
+            <p className="meta-label">Gäste beantwortet</p>
             <strong>{Math.round(guestResponseRatio)} %</strong>
             <span>
               {workspace?.guestSummary.attending ?? 0} Zusagen / {workspace?.guestSummary.pending ?? 0} offen
@@ -2996,8 +3039,8 @@ function DashboardApp() {
         <section className="page-section">
           <div className="section-headline">
             <div>
-              <p className="eyebrow">Naechste Meilensteine</p>
-              <h2>Die drei Dinge, die gerade wirklich zaehlen</h2>
+              <p className="eyebrow">Nächste Meilensteine</p>
+              <h2>Die drei Dinge, die gerade wirklich zählen</h2>
             </div>
           </div>
 
@@ -3049,7 +3092,7 @@ function DashboardApp() {
                   className="secondary-button"
                   onClick={() => goToPage("budget", { sectionId: "budget-editor" })}
                 >
-                  Budget-Desk oeffnen
+                  Budget-Desk öffnen
                 </button>
               </div>
             </div>
@@ -3059,7 +3102,7 @@ function DashboardApp() {
             <div className="section-headline">
               <div>
                 <p className="eyebrow">Rechtliches & Kontrolle</p>
-                <h2>Fristen, die nicht untergehen duerfen</h2>
+                <h2>Fristen, die nicht untergehen dürfen</h2>
               </div>
               <button
                 type="button"
@@ -3071,7 +3114,7 @@ function DashboardApp() {
                   })
                 }
               >
-                Admin oeffnen
+                Admin öffnen
               </button>
             </div>
             <div className="timeline-mini-list">
@@ -3093,7 +3136,7 @@ function DashboardApp() {
                 })
               }
             >
-              Ask Co-Pilot fuer Fristen
+              Ask Co-Pilot für Fristen
             </button>
           </section>
         </div>
@@ -3110,7 +3153,7 @@ function DashboardApp() {
             <h1>Jeder Schritt bekommt seinen eigenen, lesbaren Raum.</h1>
             <p className="page-copy">
               Statt alles gleichzeitig zu sehen, lauft ihr durch einen klaren Zeitpfad:
-              Fundament, Venue, Vendoren, Gaeste, Admin und finaler Control Room.
+              Fundament, Venue, Vendoren, Gäste, Admin und finaler Control Room.
             </p>
           </div>
         </header>
@@ -3145,7 +3188,7 @@ function DashboardApp() {
                       })
                     }
                   >
-                    Schritt oeffnen
+                    Schritt öffnen
                   </button>
                   <button
                     type="button"
@@ -3181,7 +3224,7 @@ function DashboardApp() {
                 })
               }
             >
-              Control Room oeffnen
+              Control Room öffnen
             </button>
           </div>
           <div className="blueprint-grid">
@@ -3213,7 +3256,7 @@ function DashboardApp() {
         key: "venue",
         label: "Locations",
         title: venueLead?.name ?? "Venue-Shortlist",
-        copy: venueLead?.reasonSummary ?? "Kompletter Vergleich fuer Ort, Preis und Quellenlage.",
+        copy: venueLead?.reasonSummary ?? "Kompletter Vergleich für Ort, Preis und Quellenlage.",
         image:
           "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2098&auto=format&fit=crop",
         action: () =>
@@ -3273,7 +3316,7 @@ function DashboardApp() {
               })
             }
           >
-            Concierge fuer Vendoren oeffnen
+            Concierge für Vendoren öffnen
           </button>
         </header>
 
@@ -3291,7 +3334,7 @@ function DashboardApp() {
                   className="secondary-button secondary-button--ghost"
                   onClick={item.action}
                 >
-                  Bereich oeffnen
+                  {item.label} öffnen
                 </button>
               </div>
             </article>
@@ -3700,6 +3743,32 @@ function DashboardApp() {
               Menue
             </button>
           </div>
+
+          <section className="step-ribbon step-ribbon--topbar">
+            {guidedSession.steps.map((step) => (
+              <button
+                key={step.id}
+                type="button"
+                className={`step-ribbon__item step-ribbon__item--${step.status} ${
+                  activeStepId === step.id ? "step-ribbon__item--active" : ""
+                }`}
+                onClick={() =>
+                  goToPage(pageForStepById[step.id], {
+                    stepId: step.id
+                  })
+                }
+              >
+                <span>{displayStepTitleById[step.id]}</span>
+                <small>
+                  {step.status === "done"
+                    ? "Erledigt"
+                    : step.status === "active"
+                      ? "Jetzt dran"
+                      : "Später"}
+                </small>
+              </button>
+            ))}
+          </section>
         </header>
 
         {/*
@@ -3728,7 +3797,7 @@ function DashboardApp() {
             <strong>{displayStepTitleById[activeStepId]}</strong>
             <p>
               {activeStep.summary ??
-                "Die naechste Aufgabe bleibt direkt griffbereit im Workspace."}
+                "Die nächste Aufgabe bleibt direkt griffbereit im Workspace."}
             </p>
             <button
               type="button"
@@ -3772,32 +3841,6 @@ function DashboardApp() {
         </aside>
 
         <main className="workspace-main">
-          <section className="step-ribbon">
-            {guidedSession.steps.map((step) => (
-              <button
-                key={step.id}
-                type="button"
-                className={`step-ribbon__item step-ribbon__item--${step.status} ${
-                  activeStepId === step.id ? "step-ribbon__item--active" : ""
-                }`}
-                onClick={() =>
-                  goToPage(pageForStepById[step.id], {
-                    stepId: step.id
-                  })
-                }
-              >
-                <span>{displayStepTitleById[step.id]}</span>
-                <small>
-                  {step.status === "done"
-                    ? "Erledigt"
-                    : step.status === "active"
-                      ? "Jetzt dran"
-                      : "Spaeter"}
-                </small>
-              </button>
-            ))}
-          </section>
-
           {error ? <p className="error-text workspace-error">{error}</p> : null}
 
           {renderCurrentPage()}
@@ -3820,9 +3863,16 @@ function DashboardApp() {
         </nav>
 
         {consultantOpen ? (
-          <div className="consultant-drawer-backdrop" onClick={() => setConsultantOpen(false)}>
+          <div
+            className="consultant-drawer-backdrop"
+            onClick={() => setConsultantOpen(false)}
+            role="presentation"
+          >
             <div
               className="consultant-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Wedding Concierge"
               onClick={(event) => event.stopPropagation()}
             >
               <ConsultationPanel
@@ -3895,4 +3945,3 @@ type BrowserSpeechRecognition = {
   onerror: ((event: { error: string }) => void) | null;
   onend: (() => void) | null;
 };
-
