@@ -47,6 +47,7 @@ import { PublicRsvpPage } from "./PublicRsvpPage";
 import { IngestionCoveragePage } from "./IngestionCoveragePage";
 import "./app.css";
 import "./app-atelier.css";
+import "./app-v2.css";
 
 type FormState = {
   coupleName: string;
@@ -679,7 +680,7 @@ function ProfileForm({
   );
 }
 
-function DashboardApp() {
+function DashboardApp({ isV2 = false }: { isV2?: boolean }) {
   const [view, setView] = useState<AppView>("library");
   const [profiles, setProfiles] = useState<PrototypeWorkspaceProfile[]>([]);
   const [showCreateProfile, setShowCreateProfile] = useState(false);
@@ -1978,7 +1979,7 @@ function DashboardApp() {
     const lastProfile = profiles[0] ?? null;
 
     return (
-      <main className="atelier-shell atelier-shell--library">
+      <main className={`atelier-shell atelier-shell--library ${isV2 ? "atelier-shell--v2" : ""}`}>
         <section className="panel-surface library-hero-card">
           <div className="library-hero-copy">
             <p className="eyebrow">Wedding Consultant</p>
@@ -3659,11 +3660,11 @@ function DashboardApp() {
       workspace.onboarding.targetDate
     )}`;
     return (
-      <div
-        className={`workspace-shell workspace-shell--${currentPage} ${
-          mobileNavOpen ? "workspace-shell--mobile-nav-open" : ""
-        }`}
-      >
+        <div
+          className={`workspace-shell workspace-shell--${currentPage} ${
+            mobileNavOpen ? "workspace-shell--mobile-nav-open" : ""
+          } ${isV2 ? "workspace-shell--v2" : ""}`}
+        >
         <header className="workspace-topbar">
           <button
             type="button"
@@ -3922,7 +3923,7 @@ function DashboardApp() {
 export default function App() {
   const publicRsvpToken = getPublicRsvpTokenFromPath(window.location.pathname);
   const isCoveragePath = window.location.pathname.endsWith("/coverage");
-
+  const isV2Path = /\/wedding\/v2\/?$/.test(window.location.pathname);
   if (isCoveragePath) {
     return <IngestionCoveragePage />;
   }
@@ -3931,7 +3932,7 @@ export default function App() {
     return <PublicRsvpPage token={publicRsvpToken} />;
   }
 
-  return <DashboardApp />;
+  return <DashboardApp isV2={isV2Path} />;
 }
 type BrowserSpeechRecognition = {
   continuous: boolean;
