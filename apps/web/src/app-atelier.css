@@ -667,6 +667,16 @@ img {
   margin-inline: auto;
 }
 
+.page-hero--single {
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.page-hero--single .primary-button,
+.page-hero--single .secondary-button {
+  justify-self: start;
+}
+
 .hero-stat-row,
 .stat-grid,
 .milestone-grid,

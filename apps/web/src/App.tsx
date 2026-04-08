@@ -3297,7 +3297,7 @@ function DashboardApp() {
 
     return (
       <section className="page-stack">
-        <header className="page-hero">
+        <header className="page-hero page-hero--single">
           <div>
             <p className="eyebrow">Kuratiertes Ensemble</p>
             <h1>Venue-Shortlist und Kern-Vendoren im selben stilvollen Workspace.</h1>
@@ -3423,7 +3423,7 @@ function DashboardApp() {
 
     return (
       <section className="page-stack">
-        <header className="page-hero">
+        <header className="page-hero page-hero--single">
           <div>
             <p className="eyebrow">Finanzielles Fundament</p>
             <h1>Budgetplanung mit echtem Verbrauch statt reiner Wunschsumme.</h1>
