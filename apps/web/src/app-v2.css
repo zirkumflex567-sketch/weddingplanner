@@ -1,0 +1,141 @@
+.v2-shell {
+  min-height: 100vh;
+  padding: 2rem;
+  color: #1f1a18;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(182, 132, 112, 0.14), transparent 28%),
+    radial-gradient(circle at 88% 12%, rgba(118, 140, 131, 0.16), transparent 30%),
+    #f7f1ec;
+}
+
+.v2-topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid rgba(102, 84, 73, 0.18);
+  background: #fffaf6;
+  border-radius: 20px;
+  padding: 1.1rem 1.2rem;
+}
+
+.v2-kicker {
+  margin: 0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  color: #876f63;
+}
+
+.v2-topbar h1 {
+  margin: 0.2rem 0 0;
+  font-size: clamp(1.4rem, 2.5vw, 2.3rem);
+}
+
+.v2-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.v2-btn {
+  border: 0;
+  border-radius: 999px;
+  background: #8f5f70;
+  color: #fff;
+  padding: 0.62rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.v2-btn--ghost {
+  background: #fff;
+  color: #3f3330;
+  border: 1px solid rgba(95, 77, 69, 0.2);
+}
+
+.v2-main {
+  margin-top: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.v2-hero {
+  border-radius: 26px;
+  background: linear-gradient(130deg, rgba(255, 254, 252, 0.96), rgba(248, 242, 236, 0.94));
+  border: 1px solid rgba(102, 84, 73, 0.15);
+  padding: 1.3rem;
+}
+
+.v2-hero h2 {
+  margin: 0.25rem 0;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+}
+
+.v2-hero p {
+  margin: 0.25rem 0;
+  color: #5f5049;
+}
+
+.v2-hero-note {
+  margin-top: 0.6rem;
+  font-weight: 600;
+  color: #2f2724;
+}
+
+.v2-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.v2-card {
+  border-radius: 24px;
+  background: #fffaf6;
+  border: 1px solid rgba(102, 84, 73, 0.15);
+  padding: 1rem;
+}
+
+.v2-card h3 {
+  margin: 0 0 0.7rem;
+}
+
+.v2-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.v2-profile-item {
+  border: 1px solid rgba(102, 84, 73, 0.16);
+  border-radius: 16px;
+  background: #fff;
+  text-align: left;
+  padding: 0.7rem;
+  cursor: pointer;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.v2-profile-item strong {
+  font-size: 1rem;
+}
+
+.v2-profile-item span {
+  color: #6b5a52;
+  font-size: 0.88rem;
+}
+
+.v2-profile-item.is-active {
+  border-color: #9c6f60;
+  background: #f9f2ed;
+}
+
+@media (max-width: 980px) {
+  .v2-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .v2-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
