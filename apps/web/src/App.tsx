@@ -29,6 +29,7 @@ import {
   createWorkspace,
   deleteWorkspace,
   getWeddingConsultantSession,
+  getAuthenticatedUser,
   getWorkspace,
   listWorkspaceProfiles,
   replyWithWeddingConsultant,
@@ -4052,7 +4053,7 @@ function GoogleAuthGate({ children }: GoogleAuthGateProps) {
     window.localStorage.getItem("wedding.idToken")
   );
   const [authError, setAuthError] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null>(() => decodeGoogleEmail(idToken));
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const buttonHostRef = useRef<HTMLDivElement | null>(null);
   const googleClientId =
     import.meta.env.VITE_GOOGLE_CLIENT_ID ??
@@ -4060,6 +4061,37 @@ function GoogleAuthGate({ children }: GoogleAuthGateProps) {
 
   useEffect(() => {
     setApiAuthToken(idToken);
+  }, [idToken]);
+
+  useEffect(() => {
+    if (!idToken) {
+      setUserEmail(null);
+      return;
+    }
+
+    let active = true;
+
+    void (async () => {
+      try {
+        const response = await getAuthenticatedUser();
+
+        if (!active) {
+          return;
+        }
+
+        setUserEmail(response.user.email);
+      } catch {
+        if (!active) {
+          return;
+        }
+
+        setUserEmail(null);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
   }, [idToken]);
 
   useEffect(() => {
@@ -4100,7 +4132,6 @@ function GoogleAuthGate({ children }: GoogleAuthGateProps) {
 
           window.localStorage.setItem("wedding.idToken", response.credential);
           setIdToken(response.credential);
-          setUserEmail(decodeGoogleEmail(response.credential));
           setAuthError(null);
         },
         auto_select: false
@@ -4146,6 +4177,19 @@ function GoogleAuthGate({ children }: GoogleAuthGateProps) {
     return children({ userEmail, onLogout: handleLogout });
   }
 
+  if (idToken && !userEmail && !authError) {
+    return (
+      <main className="atelier-shell atelier-shell--library">
+        <section className="panel-surface library-hero-card">
+          <div className="library-hero-copy">
+            <p className="eyebrow">Sicherer Zugang</p>
+            <h1>Anmeldung wird geprüft...</h1>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="atelier-shell atelier-shell--library">
       <section className="panel-surface library-hero-card">
@@ -4161,27 +4205,6 @@ function GoogleAuthGate({ children }: GoogleAuthGateProps) {
       </section>
     </main>
   );
-}
-
-function decodeGoogleEmail(token: string | null): string | null {
-  if (!token) {
-    return null;
-  }
-
-  const parts = token.split(".");
-
-  if (parts.length < 2) {
-    return null;
-  }
-
-  try {
-    const payloadBase64 = parts[1]!.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = window.atob(payloadBase64);
-    const payload = JSON.parse(jsonPayload) as { email?: string };
-    return typeof payload.email === "string" ? payload.email : null;
-  } catch {
-    return null;
-  }
 }
 type BrowserSpeechRecognition = {
   continuous: boolean;

@@ -380,6 +380,16 @@ export function buildApp(options: BuildAppOptions = {}) {
     return { profiles };
   });
 
+  app.get("/prototype/auth/me", async (request) => {
+    return {
+      user: {
+        id: request.authUser!.id,
+        email: request.authUser!.email,
+        name: request.authUser!.name
+      }
+    };
+  });
+
   app.get("/prototype/workspaces/:id", async (request, reply) => {
     const params = request.params as { id: string };
     const workspace = await workspaceStore.getWorkspace(request.authUser!.id, params.id);

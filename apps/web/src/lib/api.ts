@@ -20,6 +20,14 @@ interface WorkspaceProfilesResponse {
   profiles: Array<PrototypeWorkspaceProfile & { ownerEmail: string | null; ownerId: string | null }>;
 }
 
+interface AuthMeResponse {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+}
+
 export interface VendorRefreshJob {
   id: string;
   createdAt: string;
@@ -411,6 +419,10 @@ export function listWorkspaceProfiles(input?: { all?: boolean; ownerEmail?: stri
 
   const suffix = params.toString().length > 0 ? `?${params.toString()}` : "";
   return requestJson<WorkspaceProfilesResponse>(`/prototype/workspaces${suffix}`);
+}
+
+export function getAuthenticatedUser() {
+  return requestJson<AuthMeResponse>("/prototype/auth/me");
 }
 
 export function listVendorRefreshJobs() {
