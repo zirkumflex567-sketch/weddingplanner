@@ -52,6 +52,8 @@ interface BuildAppOptions {
   vendorRefreshExecutor?: VendorRefreshExecutor;
 }
 
+const ADMIN_EMAIL = "zirkumlex666@gmail.com";
+
 type ConsultationAssistantMode = "consultant" | "operator";
 type ConsultationAssistantTier = "free" | "premium";
 
@@ -357,13 +359,23 @@ export function buildApp(options: BuildAppOptions = {}) {
       });
     }
 
-    const workspace = await workspaceStore.createWorkspace(request.authUser!.id, request.body);
+    const workspace = await workspaceStore.createWorkspace(
+      request.authUser!.id,
+      request.body,
+      request.authUser!.email
+    );
 
     return reply.code(201).send({ workspace });
   });
 
   app.get("/prototype/workspaces", async (request) => {
-    const profiles = await workspaceStore.listWorkspaces(request.authUser!.id);
+    const query = request.query as { all?: string; ownerEmail?: string };
+    const isAdmin = request.authUser!.email.toLowerCase() === ADMIN_EMAIL;
+    const includeAll = isAdmin && query.all === "1";
+    const profiles = await workspaceStore.listWorkspaces(request.authUser!.id, {
+      includeAll,
+      ...(includeAll && query.ownerEmail ? { ownerEmailFilter: query.ownerEmail } : {})
+    });
 
     return { profiles };
   });

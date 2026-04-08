@@ -680,9 +680,21 @@ function ProfileForm({
   );
 }
 
-function DashboardApp() {
+type WorkspaceLibraryProfile = PrototypeWorkspaceProfile & {
+  ownerEmail: string | null;
+  ownerId: string | null;
+};
+
+function DashboardApp({
+  currentUserEmail,
+  onLogout
+}: {
+  currentUserEmail: string;
+  onLogout: () => void;
+}) {
   const [view, setView] = useState<AppView>("library");
-  const [profiles, setProfiles] = useState<PrototypeWorkspaceProfile[]>([]);
+  const [profiles, setProfiles] = useState<WorkspaceLibraryProfile[]>([]);
+  const [adminOwnerEmailFilter, setAdminOwnerEmailFilter] = useState("");
   const [showCreateProfile, setShowCreateProfile] = useState(false);
   const [form, setForm] = useState<FormState>(() => toFormState(initialInput));
   const [workspace, setWorkspace] = useState<PrototypeWorkspace | null>(null);
@@ -725,6 +737,18 @@ function DashboardApp() {
   const consultationChunksRef = useRef<Blob[]>([]);
   const consultationAudioRef = useRef<HTMLAudioElement | null>(null);
   const consultationShouldSpeakNextReplyRef = useRef(false);
+  const isAdmin = currentUserEmail.toLowerCase() === "zirkumlex666@gmail.com";
+
+  async function refreshProfiles() {
+    const response = await listWorkspaceProfiles({
+      all: isAdmin,
+      ...(isAdmin && adminOwnerEmailFilter.trim().length > 0
+        ? { ownerEmail: adminOwnerEmailFilter }
+        : {})
+    });
+    setProfiles(response.profiles);
+    return response.profiles;
+  }
 
   const guidedSession = workspace ? createGuidedPlanningSession(workspace) : null;
   const activeStepId = consultationTurn?.stepId ?? guidedSession?.currentStepId ?? "foundation";
@@ -779,7 +803,12 @@ function DashboardApp() {
       setError(null);
 
       try {
-        const profileResponse = await listWorkspaceProfiles();
+        const profileResponse = await listWorkspaceProfiles({
+          all: isAdmin,
+          ...(isAdmin && adminOwnerEmailFilter.trim().length > 0
+            ? { ownerEmail: adminOwnerEmailFilter }
+            : {})
+        });
 
         if (cancelled) {
           return;
@@ -823,6 +852,14 @@ function DashboardApp() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!isAdmin || view !== "library") {
+      return;
+    }
+
+    void refreshProfiles();
+  }, [isAdmin, adminOwnerEmailFilter, view]);
 
   useEffect(() => {
     const availableCategories = coreVendorCategoryOrder.filter((category) =>
@@ -963,7 +1000,12 @@ function DashboardApp() {
       try {
         const [workspaceResponse, profileResponse, consultationSessionResponse] = await Promise.all([
           getWorkspace(workspaceId),
-          listWorkspaceProfiles(),
+          listWorkspaceProfiles({
+            all: isAdmin,
+            ...(isAdmin && adminOwnerEmailFilter.trim().length > 0
+              ? { ownerEmail: adminOwnerEmailFilter }
+              : {})
+          }),
           getWeddingConsultantSession(workspaceId).catch(() => null)
         ]);
 
@@ -1042,12 +1084,6 @@ function DashboardApp() {
     setMobileNavOpen(false);
     setGuestSearch("");
     setGuestFilterMode("all");
-  }
-
-  async function refreshProfiles() {
-    const response = await listWorkspaceProfiles();
-    setProfiles(response.profiles);
-    return response.profiles;
   }
 
   async function openWorkspace(workspaceId: string) {
@@ -2051,6 +2087,32 @@ function DashboardApp() {
               </div>
             </div>
 
+            {isAdmin ? (
+              <div className="toolbar-row toolbar-row--compact">
+                <label className="search-field">
+                  <span>Nach Login-E-Mail filtern</span>
+                  <input
+                    type="search"
+                    value={adminOwnerEmailFilter}
+                    onChange={(event) => setAdminOwnerEmailFilter(event.target.value)}
+                    placeholder="z. B. user@gmail.com"
+                  />
+                </label>
+                <div className="toolbar-actions">
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => setAdminOwnerEmailFilter("")}
+                  >
+                    Filter zurücksetzen
+                  </button>
+                  <button type="button" className="secondary-button" onClick={onLogout}>
+                    Logout
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
             <div className="library-profile-list">
               {profiles.map((profile) => (
                 <article key={profile.id} className="library-profile-card">
@@ -2064,6 +2126,11 @@ function DashboardApp() {
                     <p className="library-profile-progress">
                       {profile.progress.completedTasks}/{profile.progress.totalTasks} Tasks erledigt
                     </p>
+                    {isAdmin ? (
+                      <p className="library-profile-progress">
+                        Login: {profile.ownerEmail ?? "(unbekannt)"}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="card-button-row">
                     <button
@@ -3938,13 +4005,15 @@ export default function App() {
 
   return (
     <GoogleAuthGate>
-      <DashboardApp />
+      {({ userEmail, onLogout }) => (
+        <DashboardApp currentUserEmail={userEmail} onLogout={onLogout} />
+      )}
     </GoogleAuthGate>
   );
 }
 
 type GoogleAuthGateProps = {
-  children: ReactElement;
+  children: (props: { userEmail: string; onLogout: () => void }) => ReactElement;
 };
 
 type GoogleCredentialResponse = {
@@ -3983,6 +4052,7 @@ function GoogleAuthGate({ children }: GoogleAuthGateProps) {
     window.localStorage.getItem("wedding.idToken")
   );
   const [authError, setAuthError] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(() => decodeGoogleEmail(idToken));
   const buttonHostRef = useRef<HTMLDivElement | null>(null);
   const googleClientId =
     import.meta.env.VITE_GOOGLE_CLIENT_ID ??
@@ -3991,6 +4061,20 @@ function GoogleAuthGate({ children }: GoogleAuthGateProps) {
   useEffect(() => {
     setApiAuthToken(idToken);
   }, [idToken]);
+
+  useEffect(() => {
+    function handleExpiredAuth() {
+      setIdToken(null);
+      setUserEmail(null);
+      setAuthError("Deine Anmeldung ist abgelaufen. Bitte melde dich erneut an.");
+    }
+
+    window.addEventListener("wedding:auth-expired", handleExpiredAuth);
+
+    return () => {
+      window.removeEventListener("wedding:auth-expired", handleExpiredAuth);
+    };
+  }, []);
 
   useEffect(() => {
     if (idToken || !buttonHostRef.current) {
@@ -4016,6 +4100,7 @@ function GoogleAuthGate({ children }: GoogleAuthGateProps) {
 
           window.localStorage.setItem("wedding.idToken", response.credential);
           setIdToken(response.credential);
+          setUserEmail(decodeGoogleEmail(response.credential));
           setAuthError(null);
         },
         auto_select: false
@@ -4050,8 +4135,15 @@ function GoogleAuthGate({ children }: GoogleAuthGateProps) {
     document.head.appendChild(script);
   }, [idToken, googleClientId]);
 
-  if (idToken) {
-    return children;
+  function handleLogout() {
+    window.localStorage.removeItem("wedding.idToken");
+    setApiAuthToken(null);
+    setIdToken(null);
+    setUserEmail(null);
+  }
+
+  if (idToken && userEmail) {
+    return children({ userEmail, onLogout: handleLogout });
   }
 
   return (
@@ -4069,6 +4161,27 @@ function GoogleAuthGate({ children }: GoogleAuthGateProps) {
       </section>
     </main>
   );
+}
+
+function decodeGoogleEmail(token: string | null): string | null {
+  if (!token) {
+    return null;
+  }
+
+  const parts = token.split(".");
+
+  if (parts.length < 2) {
+    return null;
+  }
+
+  try {
+    const payloadBase64 = parts[1]!.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = window.atob(payloadBase64);
+    const payload = JSON.parse(jsonPayload) as { email?: string };
+    return typeof payload.email === "string" ? payload.email : null;
+  } catch {
+    return null;
+  }
 }
 type BrowserSpeechRecognition = {
   continuous: boolean;

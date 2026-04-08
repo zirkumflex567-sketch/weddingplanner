@@ -69,8 +69,15 @@ export interface UpdateVendorInput {
 }
 
 export interface PrototypeWorkspaceStore {
-  listWorkspaces(ownerId: string): Promise<PrototypeWorkspaceProfile[]>;
-  createWorkspace(ownerId: string, input: WeddingBootstrapInput): Promise<PrototypeWorkspace>;
+  listWorkspaces(
+    ownerId: string,
+    options?: { includeAll?: boolean; ownerEmailFilter?: string }
+  ): Promise<Array<PrototypeWorkspaceProfile & { ownerEmail: string | null; ownerId: string | null }>>;
+  createWorkspace(
+    ownerId: string,
+    input: WeddingBootstrapInput,
+    ownerEmail?: string
+  ): Promise<PrototypeWorkspace>;
   getWorkspace(ownerId: string, id: string): Promise<PrototypeWorkspace | null>;
   deleteWorkspace(ownerId: string, id: string): Promise<boolean>;
   updateWorkspace(
@@ -332,21 +339,42 @@ function projectWorkspaceProfiles(
 export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore {
   private readonly workspaces = new Map<string, PrototypeWorkspace>();
   private readonly workspaceOwners = new Map<string, string>();
+  private readonly workspaceOwnerEmails = new Map<string, string>();
 
-  async listWorkspaces(ownerId: string) {
-    return projectWorkspaceProfiles(
-      [...this.workspaces.values()]
-        .filter((workspace) => this.workspaceOwners.get(workspace.id) === ownerId)
-        .map((workspace) =>
-        createPrototypeWorkspaceProfile(workspace)
-        )
+  async listWorkspaces(
+    ownerId: string,
+    options: { includeAll?: boolean; ownerEmailFilter?: string } = {}
+  ) {
+    const normalizedOwnerEmailFilter = options.ownerEmailFilter?.trim().toLowerCase();
+    const visibleWorkspaces = [...this.workspaces.values()].filter((workspace) => {
+      if (!options.includeAll && this.workspaceOwners.get(workspace.id) !== ownerId) {
+        return false;
+      }
+
+      if (!normalizedOwnerEmailFilter) {
+        return true;
+      }
+
+      const ownerEmail = this.workspaceOwnerEmails.get(workspace.id) ?? "";
+      return ownerEmail.toLowerCase().includes(normalizedOwnerEmailFilter);
+    });
+
+    const projectedProfiles = projectWorkspaceProfiles(
+      visibleWorkspaces.map((workspace) => createPrototypeWorkspaceProfile(workspace))
     );
+
+    return projectedProfiles.map((profile) => ({
+      ...profile,
+      ownerId: this.workspaceOwners.get(profile.id) ?? null,
+      ownerEmail: this.workspaceOwnerEmails.get(profile.id) ?? null
+    }));
   }
 
-  async createWorkspace(ownerId: string, input: WeddingBootstrapInput) {
+  async createWorkspace(ownerId: string, input: WeddingBootstrapInput, ownerEmail?: string) {
     const workspace = createWorkspaceRecord(input);
     this.workspaces.set(workspace.id, workspace);
     this.workspaceOwners.set(workspace.id, ownerId);
+    this.workspaceOwnerEmails.set(workspace.id, ownerEmail ?? "");
     return cloneWorkspace(workspace);
   }
 
@@ -365,6 +393,7 @@ export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore 
     }
 
     this.workspaceOwners.delete(id);
+    this.workspaceOwnerEmails.delete(id);
     return this.workspaces.delete(id);
   }
 
@@ -558,6 +587,7 @@ export class InMemoryPrototypeWorkspaceStore implements PrototypeWorkspaceStore 
 interface PersistedPrototypeState {
   workspaces: PrototypeWorkspace[];
   workspaceOwners: Record<string, string>;
+  workspaceOwnerEmails: Record<string, string>;
 }
 
 export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
@@ -571,20 +601,27 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
         normalizeWorkspace(workspace)
       );
       const workspaceOwners = { ...(parsed.workspaceOwners ?? {}) };
+      const workspaceOwnerEmails = { ...(parsed.workspaceOwnerEmails ?? {}) };
 
       for (const workspace of normalizedWorkspaces) {
         if (!workspaceOwners[workspace.id]) {
           workspaceOwners[workspace.id] =
             process.env.NODE_ENV === "test" ? "test-user" : "legacy-unassigned";
         }
+
+        if (!workspaceOwnerEmails[workspace.id]) {
+          workspaceOwnerEmails[workspace.id] =
+            process.env.NODE_ENV === "test" ? "test@example.com" : "legacy-unassigned@example.com";
+        }
       }
 
       return {
         workspaces: normalizedWorkspaces,
-        workspaceOwners
+        workspaceOwners,
+        workspaceOwnerEmails
       };
     } catch {
-      return { workspaces: [], workspaceOwners: {} };
+      return { workspaces: [], workspaceOwners: {}, workspaceOwnerEmails: {} };
     }
   }
 
@@ -593,21 +630,42 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
     await writeFile(this.filePath, JSON.stringify(state, null, 2), "utf8");
   }
 
-  async listWorkspaces(ownerId: string) {
+  async listWorkspaces(
+    ownerId: string,
+    options: { includeAll?: boolean; ownerEmailFilter?: string } = {}
+  ) {
     const state = await this.readState();
+    const normalizedOwnerEmailFilter = options.ownerEmailFilter?.trim().toLowerCase();
+    const visibleWorkspaces = state.workspaces.filter((workspace) => {
+      if (!options.includeAll && state.workspaceOwners[workspace.id] !== ownerId) {
+        return false;
+      }
 
-    return projectWorkspaceProfiles(
-      state.workspaces
-        .filter((workspace) => state.workspaceOwners[workspace.id] === ownerId)
-        .map((workspace) => createPrototypeWorkspaceProfile(workspace))
+      if (!normalizedOwnerEmailFilter) {
+        return true;
+      }
+
+      const ownerEmail = state.workspaceOwnerEmails[workspace.id] ?? "";
+      return ownerEmail.toLowerCase().includes(normalizedOwnerEmailFilter);
+    });
+
+    const projectedProfiles = projectWorkspaceProfiles(
+      visibleWorkspaces.map((workspace) => createPrototypeWorkspaceProfile(workspace))
     );
+
+    return projectedProfiles.map((profile) => ({
+      ...profile,
+      ownerId: state.workspaceOwners[profile.id] ?? null,
+      ownerEmail: state.workspaceOwnerEmails[profile.id] ?? null
+    }));
   }
 
-  async createWorkspace(ownerId: string, input: WeddingBootstrapInput) {
+  async createWorkspace(ownerId: string, input: WeddingBootstrapInput, ownerEmail?: string) {
     const state = await this.readState();
     const workspace = createWorkspaceRecord(input);
     state.workspaces.push(workspace);
     state.workspaceOwners[workspace.id] = ownerId;
+    state.workspaceOwnerEmails[workspace.id] = ownerEmail ?? "";
     await this.writeState(state);
     return cloneWorkspace(workspace);
   }
@@ -637,7 +695,12 @@ export class FilePrototypeWorkspaceStore implements PrototypeWorkspaceStore {
     }
 
     delete state.workspaceOwners[id];
-    await this.writeState({ workspaces: nextWorkspaces, workspaceOwners: state.workspaceOwners });
+    delete state.workspaceOwnerEmails[id];
+    await this.writeState({
+      workspaces: nextWorkspaces,
+      workspaceOwners: state.workspaceOwners,
+      workspaceOwnerEmails: state.workspaceOwnerEmails
+    });
     return true;
   }
 

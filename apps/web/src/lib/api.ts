@@ -17,7 +17,7 @@ interface WorkspaceResponse {
 }
 
 interface WorkspaceProfilesResponse {
-  profiles: PrototypeWorkspaceProfile[];
+  profiles: Array<PrototypeWorkspaceProfile & { ownerEmail: string | null; ownerId: string | null }>;
 }
 
 export interface VendorRefreshJob {
@@ -360,7 +360,17 @@ async function requestJson<T>(path: string, init?: RequestInit) {
   });
 
   if (!response.ok) {
-    throw new Error(`Request failed with ${response.status}`);
+    if (response.status === 401) {
+      setApiAuthToken(null);
+      window.localStorage.removeItem("wedding.idToken");
+      window.dispatchEvent(new CustomEvent("wedding:auth-expired"));
+    }
+
+    const error = new Error(`Request failed with ${response.status}`) as Error & {
+      status?: number;
+    };
+    error.status = response.status;
+    throw error;
   }
 
   return (await response.json()) as T;
@@ -376,8 +386,19 @@ export function createWorkspace(input: WeddingBootstrapInput) {
   });
 }
 
-export function listWorkspaceProfiles() {
-  return requestJson<WorkspaceProfilesResponse>("/prototype/workspaces");
+export function listWorkspaceProfiles(input?: { all?: boolean; ownerEmail?: string }) {
+  const params = new URLSearchParams();
+
+  if (input?.all) {
+    params.set("all", "1");
+  }
+
+  if (input?.ownerEmail) {
+    params.set("ownerEmail", input.ownerEmail);
+  }
+
+  const suffix = params.toString().length > 0 ? `?${params.toString()}` : "";
+  return requestJson<WorkspaceProfilesResponse>(`/prototype/workspaces${suffix}`);
 }
 
 export function listVendorRefreshJobs() {
@@ -468,7 +489,17 @@ export async function deleteWorkspace(id: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`Request failed with ${response.status}`);
+    if (response.status === 401) {
+      setApiAuthToken(null);
+      window.localStorage.removeItem("wedding.idToken");
+      window.dispatchEvent(new CustomEvent("wedding:auth-expired"));
+    }
+
+    const error = new Error(`Request failed with ${response.status}`) as Error & {
+      status?: number;
+    };
+    error.status = response.status;
+    throw error;
   }
 }
 
