@@ -16,6 +16,14 @@ const configuredClientIds = (
 
 const googleClient = new OAuth2Client();
 
+interface GoogleTokenInfoResponse {
+  aud?: string;
+  sub?: string;
+  email?: string;
+  email_verified?: string;
+  name?: string;
+}
+
 function parseBearerToken(headerValue: string | undefined): string | null {
   if (!headerValue) {
     return null;
@@ -65,6 +73,38 @@ export async function authenticateRequest(
       name: payload.name ?? payload.email
     };
   } catch {
-    return null;
+    try {
+      const response = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`,
+        {
+          method: "GET"
+        }
+      );
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const payload = (await response.json()) as GoogleTokenInfoResponse;
+      const audienceMatches =
+        typeof payload.aud === "string" && configuredClientIds.includes(payload.aud);
+
+      if (
+        !audienceMatches ||
+        payload.email_verified !== "true" ||
+        !payload.sub ||
+        !payload.email
+      ) {
+        return null;
+      }
+
+      return {
+        id: payload.sub,
+        email: payload.email,
+        name: payload.name ?? payload.email
+      };
+    } catch {
+      return null;
+    }
   }
 }
