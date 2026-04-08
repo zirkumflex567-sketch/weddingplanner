@@ -386,7 +386,7 @@ img {
   display: grid;
   grid-template-columns: 312px minmax(0, 1fr);
   min-height: 100vh;
-  padding: 1.2rem 1.2rem 1.4rem;
+  padding: 12.2rem 1.2rem 1.4rem;
   gap: 1rem;
 }
 
@@ -394,8 +394,8 @@ img {
   grid-column: 1 / -1;
   align-self: start;
   justify-self: stretch;
-  position: sticky;
-  top: 0.75rem;
+  position: fixed;
+  inset: 0.75rem 1.2rem auto 1.2rem;
   min-height: 5rem;
   display: flex;
   align-items: flex-start;
@@ -408,7 +408,7 @@ img {
   border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 28px;
   box-shadow: var(--atelier-shadow-soft);
-  z-index: 30;
+  z-index: 40;
 }
 
 .brand-lockup,
