@@ -504,12 +504,10 @@ img {
 
 .workspace-rail {
   grid-column: 1;
-  position: sticky;
-  top: 5.6rem;
-  height: calc(100vh - 7rem);
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  position: relative;
+  top: auto;
+  height: auto;
+  overflow: visible;
   padding: 1.2rem 1rem 1.2rem 1.1rem;
   display: grid;
   align-content: start;
@@ -519,11 +517,6 @@ img {
     linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 250, 245, 0.84)),
     rgba(255, 250, 245, 0.78);
   box-shadow: var(--atelier-shadow-soft);
-}
-
-.workspace-rail::-webkit-scrollbar {
-  width: 0;
-  height: 0;
 }
 
 .rail-profile-card {
